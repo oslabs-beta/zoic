@@ -1,7 +1,9 @@
 import { Application } from "https://deno.land/x/oak/mod.ts";
-import router from './router.js'
+import router from './router.ts'
 
 const app = new Application();
+
+const portNum: number = 8000;
 
 app.use(router.routes());
 app.use(router.allowedMethods());
@@ -18,4 +20,10 @@ app.addEventListener('error', event => {
   console.log(event.error)
 });
 
-await app.listen({ port: 8000 });
+app.addEventListener('listen', ({secure, hostname, port}) => {
+  const protocol = secure ? 'https://' : 'http://';
+  const url = `${protocol}${hostname || 'localhost'}:${port}`;
+  console.log(`listening on port ${url}`);
+})
+
+await app.listen({ port: portNum });
