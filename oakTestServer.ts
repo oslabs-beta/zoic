@@ -3,7 +3,7 @@ import router from './router.ts'
 
 const app = new Application();
 
-const portNum: number = 8000;
+const portNum = 8000;
 
 app.use(router.routes());
 app.use(router.allowedMethods());

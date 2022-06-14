@@ -1,7 +1,7 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
 import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
 
-const controller: Record <string, any> = {};
+const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) => Promise<unknown> | void> = {};
 
 controller.jsonRead = async (ctx: Context, next: () => Promise<unknown>) => {
   ctx.state.json = await readJson(`${Deno.cwd()}/test.json`);
@@ -28,9 +28,9 @@ controller.writeJson = async (ctx: Context, next: () => Promise<unknown>) => {
 };
 
 controller.objectRead = (ctx: Context, next: () => Promise<unknown>) => {
-  const testObj: Record <string, any> = {
+  const testObj: Record <string, number | string> = {
     test: 'hi',
-    test2: true
+    test2: 12
   };
   testObj.name = 'hank';
   testObj.age = 31; 
