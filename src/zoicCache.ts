@@ -1,5 +1,93 @@
-import LRU from './lru.js'
+import { Context, isHttpError, Status } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import LRU from './lru.ts'
+//import LFU from './blahblah.js'
 
+interface options {
+  cache: string,
+  time?: number,
+  returnOnHit?: boolean
+}
+
+export class ZoicCache {
+  cache: LRU;
+  time: number;
+  returnOnHit: boolean;
+  constructor (options: options) {
+    this.cache = this.#initCacheType(options.cache);
+    this.time = options.time || 2000;
+    this.returnOnHit = options.returnOnHit || false;
+
+    this.get = this.get.bind(this);
+    this.put = this.put.bind(this);
+  }
+  
+  #initCacheType (cache: string): LRU {
+    if (cache === 'LRU') return new LRU();
+    return new LRU();
+  }
+
+  async get (ctx: Context, next: () => Promise<unknown>) {
+    const key: string = ctx.request.url.pathname + ctx.request.url.search;
+    try {
+      const cacheResults = await this.cache.get(key);
+
+      if (!cacheResults) {
+        // ctx.state._zoicMonkeyPatchReponse = ctx.response.toDomResponse;
+        // ctx.response.toDomResponse = function () {
+        //   console.log('testing toDomResponse monkeypatch')
+        //   return new Promise (resolve => {
+        //     resolve(ctx.state._zoicMonkeyPatchReponse())
+        //   }) 
+        // }
+        return next()
+      }
+
+      if (this.returnOnHit) {
+        ctx.response.body = cacheResults;
+        return;
+      }
+
+      ctx.state.zoic = cacheResults;
+
+      return next();
+
+    } catch {
+      ctx.response.body = {
+        success: false,
+        message: 'failed to retrive data from cache'
+      }
+    }
+    
+  }
+  
+  async put (ctx: Context, next: () => Promise<unknown>) {
+
+    try {
+    // deconstruct context obj for args to cache put
+    const value: any = ctx.state.zoic; 
+    
+    const key: string = ctx.request.url.pathname + ctx.request.url.search;
+ 
+    // call to put to cache: response +1 for good put, -1 for err
+    const putResponse: number = await this.cache.put(key, value) 
+  
+    if (putResponse === +1) return next();
+    else if (putResponse === -1) ctx.response.body = {
+      success: false,
+      message: 'failed to add entry to cache'
+    } 
+    } catch (err) {
+
+    // handle errors in caching process and emit
+      ctx.response.body = {
+        success: false,
+        message: `${err} ocurred when trying to add to the cache`
+      }
+    }
+  }
+}
+
+export default ZoicCache;
 
 const lru = new LRU();
 lru.put('a', 1)
