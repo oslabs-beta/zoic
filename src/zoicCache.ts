@@ -13,16 +13,15 @@ export class ZoicCache {
   time: number;
   returnOnHit: boolean;
   constructor (options: options) {
-    this.cache = this.#initCacheType(options.cache)
-    this.time = options.time || 2000,
-    this.returnOnHit = options.returnOnHit || false
+    this.cache = this.#initCacheType(options.cache);
+    this.time = options.time || 2000;
+    this.returnOnHit = options.returnOnHit || false;
 
     this.get = this.get.bind(this);
     this.put = this.put.bind(this);
   }
   
   #initCacheType (cache: string): LRU {
-    console.log('cache: ', cache)
     if (cache === 'LRU') return new LRU();
     return new LRU();
   }
@@ -32,14 +31,16 @@ export class ZoicCache {
     try {
       const cacheResults = await this.cache.get(key);
 
-      // if (!cacheResults) {
-      //   ctx.state._zoicMonkeyPatchReponse = ctx.state.toDomResponse
-      //   ctx.response.toDomResponse = async function () {
-      //     console.log('testing toDomResponse monkeypatch')
-      //     ctx.state._zoicMonkeyPatchReponse()
-      //   }
-      //   return next()
-      // }
+      if (!cacheResults) {
+        // ctx.state._zoicMonkeyPatchReponse = ctx.response.toDomResponse;
+        // ctx.response.toDomResponse = function () {
+        //   console.log('testing toDomResponse monkeypatch')
+        //   return new Promise (resolve => {
+        //     resolve(ctx.state._zoicMonkeyPatchReponse())
+        //   }) 
+        // }
+        return next()
+      }
 
       if (this.returnOnHit) {
         ctx.response.body = cacheResults;
@@ -64,10 +65,11 @@ export class ZoicCache {
     try {
     // deconstruct context obj for args to cache put
     const value: any = ctx.state.zoic; 
+    
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
  
     // call to put to cache: response +1 for good put, -1 for err
-    const putResponse: number = await this.cache.put(value, key) 
+    const putResponse: number = await this.cache.put(key, value) 
   
     if (putResponse === +1) return next();
     else if (putResponse === -1) ctx.response.body = {
@@ -85,6 +87,7 @@ export class ZoicCache {
   }
 }
 
+export default ZoicCache;
 
 const lru = new LRU();
 lru.put('a', 1)
