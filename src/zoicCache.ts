@@ -1,4 +1,4 @@
-import { Context, isHttpError, Status } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Context, Response } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import LRU from './lru.ts'
 //import LFU from './blahblah.js'
 
@@ -32,14 +32,23 @@ export class ZoicCache {
       const cacheResults = await this.cache.get(key);
 
       if (!cacheResults) {
-        // ctx.state._zoicMonkeyPatchReponse = ctx.response.toDomResponse;
-        // ctx.response.toDomResponse = function () {
-        //   console.log('testing toDomResponse monkeypatch')
-        //   return new Promise (resolve => {
-        //     resolve(ctx.state._zoicMonkeyPatchReponse())
-        //   }) 
-        // }
-        return next()
+        const zoicResponse = new Response(ctx.request);
+        const cache = this.cache;
+
+        ctx.response.toDomResponse = function () {
+
+          const value: any = ctx.response.body; 
+          const key: string = ctx.request.url.pathname + ctx.request.url.search;
+ 
+          cache.put(key, value);
+
+          zoicResponse.body = ctx.response.body;
+          return new Promise (resolve => {                
+            resolve(zoicResponse.toDomResponse());
+          });
+        }
+
+        return next();
       }
 
       if (this.returnOnHit) {

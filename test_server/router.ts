@@ -5,7 +5,7 @@ import  { ZoicCache } from '../src/zoicCache.ts';
 const router = new Router();
 const cache = new ZoicCache({ cache: 'LRU', returnOnHit: true });
 
-router.get('/readJson', cache.get, controller.jsonRead, cache.put, ctx => {
+router.get('/readJson', cache.get, controller.jsonRead, ctx => {
     console.log('ctx.response.body: ', ctx.state.zoic)
     ctx.response.body = ctx.state.zoic;
 });
