@@ -5,6 +5,7 @@ const app = new Application();
 
 const portNum = 8000;
 
+//These tell the server to run the route files
 app.use(router.routes());
 app.use(router.allowedMethods());
 

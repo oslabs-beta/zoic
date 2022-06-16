@@ -1,4 +1,55 @@
-import LRU from './lru.js'
+import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import LRU from './lru.ts'
+//import LFU from './blahblah.js'
+
+
+class ZoicCache {
+  cache: LRU;
+  time: number;
+  returnOnHit: boolean;
+  constructor (cache: string = 'LRU', time: number = 8.64e+7, returnOnHit: boolean = false) {
+    this.cache = this.#initCacheType(cache);
+    this.time = time,
+    this.returnOnHit = returnOnHit
+  }
+
+  #initCacheType (cache: string) {
+    if (cache === 'LRU') return new LRU();
+    //if (cache === 'LFU') return new LFU();
+  }
+
+  async get (ctx: Context, next: () => Promise<unknown>) {
+    
+    const key: string = ctx.request.url.pathname + ctx.request.url.search;
+
+    try {
+      ctx.state.zoic = await this.cache.get(key);
+      return next();
+    } catch {
+      return next({
+        err: 'There was an error during cache retreival'
+      });
+    }
+  
+
+
+  }
+  
+  async put (ctx: Context, next: () => Promise<unknown>) {
+
+    const value: any = ctx.state.zoic; 
+    const key: string = ctx.request.url.pathname + ctx.request.url.search;
+  
+    const putResponse: any = await this.cache.put(value, key) 
+   
+    if (putResponse === +1) return next();
+    if (putResponse === -1) return next({
+      err: 'There was an error during cache inserting'
+    })
+  }
+
+
+}
 
 
 const lru = new LRU();

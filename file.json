@@ -1,0 +1,109 @@
+// to delete: just for reference
+URL {
+  href: "http://localhost:8000/readJson",
+  origin: "http://localhost:8000",
+  protocol: "http:",
+  username: "",
+  password: "",
+  host: "localhost:8000",
+  hostname: "localhost",
+  port: "8000",
+  pathname: "/readJson",
+  hash: "",
+  search: ""
+}
+Context {
+  app: Application {
+  "#middleware": [
+    [Function: dispatch] {
+      router: Router {
+  "#params": {},
+  "#stack": [
+    Layer {
+  methods: [ "HEAD", "GET" ],
+  middleware: [ [Function: get], [AsyncFunction], [Function: put], [Function] ],
+  options: {
+    end: undefined,
+    sensitive: undefined,
+    strict: undefined,
+    ignoreCaptures: undefined
+  },
+  paramNames: [],
+  path: "/readJson",
+  regexp: /^\/readJson[\/#\?]?$/i
+},
+    Layer {
+  methods: [ "POST" ],
+  middleware: [ [AsyncFunction], [AsyncFunction], [Function] ],
+  options: {
+    end: undefined,
+    sensitive: undefined,
+    strict: undefined,
+    ignoreCaptures: undefined
+  },
+  paramNames: [],
+  path: "/writeJson",
+  regexp: /^\/writeJson[\/#\?]?$/i
+},
+    Layer {
+  methods: [ "HEAD", "GET" ],
+  middleware: [ [Function], [Function] ],
+  options: {
+    end: undefined,
+    sensitive: undefined,
+    strict: undefined,
+    ignoreCaptures: undefined
+  },
+  paramNames: [],
+  path: "/object",
+  regexp: /^\/object[\/#\?]?$/i
+},
+    Layer {
+  methods: [ "HEAD", "GET" ],
+  middleware: [ [Function] ],
+  options: {
+    end: undefined,
+    sensitive: undefined,
+    strict: undefined,
+    ignoreCaptures: undefined
+  },
+  paramNames: [],
+  path: "/other",
+  regexp: /^\/other[\/#\?]?$/i
+}
+  ]
+}
+    },
+    [AsyncFunction: allowedMethods],
+    [AsyncFunction],
+    [AsyncFunction]
+  ],
+  keys: undefined,
+  proxy: false,
+  state: {}
+},
+  cookies: Cookies [],
+  isUpgradable: false,
+  respond: true,
+  request: Request {
+  hasBody: false,
+  headers: Headers {
+  accept: "*/*",
+  "accept-encoding": "gzip, deflate, br",
+  connection: "keep-alive",
+  "content-length": "51",
+  "content-type": "application/json",
+  host: "localhost:8000",
+  "postman-token": "8697f449-2dad-4274-9c57-095d9ec0dffa",
+  "user-agent": "PostmanRuntime/7.29.0"
+},
+  ip: "127.0.0.1",
+  ips: [],
+  method: "GET",
+  secure: false,
+  url: "http://localhost:8000/readJson"
+},
+  response: Response { body: undefined, headers: Headers {}, status: 404, type: undefined, writable: true },
+  socket: undefined,
+  state: {}
+}

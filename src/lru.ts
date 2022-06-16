@@ -1,17 +1,25 @@
-function Node (value, next, key) {
-  this.next = next;
-  this.prev = null;
-  this.value = value;
-  this.key = key; // added this to delete the value from the cache
+class Node {
+  next: Node | null;
+  prev: Node | null;
+  value: any;
+  key: any;
+  constructor (value: any, next: Node | null, key: any){
+    this.next = next;
+    this.prev = null;
+    this.value = value;
+    this.key = key; // added this to delete the value from the cache
+  }
 }
 
 class DoublyLinkedList {
+  head: Node | null;
+  tail: Node | null;
   constructor () {
     this.head = null;
     this.tail = null;
   }
 
-  addHead (value, key) {
+  addHead (value: any, key: any) {
     this.head = new Node(value, this.head, key);
   
     if (!this.tail) this.tail = this.head;
@@ -40,6 +48,18 @@ class DoublyLinkedList {
     return deleted;
   }
   
+  // moveNode (node) {
+  //   const OGprevNode = node.prev;
+
+  //   //Bypass the current node in the original linkedlist
+  //   node.prev.next = node.next;
+  //   node.next.prev = OGprevNode;
+  //   node.next = null;
+  //   node.prev = null;
+
+  //   return this.addHead(node.value, node.key);
+  // }
+
   printList() {
     let current = this.tail;
     while(current) {
@@ -50,7 +70,11 @@ class DoublyLinkedList {
 }
 
 class LRU {
-  constructor () {
+  list: DoublyLinkedList;
+  map: any;
+  length: number;
+  capacity: number;
+  constructor (map: object = {}, length: number = 0, capacity: number = 10) {
     this.list = new DoublyLinkedList();
     this.map = {};
     this.length = 0;
@@ -63,6 +87,7 @@ class LRU {
   put (ctx, next) {
 
     const value = ctx.state.zoic;
+
 
     const key = ctx.request.url.pathname + ctx.request.url.search;
     console.log('key in put function', key)

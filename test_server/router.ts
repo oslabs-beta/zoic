@@ -1,9 +1,18 @@
 import { Router } from "https://deno.land/x/oak/mod.ts";
-import controller from './controllers.ts'
+import controller from './controllers.ts';
+import LRU from '../src/lru.js';
 
 const router = new Router();
+const lru = new LRU();
 
-router.get('/readJson', controller.jsonRead, ctx => {
+const cache = new zoicCache({
+  cacheType: LRU,
+  returnOnHit: true,
+  time: 10
+});
+
+router.get('/readJson', lru.get, controller.jsonRead, lru.put, ctx => {
+    console.log('ctx.response.body: ', ctx.state.json)
     ctx.response.body = ctx.state.json;
 });
 
