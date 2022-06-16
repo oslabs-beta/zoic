@@ -26,26 +26,32 @@ class ZoicCache {
       ctx.state.zoic = await this.cache.get(key);
       return next();
     } catch {
-      return next({
-        err: 'There was an error during cache retreival'
-      });
+      ctx.response.body = {
+        success: false,
+        message: 'failed to retrive data from cache'
+      }
     }
-  
-
-
+    
   }
   
   async put (ctx: Context, next: () => Promise<unknown>) {
 
+    try {
+    // deconstruct context obj for args to cache put
     const value: any = ctx.state.zoic; 
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
+ 
+    // call to put to cache: response +1 for good put, -1 for err
+    const putResponse: number = await this.cache.put(value, key) 
   
-    const putResponse: any = await this.cache.put(value, key) 
-   
     if (putResponse === +1) return next();
-    if (putResponse === -1) return next({
-      err: 'There was an error during cache inserting'
+    else if (putResponse === -1) return next({
+    
+    } catch {
+    // handle errors in caching process and emit
+      err: 'there was an error'
     })
+  }
   }
 
 

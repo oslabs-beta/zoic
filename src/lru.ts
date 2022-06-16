@@ -12,8 +12,8 @@ class Node {
 }
 
 class DoublyLinkedList {
-  head: Node | null;
-  tail: Node | null;
+  head: any;
+  tail: any;
   constructor () {
     this.head = null;
     this.tail = null;
@@ -74,7 +74,7 @@ class LRU {
   map: any;
   length: number;
   capacity: number;
-  constructor (map: object = {}, length: number = 0, capacity: number = 10) {
+  constructor () {
     this.list = new DoublyLinkedList();
     this.map = {};
     this.length = 0;
@@ -84,18 +84,11 @@ class LRU {
     this.put = this.put.bind(this);
   }
 
-  put (ctx, next) {
+  put (key: string, value: any)  {
 
-    const value = ctx.state.zoic;
-
-
-    const key = ctx.request.url.pathname + ctx.request.url.search;
-    console.log('key in put function', key)
-
-    console.log('key: ', key)
     // should we be moving replaced key/value pair to the head of the list?
     if (this.map[key]) {
-      const node = this.map[key];
+      const node: any = this.map[key];
 
       if (this.list.head === node) this.list.deleteHead();
       else if (this.list.tail === node) this.list.deleteTail();
@@ -109,54 +102,52 @@ class LRU {
     this.map[key] = this.list.addHead(value, key);
     if (this.length < this.capacity) this.length++;
     else {
-      const deletedNode = this.list.deleteTail();
+      const deletedNode: any = this.list.deleteTail();
       delete this.map[deletedNode.key];
     }
-
-    console.log(this.list)
-
-    return next();
+    return +1;
   }
 
 
-  get (ctx, next) {
-    console.log('this.list.head: ', this.list.head)
-    console.log('this.list.tail: ', this.list.tail)
+  get (key: string) {
+    // console.log('this.list.head: ', this.list.head)
+    // console.log('this.list.tail: ', this.list.tail)
     // console.log('ctx', ctx);
 
     //Endpoint
     // console.log('ctx.request.url.href ',ctx.request.url.href)
     // console.log('ctx.request.url.searchParams', ctx.request.url.searchParams)
-    console.log(ctx.request.url.pathname)
-    console.log(ctx.request.url.search)
+    // console.log(ctx.request.url.pathname)
+    // console.log(ctx.request.url.search)
 
-    const key = ctx.request.url.pathname + ctx.request.url.search;
+    // const key = ctx.request.url.pathname + ctx.request.url.search;
     console.log('key in get function', key)
 
     // console.log('lru.length: ', lru.length)
     //If there is a matching cacheß
     if (this.map[key]) {
       const node = this.map[key];
-
-      ctx.reponse.zoic = node.value;
       
-      if (this.list.head === node) return next();
+      if (this.list.head === node) return this.list.head;
       else if (this.list.tail === node) this.list.deleteTail();
       else {
         node.prev.next = node.next;
         node.next.prev = node.prev;
 
+        //Failsafe to make sure the removed node is separated from everything else
         node.next = null;
         node.prev = null;
       }
+      //Add new head to the list
       this.list.addHead(node.value, node.key).value;
 
-      return next();
+      //Return the newly cached node, which should now be the head, to the top-level caching layer
+      return this.list.head.value;
+
     } 
 
     //If no matching cache value (cache miss), return next();
-    ctx.response.zoic = undefined;
-    return next();
+    return undefined;
   }
 
 
