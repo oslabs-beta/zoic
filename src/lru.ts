@@ -2,7 +2,7 @@ class Node {
   next: Node | null;
   prev: Node | null;
   value: any;
-  key: any;
+  key: string;
   constructor (value: any, next: Node | null, key: any){
     this.next = next;
     this.prev = null;
@@ -47,18 +47,6 @@ class DoublyLinkedList {
     }
     return deleted;
   }
-  
-  // moveNode (node) {
-  //   const OGprevNode = node.prev;
-
-  //   //Bypass the current node in the original linkedlist
-  //   node.prev.next = node.next;
-  //   node.next.prev = OGprevNode;
-  //   node.next = null;
-  //   node.prev = null;
-
-  //   return this.addHead(node.value, node.key);
-  // }
 
   printList() {
     let current = this.tail;
@@ -108,23 +96,11 @@ class LRU {
     return +1;
   }
 
-
   get (key: string) {
-    // console.log('this.list.head: ', this.list.head)
-    // console.log('this.list.tail: ', this.list.tail)
-    // console.log('ctx', ctx);
-
-    //Endpoint
-    // console.log('ctx.request.url.href ',ctx.request.url.href)
-    // console.log('ctx.request.url.searchParams', ctx.request.url.searchParams)
-    // console.log(ctx.request.url.pathname)
-    // console.log(ctx.request.url.search)
-
-    // const key = ctx.request.url.pathname + ctx.request.url.search;
+   
     console.log('key in get function', key)
 
-    // console.log('lru.length: ', lru.length)
-    //If there is a matching cacheß
+    //If there is a matching cache
     if (this.map[key]) {
       const node = this.map[key];
       
@@ -133,48 +109,45 @@ class LRU {
       else {
         node.prev.next = node.next;
         node.next.prev = node.prev;
-
         //Failsafe to make sure the removed node is separated from everything else
         node.next = null;
         node.prev = null;
       }
       //Add new head to the list
       this.list.addHead(node.value, node.key).value;
-
       //Return the newly cached node, which should now be the head, to the top-level caching layer
       return this.list.head.value;
-
     } 
-
     //If no matching cache value (cache miss), return next();
     return undefined;
   }
-
-
-  // get (key) {
-  //   //See if key exists in our current map
-  //   if(this.map[key]){
-  //     //Also need to move this node to the front/head of the linked list.
-  //     this.list.moveNode(this.map[key]);
-  //     //Return the value
-  //     return this.map[key].value;
-  //   } //If not, return undefined, continue on with the user's middleware chain, and save the result via the put function AFTER
-  //   //the user finishes their middleware stuff
-  //   else {
-  //    return undefined;
-  //   }
-  // }
 
   printLru() {
     console.log('LIST')
     this.list.printList();
     console.log('\n')
-    //console.log('CACHE')
-    //for(const i in this.map) console.log(i + ': ' + this.map[i].value);
   }
 
 }
 
+
+const lru = new LRU();
+lru.put('a', 1)
+lru.put('b', 2)
+lru.put('c', 3)
+lru.put('d', 4)
+lru.put('b', 5)
+lru.put('e', 7)
+lru.put('c', 10)
+lru.put('d', 11)
+lru.put('d', 12)
+lru.put('f', 15)
+lru.put('d', 11)
+
+lru.printLru();
+lru.get('e')
+lru.printLru();
+console.log('length', lru.length)
 
 
 export default LRU;

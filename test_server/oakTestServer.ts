@@ -5,6 +5,8 @@ const app = new Application();
 
 const portNum = 8000;
 
+console.log('Deno.cwd() ', Deno.cwd())
+
 //These tell the server to run the route files
 app.use(router.routes());
 app.use(router.allowedMethods());

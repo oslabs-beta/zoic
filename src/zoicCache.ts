@@ -1,30 +1,55 @@
-import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Context, isHttpError, Status } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import LRU from './lru.ts'
 //import LFU from './blahblah.js'
 
+interface options {
+  cache: string,
+  time?: number,
+  returnOnHit?: boolean
+}
 
-class ZoicCache {
+export class ZoicCache {
   cache: LRU;
   time: number;
   returnOnHit: boolean;
-  constructor (cache: string = 'LRU', time: number = 8.64e+7, returnOnHit: boolean = false) {
-    this.cache = this.#initCacheType(cache);
-    this.time = time,
-    this.returnOnHit = returnOnHit
-  }
+  constructor (options: options) {
+    this.cache = this.#initCacheType(options.cache)
+    this.time = options.time || 2000,
+    this.returnOnHit = options.returnOnHit || false
 
-  #initCacheType (cache: string) {
+    this.get = this.get.bind(this);
+    this.put = this.put.bind(this);
+  }
+  
+  #initCacheType (cache: string): LRU {
+    console.log('cache: ', cache)
     if (cache === 'LRU') return new LRU();
-    //if (cache === 'LFU') return new LFU();
+    return new LRU();
   }
 
   async get (ctx: Context, next: () => Promise<unknown>) {
-    
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
-
     try {
-      ctx.state.zoic = await this.cache.get(key);
+      const cacheResults = await this.cache.get(key);
+
+      // if (!cacheResults) {
+      //   ctx.state._zoicMonkeyPatchReponse = ctx.state.toDomResponse
+      //   ctx.response.toDomResponse = async function () {
+      //     console.log('testing toDomResponse monkeypatch')
+      //     ctx.state._zoicMonkeyPatchReponse()
+      //   }
+      //   return next()
+      // }
+
+      if (this.returnOnHit) {
+        ctx.response.body = cacheResults;
+        return;
+      }
+
+      ctx.state.zoic = cacheResults;
+
       return next();
+
     } catch {
       ctx.response.body = {
         success: false,
@@ -45,16 +70,19 @@ class ZoicCache {
     const putResponse: number = await this.cache.put(value, key) 
   
     if (putResponse === +1) return next();
-    else if (putResponse === -1) return next({
-    
-    } catch {
+    else if (putResponse === -1) ctx.response.body = {
+      success: false,
+      message: 'failed to add entry to cache'
+    } 
+    } catch (err) {
+
     // handle errors in caching process and emit
-      err: 'there was an error'
-    })
+      ctx.response.body = {
+        success: false,
+        message: `${err} ocurred when trying to add to the cache`
+      }
+    }
   }
-  }
-
-
 }
 
 

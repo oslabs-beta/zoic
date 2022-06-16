@@ -4,8 +4,7 @@ import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
 const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) => Promise<unknown> | void> = {};
 
 controller.jsonRead = async (ctx: Context, next: () => Promise<unknown>) => {
-  ctx.state.json = await readJson(`${Deno.cwd()}/test_server/test.json`);
-  ctx.state.zoic = 'myCacheValue'
+  ctx.state.zoic = await readJson(`${Deno.cwd()}/test.json`);
   return next();
 };
 
@@ -20,7 +19,7 @@ controller.writeJson = async (ctx: Context, next: () => Promise<unknown>) => {
     return;
   }
   const reqBodyVal = await reqBody.value;
-  const currentJSON: any = await readJson(`${Deno.cwd()}/test_server/test.json`);
+  const currentJSON: any = await readJson(`${Deno.cwd()}/test.json`);
   Object.keys(reqBodyVal).forEach((key: string) => {
     currentJSON[key] = reqBodyVal[key];
   });
