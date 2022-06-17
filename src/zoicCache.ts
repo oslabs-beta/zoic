@@ -19,11 +19,11 @@ export class ZoicCache {
   cache: LRU;
   time: number;
   returnOnHit: boolean;
-  constructor (options: options) {
+  constructor (options?: options) {
     //initalizes cache options
-    this.cache = this.#initCacheType(options.cache = 'LRU');
-    this.time = options.time || 2000;
-    this.returnOnHit = options.returnOnHit || false;
+    this.cache = this.#initCacheType(options?.cache);
+    this.time = options?.time || 2000;
+    this.returnOnHit = options?.returnOnHit || false;
 
     this.use = this.use.bind(this);
     this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
@@ -38,7 +38,7 @@ export class ZoicCache {
     * @return {object} //new cache object
   **/
 
-  #initCacheType (cache: string): LRU {
+  #initCacheType (cache?: string): LRU {
     if (cache === 'LRU') return new LRU();
     return new LRU();
   }
