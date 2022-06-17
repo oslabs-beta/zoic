@@ -11,7 +11,6 @@ const cache = new ZoicCache({ cache: 'LRU', returnOnHit: true });
 //These tell the server to run the route files
 app.use(router.routes());
 app.use(router.allowedMethods());
-//app.use(cache.get)
 
 app.use(async ctx => {
   await ctx.send({ root: `${Deno.cwd()}/static`, index: 'index.html'});
