@@ -1,1 +1,3 @@
-# legendary-deno-cache
+# zoic
+
+Caching middleware library for Oak in Deno.
