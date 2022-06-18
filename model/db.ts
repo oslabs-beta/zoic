@@ -3,15 +3,15 @@ import { Client } from "https://deno.land/x/postgres@v0.16.1/mod.ts";
 
 const config = Deno.env.get("SWARS_API_KEY");
 
-const client = new Client(config);
+const client = new Client("postgres://jwzjcurw:qKN9rE7SRHSYnAXAgeDjUOlocAScPv74@drona.db.elephantsql.com/jwzjcurw");
 await client.connect();
 
-try {
-  const result = await client.queryArray(`SELECT * FROM "public"."films" LIMIT 10`);
-  console.log(result);
-} catch {
-  console.log('error during connection')
-}
+// try {
+//   const result = await client.queryArray(`SELECT * FROM "public"."films" LIMIT 10`);
+//   console.log(result);
+// } catch {
+//   console.log('error during connection')
+// }
 
 // await client.end();
 

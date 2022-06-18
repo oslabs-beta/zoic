@@ -5,13 +5,20 @@ import Client from '../model/db.ts'
 const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) => Promise<unknown> | void> = {};
 
 controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
-  // ctx.state.test = await readJson(`${Deno.cwd()}/test.json`);
 
-  ctx.state.test = await Client.queryArray(
+  const queryObj = await Client.queryArray(
     'SELECT * FROM "public"."people" LIMIT $1',
     //Parameterization
     [10],
   );
+
+  //fixes stringifying type bigint
+  function toJson(data: any) {
+    return JSON.stringify(data, (_, v) => typeof v === 'bigint' ? `${v}n` : v).replace(/"(-?\d+)n"/g, (_, a) => a);
+  }
+
+  //removes bigint and parses back to object
+  ctx.state.test = JSON.parse(toJson(queryObj.rows));
 
   return next();
 };

@@ -5,13 +5,13 @@ import  { ZoicCache } from '../src/zoicCache.ts';
 const router = new Router();
 const cache = new ZoicCache();
 
-router.get('/dbRead', cache.use, controller.jsonRead, ctx => {
-  ctx.response.headers.set('Etag', 'test tag')
-    console.log('ctx.response.body: ', ctx.state.test)
+router.get('/dbRead', cache.use, controller.dbRead, ctx => {
+    ctx.response.headers.set('Etag', 'test tag')
+    //console.log('ctx.response.body: ', ctx.state.test)
     ctx.response.body = ctx.state.test;
 });
 
-router.post('/dbWrite', controller.writeJson, controller.jsonRead, ctx => {
+router.post('/dbWrite', controller.dbWrite, controller.dbRead, ctx => {
   ctx.response.body = ctx.state.zoic;
 })
 
