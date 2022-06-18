@@ -1,3 +1,3 @@
-# zoic
+# zoic 🦕
 
-Caching middleware library for Oak in Deno.
+Caching middleware library for Oak in Deno 🦕
