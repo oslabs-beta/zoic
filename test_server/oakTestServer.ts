@@ -6,7 +6,7 @@ const app = new Application();
 
 const portNum = 8000;
 
-const cache = new ZoicCache({ cache: 'LRU', returnOnHit: true });
+const cache = new ZoicCache({ cache: 'LRU' });
 
 //These tell the server to run the route files
 app.use(router.routes());
