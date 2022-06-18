@@ -3,11 +3,11 @@ import controller from './controllers.ts';
 import  { ZoicCache } from '../src/zoicCache.ts';
 
 const router = new Router();
-const cache = new ZoicCache({ cache: 'LRU', returnOnHit: true });
+const cache = new ZoicCache({ returnOnHit: true });
 
-router.get('/readJson', cache.get, controller.jsonRead, cache.put, ctx => {
-    console.log('ctx.response.body: ', ctx.state.zoic)
-    ctx.response.body = ctx.state.zoic;
+router.get('/readJson', cache.use, controller.jsonRead, ctx => {
+    console.log('ctx.response.body: ', ctx.state.test)
+    ctx.response.body = ctx.state.test;
 });
 
 router.post('/writeJson', controller.writeJson, controller.jsonRead, ctx => {

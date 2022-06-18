@@ -1,11 +1,12 @@
 import { Application } from "https://deno.land/x/oak/mod.ts";
 import router from './router.ts'
+import  { ZoicCache } from '../src/zoicCache.ts';
 
 const app = new Application();
 
 const portNum = 8000;
 
-console.log('Deno.cwd() ', Deno.cwd())
+const cache = new ZoicCache({ cache: 'LRU', returnOnHit: true });
 
 //These tell the server to run the route files
 app.use(router.routes());

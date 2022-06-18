@@ -4,7 +4,7 @@ import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
 const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) => Promise<unknown> | void> = {};
 
 controller.jsonRead = async (ctx: Context, next: () => Promise<unknown>) => {
-  ctx.state.zoic = await readJson(`${Deno.cwd()}/test.json`);
+  ctx.state.test = await readJson(`${Deno.cwd()}/test.json`);
   return next();
 };
 
