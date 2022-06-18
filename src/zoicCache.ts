@@ -23,7 +23,7 @@ export class ZoicCache {
     //initalizes cache options
     this.cache = this.#initCacheType(options?.cache);
     this.time = options?.time || 2000;
-    this.returnOnHit = options?.returnOnHit || false;
+    this.returnOnHit = options?.returnOnHit || true;
 
     this.use = this.use.bind(this);
     this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
@@ -39,7 +39,9 @@ export class ZoicCache {
   **/
 
   #initCacheType (cache?: string): LRU {
-    if (cache === 'LRU') return new LRU();
+    // The client will enter the specific cache function they want as a string.
+    if (cache === 'LRU') return new LRU(); // Since the default is LRU, can we take this line out later?
+    // if (cache === 'LFU') return new LFU();
     return new LRU();
   }
 
@@ -71,12 +73,16 @@ export class ZoicCache {
 
       //if user selects returnOnHit option, return cache query results immediately 
       if (this.returnOnHit) {
-        ctx.response.body = cacheResults;
+        ctx.response.headers = cacheResults.headers;
+        ctx.response.body = cacheResults.body;
+        ctx.response.status = cacheResults.status;
+        ctx.response.type = cacheResults.type;
+        console.log('zoicCache return on hit: ', cacheResults.headers, cacheResults.body, cacheResults.status);
         return;
       }
 
       //attach query results to ctx.state.zoic
-      ctx.state.zoic = cacheResults;
+      ctx.state.zoicResponse = Object.assign({}, cacheResults);
 
       return next();
 
@@ -104,20 +110,31 @@ export class ZoicCache {
     const zoicResponse = new Response(ctx.request);
     const cache = this.cache;
 
-    //patch toDomResponse to cache response body before returning resutls to client
-    ctx.response.toDomResponse = function () {
+    //patch toDomResponse to cache response body before returning results to client
+    ctx.response.toDomResponse = function() {
 
       //add response body to cache
-      const value: any = ctx.response.body; 
+      const response: any = {
+        body: ctx.response.body,
+        headers: ctx.response.headers,
+        status: ctx.response.status,
+        type: ctx.response.type
+      };
+
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
-      cache.put(key, value);
+      cache.put(key, response);
 
       //returns results to client
+      zoicResponse.headers = ctx.response.headers;
       zoicResponse.body = ctx.response.body;
+      zoicResponse.status = ctx.response.status;
+      zoicResponse.type = ctx.response.type;
+
       return new Promise (resolve => {                
         resolve(zoicResponse.toDomResponse());
       });
     }
+
     return;
   }
   
