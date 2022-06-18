@@ -1,14 +1,22 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
 import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
+import Client from '../model/db.ts'
 
 const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) => Promise<unknown> | void> = {};
 
-controller.jsonRead = async (ctx: Context, next: () => Promise<unknown>) => {
-  ctx.state.test = await readJson(`${Deno.cwd()}/test.json`);
+controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
+  // ctx.state.test = await readJson(`${Deno.cwd()}/test.json`);
+
+  ctx.state.test = await Client.queryArray(
+    'SELECT * FROM "public"."people" LIMIT $1',
+    //Parameterization
+    [10],
+  );
+
   return next();
 };
 
-controller.writeJson = async (ctx: Context, next: () => Promise<unknown>) => {
+controller.dbWrite = async (ctx: Context, next: () => Promise<unknown>) => {
   const reqBody = ctx.request.body();
   if (!reqBody.value || reqBody.type !== 'json') {
     ctx.response.status = 400;
