@@ -1,5 +1,6 @@
 import { Context, Response } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import LRU from './lru.ts';
+import LFU from './lfu.ts';
 
 interface options {
   cache?: string,
@@ -15,7 +16,7 @@ interface options {
 **/
 
 export class ZoicCache {
-  cache: LRU;
+  cache: LRU | LFU;
   time: number;
   respondOnHit: boolean;
   constructor (options?: options) {
@@ -37,10 +38,9 @@ export class ZoicCache {
     * @return {object} //new cache object
   **/
 
-  #initCacheType (cache?: string): LRU {
+  #initCacheType (cache?: string) {
     // The client will enter the specific cache function they want as a string.
-    if (cache === 'LRU') return new LRU(); // Since the default is LRU, can we take this line out later?
-    // if (cache === 'LFU') return new LFU();
+    if (cache === 'LFU') return new LFU();
     return new LRU();
   }
 
@@ -54,19 +54,19 @@ export class ZoicCache {
     * @return {promise || void} //enters next middleware func or returns response
   **/
 
-  async use (ctx: Context, next: () => Promise<unknown>) {
+  use (ctx: Context, next: () => Promise<unknown>) {
     
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
 
     try {
       //query cache
-      const cacheResults = await this.cache.get(key);
+      const cacheResults = this.cache.get(key);
 
       //check if cache miss
       if (!cacheResults) {
         //makes response cacheable via patch
-        this.makeResponseCacheable(ctx)
+        this.makeResponseCacheable(ctx);
         return next();
       }
 
@@ -78,6 +78,7 @@ export class ZoicCache {
         ctx.response.type = cacheResults.type;
 
         console.log('zoicCache return on hit: ', cacheResults.headers, cacheResults.body, cacheResults.status);
+
         return;
       }
 
@@ -156,10 +157,10 @@ export class ZoicCache {
     
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
  
-    // call to put to cache: response +1 for good put, -1 for err
-    const putResponse: number = await this.cache.put(key, value) 
+    // call to put to cache: response 0 for good put, -1 for err
+    const putResponse: number = await this.cache.put(key, value);
   
-    if (putResponse === +1) return next();
+    if (putResponse === 0) return next();
     else if (putResponse === -1) ctx.response.body = {
       success: false,
       message: 'failed to add entry to cache'

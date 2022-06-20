@@ -36,7 +36,7 @@ class LRU {
       const deletedNode: any = this.list.deleteTail();
       delete this.map[deletedNode.key];
     }
-    return +1;
+    return 0;
   }
 
   get (key: string) {

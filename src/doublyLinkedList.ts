@@ -3,18 +3,22 @@ class Node {
   prev: Node | null;
   value: any;
   key: string;
+  count: number;
   constructor (value: any, next: Node | null, key: any){
     this.next = next;
     this.prev = null;
     this.value = value;
     this.key = key; // added this to delete the value from the cache
+    this.count = 1;
   }
 }
 
 export class DoublyLinkedList {
+  length: number;
   head: any;
   tail: any;
   constructor () {
+    this.length = 0;
     this.head = null;
     this.tail = null;
   }
