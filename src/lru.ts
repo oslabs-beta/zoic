@@ -98,11 +98,11 @@ lru.get('C');
 lru.get('B');
 lru.put('D', {body: 4});
 lru.put('E', {body: 5});
-lru.delete('B')
 lru.delete('A')
+lru.delete('B')
+lru.delete('C')
 lru.delete('D')
 lru.delete('E')
-lru.delete('C')
 lru.printLru();
 
 export default LRU;
