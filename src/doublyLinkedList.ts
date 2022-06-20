@@ -8,17 +8,15 @@ class Node {
     this.next = next;
     this.prev = null;
     this.value = value;
-    this.key = key; // added this to delete the value from the cache
+    this.key = key;
     this.count = 1;
   }
 }
 
 export class DoublyLinkedList {
-  length: number;
   head: any;
   tail: any;
   constructor () {
-    this.length = 0;
     this.head = null;
     this.tail = null;
   }
@@ -55,7 +53,7 @@ export class DoublyLinkedList {
   printList() {
     let current = this.tail;
     while(current) {
-      console.log(current.key + ': ' + current.value)
+      console.log(current.key + ': ' + current.value.body)
       current = current.prev;
     }
   }

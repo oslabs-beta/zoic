@@ -1,9 +1,9 @@
 import { Router } from "https://deno.land/x/oak/mod.ts";
 import controller from './controllers.ts';
-import  { ZoicCache } from '../src/zoicCache.ts';
+import { ZoicCache } from '../src/zoicCache.ts';
 
 const router = new Router();
-const cache = new ZoicCache({ cache: 'LRU' });
+const cache = new ZoicCache({ cache: 'LRU', expire: 3 });
 
 router.get('/dbRead', cache.use, controller.dbRead, ctx => {
     ctx.response.headers.set('Etag', 'test tag')

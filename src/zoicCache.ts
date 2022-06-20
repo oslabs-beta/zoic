@@ -3,26 +3,26 @@ import LRU from './lru.ts';
 import LFU from './lfu.ts';
 
 interface options {
-  cache?: string,
-  expireTime?: number,
+  cache?: 'LRU' | 'LFU',
+  expire?: number,
   respondOnHit?: boolean
 }
 
 /**
   * class user initalizes to create new instance of cache.
-  * takes options to define if cache type, expireTime for items to remain in cache, and if response should be returned on cache hit
+  * takes options to define if cache type, expire for items to remain in cache, and if response should be returned on cache hit
   * @param {object} //cache options
   * @returns {object} //new cache
 **/
 
 export class ZoicCache {
   cache: LRU | LFU;
-  expireTime: number;
+  expire: number;
   respondOnHit: boolean;
   constructor (options?: options) {
     //initalizes cache options
-    this.cache = this.#initCacheType(options?.cache);
-    this.expireTime = options?.expireTime || 2000;
+    this.expire = options?.expire || 86400;
+    this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
 
     this.use = this.use.bind(this);
@@ -33,15 +33,15 @@ export class ZoicCache {
 
   /**
     * Sets cache type.
-    * defaults to LRU
+    * defaults to LRU.
     * @param {string} //cache type via options
     * @return {object} //new cache object
   **/
 
-  #initCacheType (cache?: string) {
-    // The client will enter the specific cache function they want as a string.
-    if (cache === 'LFU') return new LFU();
-    return new LRU();
+  #initCacheType (expire: number, cache?: string) {
+    // The client will enter the specific cache function they want as a string, which is passed as an arg here.
+    if (cache === 'LFU') return new LFU(expire);
+    return new LRU(expire);
   }
 
 
@@ -58,7 +58,6 @@ export class ZoicCache {
     
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
-
     try {
       //query cache
       const cacheResults = this.cache.get(key);
@@ -87,12 +86,10 @@ export class ZoicCache {
 
       return next();
 
-      //error handling (~~* needs work *~~)
-    } catch {
-      ctx.response.body = {
-        success: false,
-        message: 'failed to retrive data from cache'
-      }
+    } catch (err) {
+      ctx.response.status = 400;
+      ctx.response.body = `error in ZoicCache.use: ${err}`
+      console.log(`error in ZoicCache.use: ${err}`);
     }
   }
 
@@ -139,6 +136,13 @@ export class ZoicCache {
     return;
   }
   
+
+  /**
+   * manually clears all current cache entries.
+   */
+  clearCache () {
+    this.cache.clear();
+  }
 
   
   /**

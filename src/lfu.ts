@@ -2,16 +2,18 @@ import { DoublyLinkedList } from './doublyLinkedList.ts'
 
 class LFU {
   cache: any;
-  map: Record<string, DoublyLinkedList>;
-  count: number;
+  frequencyMap: Record<string, DoublyLinkedList>;
+  length: number;
   minUsage: number;
   capacity: number;
-  constructor () {
+  expire: number;
+  constructor (expire: number) {
     this.cache = {};
-    this.map = {};
-    this.count = 0;
+    this.frequencyMap = {};
+    this.length = 0;
     this.minUsage = 0;
     this.capacity = 5;
+    this.expire = expire;
   }
 
   put(key: string, value: any) {
@@ -20,14 +22,16 @@ class LFU {
       node.value = value;
       return 0;
     }
-
     
-    if(this.count === this.capacity) this.map[this.minUsage].deleteTail();
-    else ++this.count;
+    if (this.length >= this.capacity) {
+      const node = this.frequencyMap[this.minUsage].deleteTail();
+      delete this.cache[node.key];
+    }
+    else ++this.length;
 
-    if(!this.map[1]) this.map[1] = new DoublyLinkedList();
-    const newNode = this.map[1].addHead(value, key);
-    this.map[1].length++;
+    if(!this.frequencyMap[1]) this.frequencyMap[1] = new DoublyLinkedList();
+    const newNode = this.frequencyMap[1].addHead(value, key);
+    //this.frequencyMap[1].length++;
     this.cache[key] = newNode;
     this.minUsage = 1;
 
@@ -35,7 +39,7 @@ class LFU {
   }
 
   get(key: string) {
-    return this.getNode(key).value;
+    return this.getNode(key)?.value;
   }
 
   getNode(key: string) {
@@ -44,7 +48,7 @@ class LFU {
 
     // Remove this node from DLL
     const node = this.cache[key];
-    const list = this.map[node.count];
+    const list = this.frequencyMap[node.count];
 
     if(list.head === node) list.deleteHead();
     else if (list.tail === node) list.deleteTail();
@@ -54,41 +58,96 @@ class LFU {
     }
     node.next = null;
     node.prev = null;
-    --list.length;
+    //--list.length;
 
-    // Check if the list this node was removed from is empty. If so, delete it from the map.
-    if(list.length === 0) {
+    // Check if the list this node was removed from is empty. If so, delete it from the frequencyMap.
+    if(!list.head) {
       // Also, check it had the lowest count. If so, increment the minUsage.
       if(this.minUsage === node.count) this.minUsage++;
-      delete this.map[node.count];
+      delete this.frequencyMap[node.count];
     }
 
     // If the next list doesn't exist, create it and make the current node the tail.
-    if(!this.map[++node.count]) {
-      this.map[node.count] = new DoublyLinkedList();
-      this.map[node.count].tail = node;
+    if(!this.frequencyMap[++node.count]) {
+      this.frequencyMap[node.count] = new DoublyLinkedList();
+      this.frequencyMap[node.count].tail = node;
     }
 
     // Make the node the head of the new list and return its value
-    const newList = this.map[node.count];
+    const newList = this.frequencyMap[node.count];
     node.next = newList.head;
     if(newList.head) newList.head.prev = node;
     newList.head = node;
-    return node.value;
+    //this.frequencyMap[node.count].length++;
+    return node;
+  }
+
+  delete (key: string) {
+    const node = this.cache[key];
+    if(!node) return;
+
+    if (node.prev) node.prev.next = node.next;
+    if (node.next) node.next.prev = node.prev;
+
+    const list = this.frequencyMap[node.count];
+    if (node === list.head) list.head = node.next;
+    if (node === list.tail) list.tail = node.prev;
+    delete this.cache[key];
+    this.length--
+
+    if (!list.head) {
+      delete this.frequencyMap[node.count];
+      this.minUsage = parseInt(Object.keys(this.frequencyMap)[0]) || 0; // n log n
+    }
+
+    return;
+  }
+
+  clear () {
+    this.cache = {};
+    this.frequencyMap = {};
+    this.length = 0;
+    this.minUsage = 0;
   }
 
   //TODO: also delete from cache
   printLFU() {
     for(let i = 1; i < 5; i++) {
-      if(this.map[i]) {
-        const e = this.map[i];
+      if(this.frequencyMap[i]) {
+        const e = this.frequencyMap[i];
         console.log(e.head.count)
         e.printList();
       }
     }
   }
-
-
 }
+
+// const lfu = new LFU(5)
+// lfu.put('A', {body: 1});
+// lfu.put('B', {body: 2});
+// lfu.put('C', {body: 3});
+// lfu.put('D', {body: 4});
+// lfu.put('E', {body: 5});
+// lfu.get('D');
+// lfu.get('A');
+// lfu.get('C');
+// lfu.get('B');
+// lfu.get('E');
+// lfu.get('E');
+// lfu.put('F', {body: 6});
+// lfu.put('B', {body: 7});
+// lfu.put('Z', {body: 8});
+// lfu.printLFU();
+// console.log(lfu)
+// lfu.delete('B')
+// lfu.delete('A')
+// lfu.delete('Z')
+// lfu.delete('B')
+// lfu.delete('F')
+// lfu.delete('E')
+// lfu.delete('C')
+// lfu.put('A', {body: 1})
+// // lfu.printLFU();
+// console.log(lfu)
 
 export default LFU;
