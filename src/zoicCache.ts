@@ -1,12 +1,19 @@
-import { Context, Response } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Context, Response, helpers } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
+import PerfMetrics from './performanceMetrics.js'
 
 interface options {
   cache?: string,
   expireTime?: number,
   respondOnHit?: boolean
 }
+
+// interface PerfMetrics {
+//   numEntries: number,
+//   addEntry: (argument: string ): Number => number,
+
+// }
 
 /**
   * class user initalizes to create new instance of cache.
@@ -19,11 +26,16 @@ export class ZoicCache {
   cache: LRU | LFU;
   expireTime: number;
   respondOnHit: boolean;
+  metrics: any;
+  maxEntries: number;
   constructor (options?: options) {
     //initalizes cache options
     this.cache = this.#initCacheType(options?.cache);
     this.expireTime = options?.expireTime || 2000;
     this.respondOnHit = options?.respondOnHit || true;
+    this.metrics = new PerfMetrics();
+    //6 entries is the current maximum
+    this.maxEntries = 5;
 
     this.use = this.use.bind(this);
     this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
@@ -58,17 +70,36 @@ export class ZoicCache {
     
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
+    console.log('ctx.request.url.pathname IN ZOIC CACHE: ', ctx.request.url.pathname)
+    console.log(ctx.request.url.searchParams.getAll('name'));
+    // console.log('params.name', ctx.params.name);
+    console.log('name ', helpers.getQuery(ctx, { mergeParams: true }).name);
+
+
+    console.log('ctx.request.url.search IN ZOIC CACHE: ', ctx.request.url.search)
+    console.log('key is ', key);
 
     try {
       //query cache
       const cacheResults = this.cache.get(key);
-
       //check if cache miss
       if (!cacheResults) {
+        // count of cache miss
+        this.metrics.addMiss();
+
+        console.log('this.maxEntries: ', this.maxEntries)
+        console.log('this.metrics.numEntries: ', this.metrics.numEntries)
+
+        // If declared cache size is equal to current cache size, we decrement the count of entries. 
+        if (this.metrics.numEntries >= this.maxEntries) this.metrics.deleteEntry();
+        // Then we increment the count for the new entry.
+        this.metrics.addEntry();
         //makes response cacheable via patch
         this.makeResponseCacheable(ctx);
         return next();
       }
+
+      this.metrics.addHit();
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
