@@ -4,25 +4,25 @@ import LFU from './lfu.ts';
 
 interface options {
   cache?: string,
-  time?: number,
+  expireTime?: number,
   respondOnHit?: boolean
 }
 
 /**
   * class user initalizes to create new instance of cache.
-  * takes options to define if cache type, time for items to remain in cache, and if response should be returned on cache hit
+  * takes options to define if cache type, expireTime for items to remain in cache, and if response should be returned on cache hit
   * @param {object} //cache options
   * @returns {object} //new cache
 **/
 
 export class ZoicCache {
   cache: LRU | LFU;
-  time: number;
+  expireTime: number;
   respondOnHit: boolean;
   constructor (options?: options) {
     //initalizes cache options
     this.cache = this.#initCacheType(options?.cache);
-    this.time = options?.time || 2000;
+    this.expireTime = options?.expireTime || 2000;
     this.respondOnHit = options?.respondOnHit || true;
 
     this.use = this.use.bind(this);
