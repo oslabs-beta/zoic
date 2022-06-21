@@ -49,7 +49,11 @@ export class ZoicCache {
     this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
     this.metrics = new PerfMetrics();
+<<<<<<< HEAD
     //5 entries is the current maximum
+=======
+    //6 entries is the current maximum
+>>>>>>> 051b5f190f31e2b5265bafaee2efd3acbfbd0676
     this.maxEntries = 5;
 
     this.use = this.use.bind(this);

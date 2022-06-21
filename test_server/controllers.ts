@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/oak/mod.ts";
+import { Context, helpers } from "https://deno.land/x/oak/mod.ts";
 import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
 import Client from '../model/db.ts'
 
@@ -6,10 +6,17 @@ const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) =
 
 controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
 
+  interface Name {
+    name: any
+  }
+
+  // Get params of query for performance metrics testing
+  const { name } = helpers.getQuery(ctx, { mergeParams: true })
+
   const queryObj = await Client.queryArray(
-    'SELECT * FROM "public"."people" LIMIT $1',
+    `SELECT * FROM "public"."people" WHERE name=$CHARNAME;`,
     //Parameterization
-    [10],
+    { CHARNAME: name }
   );
 
   //fixes stringifying type bigint
@@ -19,7 +26,6 @@ controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
 
   //removes bigint and parses back to object
   ctx.state.test = JSON.parse(toJson(queryObj.rows));
-
   return next();
 };
 
