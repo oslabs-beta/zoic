@@ -1,7 +1,7 @@
 import { Context, Response, helpers } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
-import PerfMetrics from './performanceMetrics.js'
+import PerfMetrics from './performanceMetrics.ts'
 
 interface options {
   cache?: 'LRU' | 'LFU',
