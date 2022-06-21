@@ -11,9 +11,24 @@ interface options {
 /**
   * Class to initalize new instance of cache.
   * Takes options to define if cache eviction policy, expiration time for cache itmes, and if response should be returned on cache hit.
+  * 
+  * ### Example
+  * 
+  * ```ts
+  * 
+  * import { ZoicCache } from '../src/zoicCache.ts';
+  * 
+  * const cache = new ZoicCache({ cache: 'LFU', expire: '2h, 5m, 3s', respondOnHit: true });
+  * 
+  * router.get('/dbRead', cache.use, controller.dbRead, ctx => {
+  *  ctx.response.body = ctx.state.somethingFromDb;});
+  * 
+  * 
+  * ```
+  * 
   * @param option (cache options)
   * @returns LRU | LFU (new cache)
-**/
+*/
 export class ZoicCache {
   cache: LRU | LFU;
   expire: number;
@@ -130,15 +145,16 @@ export class ZoicCache {
     //patch toDomResponse to cache response body before returning results to client
     ctx.response.toDomResponse = function() {
 
-      //add response body to cache
-      const response: any = {
+      //defines key via api endpoint and adds response body to cache
+      const key: string = ctx.request.url.pathname + ctx.request.url.search;
+
+      const response: unknown = {
         body: ctx.response.body,
         headers: ctx.response.headers,
         status: ctx.response.status,
         type: ctx.response.type
       };
-
-      const key: string = ctx.request.url.pathname + ctx.request.url.search;
+      
       cache.put(key, response);
 
       //returns results to client
@@ -175,7 +191,7 @@ export class ZoicCache {
 
     try {
     // deconstruct context obj for args to cache put
-    const value: any = ctx.state.zoic; 
+    const value: unknown = ctx.state.zoic; 
     
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
  
