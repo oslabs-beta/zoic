@@ -1,6 +1,5 @@
 import { Application } from "https://deno.land/x/oak/mod.ts";
 import router from './router.ts'
-import  { ZoicCache } from '../src/zoicCache.ts';
 
 const app = new Application();
 

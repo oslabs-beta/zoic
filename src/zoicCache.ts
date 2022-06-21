@@ -4,8 +4,8 @@ import LFU from './lfu.ts';
 import PerfMetrics from './performanceMetrics.js'
 
 interface options {
-  cache?: string,
-  expireTime?: number,
+  cache?: 'LRU' | 'LFU',
+  expire?: string | number,
   respondOnHit?: boolean
 }
 
@@ -16,22 +16,37 @@ interface options {
 // }
 
 /**
-  * class user initalizes to create new instance of cache.
-  * takes options to define if cache type, expireTime for items to remain in cache, and if response should be returned on cache hit
-  * @param {object} //cache options
-  * @returns {object} //new cache
-**/
-
+  * Class to initalize new instance of cache.
+  * Takes options to define if cache eviction policy, expiration time for cache itmes, and if response should be returned on cache hit.
+  * 
+  * ### Example
+  * 
+  * ```ts
+  * 
+  * import { ZoicCache } from '../src/zoicCache.ts';
+  * 
+  * const cache = new ZoicCache({ cache: 'LFU', expire: '2h, 5m, 3s', respondOnHit: true });
+  * 
+  * router.get('/dbRead', cache.use, controller.dbRead, ctx => {
+  *  ctx.response.body = ctx.state.somethingFromDb;});
+  * 
+  * 
+  * ```
+  * 
+  * @param option (cache options)
+  * @returns LRU | LFU (new cache)
+*/
 export class ZoicCache {
   cache: LRU | LFU;
-  expireTime: number;
+  expire: number;
   respondOnHit: boolean;
   metrics: any;
   maxEntries: number;
   constructor (options?: options) {
+
     //initalizes cache options
-    this.cache = this.#initCacheType(options?.cache);
-    this.expireTime = options?.expireTime || 2000;
+    this.expire = this.#parseExpTime(options?.expire);
+    this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
     this.metrics = new PerfMetrics();
     //6 entries is the current maximum
@@ -44,33 +59,53 @@ export class ZoicCache {
 
 
   /**
-    * Sets cache type.
-    * defaults to LRU
-    * @param {string} //cache type via options
-    * @return {object} //new cache object
-  **/
-
-  #initCacheType (cache?: string) {
-    // The client will enter the specific cache function they want as a string.
-    if (cache === 'LFU') return new LFU();
-    return new LRU();
+   * Sets cache eviction policty. Defaults to LRU.
+   * @param expire 
+   * @param cache 
+   * @returns LRU | LFU
+   */
+  #initCacheType (expire: number, cache?: string) {
+    // The client will enter the specific cache function they want as a string, which is passed as an arg here.
+    if (cache === 'LFU') return new LFU(expire);
+    return new LRU(expire);
   }
 
 
   /**
-    * Primary caching middleware method on user end.
-    * Resposible for querying cache and either returning results to client/attaching results to ctx.state.zoic (depending on user options)
-    * or, in the case of a miss, signalling to make response cachable.
-    * @param {object} //Context object
-    * @param {function} //next function
-    * @return {promise || void} //enters next middleware func or returns response
-  **/
+   * Parses expire option into time in seconds.
+   * @param numberString 
+   * @returns number
+   */
+  #parseExpTime (numberString?: string | number) {
+    if (!numberString) return 86400;
+    let seconds;
+    if (typeof numberString === 'string'){
+      seconds = numberString.trim().split(',').reduce((arr, el) => {
+        if (el[el.length - 1] === 'h') return arr += parseInt(el.slice(0, -1)) * 3600;
+        if (el[el.length - 1] === 'm') return arr += parseInt(el.slice(0, -1)) * 60;
+        if (el[el.length - 1] === 's') return arr += parseInt(el.slice(0, -1));
+        throw new TypeError(
+          'Cache expiration time must be string formatted as a numerical value followed by \'h\', \'m\', or \'s\', or a number representing time in seconds.'
+          )
+      }, 0);
+    } else seconds = numberString;
+    if (seconds > 86400 || seconds < 0) throw new TypeError('Cache expiration time out of range.');
+    return seconds;
+  }
 
+
+  /**
+   * Primary caching middleware method on user end.
+   * Resposible for querying cache and either returning results to client/attaching results to ctx.state.zoic (depending on user options)
+   * or, in the case of a miss, signalling to make response cachable.
+   * @param ctx 
+   * @param next 
+   * @returns Promise | void
+   */
   use (ctx: Context, next: () => Promise<unknown>) {
     
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
-
     try {
       //query cache
       const cacheResults = this.cache.get(key);
@@ -110,24 +145,20 @@ export class ZoicCache {
 
       return next();
 
-      //error handling (~~* needs work *~~)
-    } catch {
-      ctx.response.body = {
-        success: false,
-        message: 'failed to retrive data from cache'
-      }
+    } catch (err) {
+      ctx.response.status = 400;
+      ctx.response.body = `error in ZoicCache.use: ${err}`
+      console.log(`error in ZoicCache.use: ${err}`);
     }
   }
-
 
 
   /**
    * Makes response store to cache at the end of middleware chain in the case of a cache miss.
    * This is done by patching 'toDomRespone' to send results to cache before returning to client.
-   * @param {object} //Context object
-   * @return {promise/void} //inner function returns promise/result of toDomReponse. outter function returns void.
-  **/
-
+   * @param ctx 
+   * @returns void
+   */
   makeResponseCacheable (ctx: Context) {
 
     //create new response object to retain access to original toDomResponse function def
@@ -137,15 +168,16 @@ export class ZoicCache {
     //patch toDomResponse to cache response body before returning results to client
     ctx.response.toDomResponse = function() {
 
-      //add response body to cache
-      const response: any = {
+      //defines key via api endpoint and adds response body to cache
+      const key: string = ctx.request.url.pathname + ctx.request.url.search;
+
+      const response: unknown = {
         body: ctx.response.body,
         headers: ctx.response.headers,
         status: ctx.response.status,
         type: ctx.response.type
       };
-
-      const key: string = ctx.request.url.pathname + ctx.request.url.search;
+      
       cache.put(key, response);
 
       //Attempt at removing bytes
@@ -166,20 +198,26 @@ export class ZoicCache {
   }
   
 
-  
   /**
-    * manually adds ctx.state.zoic to cache, in the form of a middleware function
-    * ~~*potentailly no longer needed, via makeReponseCacheable*~~
-    * @param {object} //Context object
-    * @param {function} //next function
-    * @return {promise} //next
-  **/
+   * Manually clears all current cache entries.
+   */
+  clearCache () {
+    this.cache.clear();
+  }
 
+
+  /**
+   *  manually adds ctx.state.zoic to cache, in the form of a middleware function.
+   *  ~~*potentailly no longer needed, via makeReponseCacheable*~~
+   * @param ctx 
+   * @param next 
+   * @returns 
+   */
   async put (ctx: Context, next: () => Promise<unknown>) {
 
     try {
     // deconstruct context obj for args to cache put
-    const value: any = ctx.state.zoic; 
+    const value: unknown = ctx.state.zoic; 
     
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
  
