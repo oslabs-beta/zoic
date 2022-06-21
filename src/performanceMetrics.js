@@ -10,8 +10,8 @@ class PerfMetrics {
             console.log('new this.numEntries after deleting: ', this.numEntries)
         }
         this.cacheSize = 0;
-        this.metricsAddToCache = this.metricsAddToCache.bind(this);
-        this.metricsDeletingFromCache = this.metricsDeletingFromCache.bind(this);
+        this.addingBytesToCache = this.addingBytesToCache.bind(this);
+        this.deletingBytesFromCache = this.deletingBytesFromCache.bind(this);
 
         this.numHits = 0;
         this.addHit = () => {
@@ -26,12 +26,15 @@ class PerfMetrics {
 
     }
     
-    metricsAddToCache = (newCachePiece) => {
-                this.cacheSize += whateverOurCountBytesFunctionIs(newCachePiece)
-                console.log('new this.cacheSize after adding is: ', this.cacheSize)
+    addingBytesToCache = async function(newCachePiece){
+
+        const file = new File(["Hello World😔😔😔😔"], "hello.txt");
+        console.log('Bytes: ',file.size);
+        this.cacheSize += whateverOurCountBytesFunctionIs(newCachePiece)
+        console.log('new this.cacheSize after adding is: ', this.cacheSize)
     }; 
-    
-    metricsDeletingFromCache = (evictedCachePiece) => {
+
+    deletingBytesFromCache = (evictedCachePiece) => {
         this.cacheSize -= whateverOurCountBytesFunctionIs(evictedCachePiece)
         console.log('new this.cacheSize after deleting is: ', this.cacheSize)
     }

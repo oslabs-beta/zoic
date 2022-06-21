@@ -70,14 +70,6 @@ export class ZoicCache {
     
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
-    console.log('ctx.request.url.pathname IN ZOIC CACHE: ', ctx.request.url.pathname)
-    console.log(ctx.request.url.searchParams.getAll('name'));
-    // console.log('params.name', ctx.params.name);
-    console.log('name ', helpers.getQuery(ctx, { mergeParams: true }).name);
-
-
-    console.log('ctx.request.url.search IN ZOIC CACHE: ', ctx.request.url.search)
-    console.log('key is ', key);
 
     try {
       //query cache
@@ -155,6 +147,9 @@ export class ZoicCache {
 
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
       cache.put(key, response);
+
+      //Attempt at removing bytes
+      // this.metrics.removeBytes(cache.put(key, response))
 
       //returns results to client
       responsePatch.headers = ctx.response.headers;
