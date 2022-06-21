@@ -10,7 +10,7 @@ class LRU {
     this.list = new DoublyLinkedList();
     this.cache = {};
     this.length = 0;
-    this.capacity = 10;
+    this.capacity = 50;
     this.expire = expire;
 
     this.get = this.get.bind(this);

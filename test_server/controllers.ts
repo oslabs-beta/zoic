@@ -6,15 +6,12 @@ const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) =
 
 controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
 
-  interface Name {
-    name: any
-  }
-
   // Get params of query for performance metrics testing
   const { name } = helpers.getQuery(ctx, { mergeParams: true })
 
+  console.log(name)
   const queryObj = await Client.queryArray(
-    `SELECT * FROM "public"."people" WHERE name=$CHARNAME;`,
+    `SELECT * FROM "public"."people" WHERE _id=$CHARNAME;`,
     //Parameterization
     { CHARNAME: name }
   );
