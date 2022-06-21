@@ -19,7 +19,12 @@ class LRU {
   }
 
 
-  //adds new item to cache.
+  /**
+   * Adds new item to cache.
+   * @param key 
+   * @param value 
+   * @returns 
+   */
   put (key: string, value: any)  {
 
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
@@ -50,7 +55,11 @@ class LRU {
   }
 
 
-  //gets item from cache and moves to head -- most recently used.
+  /**
+   * Gets item from cache and moves to head -- most recently used.
+   * @param key 
+   * @returns 
+   */
   get (key: string) {
 
     //If there is a matching cache
@@ -70,7 +79,11 @@ class LRU {
   }
 
 
-  //removes item from any location in the cache.
+  /**
+   * Removes item from any location in the cache.
+   * @param key 
+   * @returns 
+   */
   delete (key: string) {
 
     //locates node to be removed in constant time.
@@ -90,7 +103,9 @@ class LRU {
     return;
   }
 
-  //clears entire cache contents.
+  /**
+   * Clears entire cache contents.
+   */
   clear () {
     this.list = new DoublyLinkedList();
     this.cache = {};
@@ -98,7 +113,9 @@ class LRU {
   }
 
 
-  //prints list and cache for testing purposes.
+  /**
+   * prints list and cache for testing purposes.
+   */
   printLru() {
     console.log('cache\n', this.cache)
     console.log('this.list: ', this.list)

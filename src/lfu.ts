@@ -16,6 +16,12 @@ class LFU {
     this.expire = expire;
   }
 
+  /**
+   * Adds new item to cache.
+   * @param key 
+   * @param value 
+   * @returns 
+   */
   put(key: string, value: any) {
     if(this.cache[key]) {
       const node = this.getNode(key);

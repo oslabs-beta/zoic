@@ -3,7 +3,7 @@ import controller from './controllers.ts';
 import { ZoicCache } from '../src/zoicCache.ts';
 
 const router = new Router();
-const cache = new ZoicCache({ cache: 'LRU', expire: 3 });
+const cache = new ZoicCache({ cache: 'LRU', expire: '26p, 5m, 3s' });
 
 router.get('/dbRead', cache.use, controller.dbRead, ctx => {
     ctx.response.headers.set('Etag', 'test tag')

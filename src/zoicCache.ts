@@ -4,24 +4,24 @@ import LFU from './lfu.ts';
 
 interface options {
   cache?: 'LRU' | 'LFU',
-  expire?: number,
+  expire?: string | number,
   respondOnHit?: boolean
 }
 
 /**
-  * class user initalizes to create new instance of cache.
-  * takes options to define if cache type, expire for items to remain in cache, and if response should be returned on cache hit
-  * @param {object} //cache options
-  * @returns {object} //new cache
+  * Class to initalize new instance of cache.
+  * Takes options to define if cache eviction policy, expiration time for cache itmes, and if response should be returned on cache hit.
+  * @param option (cache options)
+  * @returns LRU | LFU (new cache)
 **/
-
 export class ZoicCache {
   cache: LRU | LFU;
   expire: number;
   respondOnHit: boolean;
   constructor (options?: options) {
+
     //initalizes cache options
-    this.expire = options?.expire || 86400;
+    this.expire = this.#parseNumStr(options?.expire);
     this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
 
@@ -32,12 +32,11 @@ export class ZoicCache {
 
 
   /**
-    * Sets cache type.
-    * defaults to LRU.
-    * @param {string} //cache type via options
-    * @return {object} //new cache object
-  **/
-
+   * Sets cache eviction policty. Defaults to LRU.
+   * @param expire 
+   * @param cache 
+   * @returns LRU | LFU
+   */
   #initCacheType (expire: number, cache?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
     if (cache === 'LFU') return new LFU(expire);
@@ -46,14 +45,36 @@ export class ZoicCache {
 
 
   /**
-    * Primary caching middleware method on user end.
-    * Resposible for querying cache and either returning results to client/attaching results to ctx.state.zoic (depending on user options)
-    * or, in the case of a miss, signalling to make response cachable.
-    * @param {object} //Context object
-    * @param {function} //next function
-    * @return {promise || void} //enters next middleware func or returns response
-  **/
+   * Parses expire option into time in seconds.
+   * @param numberString 
+   * @returns number
+   */
+  #parseNumStr (numberString?: string | number) {
+    if (!numberString) return 86400;
+    let seconds;
+    if (typeof numberString === 'string'){
+      seconds = numberString.trim().split(',').reduce((arr, el) => {
+        if (el[el.length - 1] === 'h') return arr += parseInt(el.slice(0, -1)) * 3600;
+        if (el[el.length - 1] === 'm') return arr += parseInt(el.slice(0, -1)) * 60;
+        if (el[el.length - 1] === 's') return arr += parseInt(el.slice(0, -1));
+        throw new TypeError(
+          'Cache expiration time must be string formatted as a numerical value followed by \'h\', \'m\', or \'s\', or a number representing time in seconds.'
+          )
+      }, 0)
+    } else seconds = numberString;
+    if (seconds > 86400 || seconds < 0) throw new TypeError('Cache expiration time out of range.');
+    return seconds;
+  }
 
+
+  /**
+   * Primary caching middleware method on user end.
+   * Resposible for querying cache and either returning results to client/attaching results to ctx.state.zoic (depending on user options)
+   * or, in the case of a miss, signalling to make response cachable.
+   * @param ctx 
+   * @param next 
+   * @returns Promise | void
+   */
   use (ctx: Context, next: () => Promise<unknown>) {
     
     //defines key via api endpoint
@@ -94,14 +115,12 @@ export class ZoicCache {
   }
 
 
-
   /**
    * Makes response store to cache at the end of middleware chain in the case of a cache miss.
    * This is done by patching 'toDomRespone' to send results to cache before returning to client.
-   * @param {object} //Context object
-   * @return {promise/void} //inner function returns promise/result of toDomReponse. outter function returns void.
-  **/
-
+   * @param ctx 
+   * @returns void
+   */
   makeResponseCacheable (ctx: Context) {
 
     //create new response object to retain access to original toDomResponse function def
@@ -138,21 +157,20 @@ export class ZoicCache {
   
 
   /**
-   * manually clears all current cache entries.
+   * Manually clears all current cache entries.
    */
   clearCache () {
     this.cache.clear();
   }
 
-  
-  /**
-    * manually adds ctx.state.zoic to cache, in the form of a middleware function
-    * ~~*potentailly no longer needed, via makeReponseCacheable*~~
-    * @param {object} //Context object
-    * @param {function} //next function
-    * @return {promise} //next
-  **/
 
+  /**
+   *  manually adds ctx.state.zoic to cache, in the form of a middleware function.
+   *  ~~*potentailly no longer needed, via makeReponseCacheable*~~
+   * @param ctx 
+   * @param next 
+   * @returns 
+   */
   async put (ctx: Context, next: () => Promise<unknown>) {
 
     try {
