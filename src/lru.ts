@@ -130,23 +130,23 @@ class LRU {
 
 }
 
-const lru = new LRU(5)
-lru.put('A', {body: 1});
-lru.put('B', {body: 2});
-lru.put('C', {body: 3});
-lru.get('A');
-lru.get('C');
-lru.get('B');
-lru.put('D', {body: 4});
-lru.put('D', {body: 1000})
-lru.put('E', {body: 5});
-lru.delete('B')
-lru.delete('C')
-lru.delete('A')
-lru.delete('D')
-lru.delete('E')
-// lru.put('e', {body: 7})
-// lru.put('hello', {body: 9})
-lru.printLru();
+// const lru = new LRU(5)
+// lru.put('A', {body: 1});
+// lru.put('B', {body: 2});
+// lru.put('C', {body: 3});
+// lru.get('A');
+// lru.get('C');
+// lru.get('B');
+// lru.put('D', {body: 4});
+// lru.put('D', {body: 1000})
+// lru.put('E', {body: 5});
+// lru.delete('B')
+// lru.delete('C')
+// lru.delete('A')
+// lru.delete('D')
+// lru.delete('E')
+// // lru.put('e', {body: 7})
+// // lru.put('hello', {body: 9})
+// lru.printLru();
 
 export default LRU;
