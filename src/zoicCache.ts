@@ -49,11 +49,7 @@ export class ZoicCache {
     this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
     this.metrics = new PerfMetrics();
-<<<<<<< HEAD
     //5 entries is the current maximum
-=======
-    //6 entries is the current maximum
->>>>>>> 051b5f190f31e2b5265bafaee2efd3acbfbd0676
     this.maxEntries = 5;
 
     this.use = this.use.bind(this);
@@ -108,6 +104,9 @@ export class ZoicCache {
    */
   use (ctx: Context, next: () => Promise<unknown>) {
     
+    //starting mark for cache hit/miss latency performance test.
+    performance.mark('startingMark');
+
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
     try {
@@ -115,6 +114,7 @@ export class ZoicCache {
       const cacheResults = this.cache.get(key);
       //check if cache miss
       if (!cacheResults) {
+
         // count of cache miss
         this.metrics.addMiss();
 
@@ -130,6 +130,7 @@ export class ZoicCache {
         return next();
       }
 
+      //adds cache hit to perf log metrics
       this.metrics.addHit();
 
       //if user selects respondOnHit option, return cache query results immediately 
@@ -139,14 +140,16 @@ export class ZoicCache {
         ctx.response.status = cacheResults.status;
         ctx.response.type = cacheResults.type;
 
-        console.log('zoicCache return on hit: ', cacheResults.headers, cacheResults.body, cacheResults.status);
+        //dnding mark for cache hit latency performance test.
+        performance.mark('endingMark');
+        this.metrics.addCacheHitTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
 
         return;
       }
 
       //attach query results to ctx.state.zoic
       ctx.state.zoicResponse = Object.assign({}, cacheResults);
-
+    
       return next();
 
     } catch (err) {
@@ -168,6 +171,7 @@ export class ZoicCache {
     //create new response object to retain access to original toDomResponse function def
     const responsePatch = new Response(ctx.request);
     const cache = this.cache;
+    const metrics = this.metrics;
 
     //patch toDomResponse to cache response body before returning results to client
     ctx.response.toDomResponse = function() {
@@ -184,14 +188,17 @@ export class ZoicCache {
       
       cache.put(key, response);
 
-      //Attempt at removing bytes
+      //Attempt at removing bytes for performance test
       // this.metrics.removeBytes(cache.put(key, response))
-
-      //returns results to client
+      
       responsePatch.headers = ctx.response.headers;
       responsePatch.body = ctx.response.body;
       responsePatch.status = ctx.response.status;
       responsePatch.type = ctx.response.type;
+
+      //ending mark for a cache miss latency performance test.
+      performance.mark('endingMark');
+      metrics.updateCacheMissTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
 
       return new Promise (resolve => {                
         resolve(responsePatch.toDomResponse());
