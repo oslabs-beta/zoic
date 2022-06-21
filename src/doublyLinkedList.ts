@@ -10,6 +10,7 @@ class Node {
     this.value = value;
     this.key = key;
     this.count = 1;
+
   }
 }
 
@@ -19,6 +20,7 @@ export class DoublyLinkedList {
   constructor () {
     this.head = null;
     this.tail = null;
+    this.printList = this.printList.bind(this);
   }
 
   addHead (value: any, key: any) {
