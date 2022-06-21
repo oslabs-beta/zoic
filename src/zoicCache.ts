@@ -50,7 +50,7 @@ export class ZoicCache {
     this.respondOnHit = options?.respondOnHit || true;
     this.metrics = new PerfMetrics();
     //5 entries is the current maximum
-    this.maxEntries = 5;
+    this.maxEntries = 50;
 
     this.use = this.use.bind(this);
     this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
@@ -109,6 +109,7 @@ export class ZoicCache {
 
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
+
     try {
       //query cache
       const cacheResults = this.cache.get(key);
@@ -116,7 +117,7 @@ export class ZoicCache {
       if (!cacheResults) {
 
         // count of cache miss
-        this.metrics.addMiss();
+        this.metrics.writeProcessed();
 
         // If declared cache size is equal to current cache size, we decrement the count of entries. 
         if (this.metrics.numEntries >= this.maxEntries) this.metrics.deleteEntry();
@@ -128,7 +129,7 @@ export class ZoicCache {
       }
 
       //adds cache hit to perf log metrics
-      this.metrics.addHit();
+      this.metrics.readProcessed();
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
@@ -139,7 +140,7 @@ export class ZoicCache {
 
         //dnding mark for cache hit latency performance test.
         performance.mark('endingMark');
-        this.metrics.addCacheHitTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
+        this.metrics.updateHitLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
 
         return;
       }
@@ -195,7 +196,7 @@ export class ZoicCache {
 
       //ending mark for a cache miss latency performance test.
       performance.mark('endingMark');
-      metrics.updateCacheMissTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
+      metrics.updateMissLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
 
       return new Promise (resolve => {                
         resolve(responsePatch.toDomResponse());

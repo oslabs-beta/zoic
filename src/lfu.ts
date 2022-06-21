@@ -12,7 +12,7 @@ class LFU {
     this.frequencyMap = {};
     this.length = 0;
     this.minUsage = 0;
-    this.capacity = 5;
+    this.capacity = 50;
     this.expire = expire;
   }
 
