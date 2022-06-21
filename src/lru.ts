@@ -70,7 +70,7 @@ class LRU {
 
       //create new node, then delete node at current key, to replace at list head.
       const node = this.cache[key];
-      this.delete(key)
+      this.delete(key);
       this.cache[key] = this.list.addHead(node.value, node.key);
       this.length++;
 
@@ -103,7 +103,7 @@ class LRU {
     delete this.cache[key];
     this.length--;
 
-    return;
+    return node;
   }
 
   
