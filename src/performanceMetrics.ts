@@ -6,7 +6,6 @@ class PerfMetrics {
   writesProcessed: number;
   missLatencyTotal: number;
   hitLatencyTotal: number
-  latency: number;
   cacheSize: number;
   constructor(){
     this.numEntries = 0;
@@ -14,7 +13,6 @@ class PerfMetrics {
     this.writesProcessed = 0;
     this.missLatencyTotal = 0;
     this.hitLatencyTotal = 0;
-    this.latency = 0;
     this.cacheSize = 0;
 
     //initalized output.txt to empty file.
