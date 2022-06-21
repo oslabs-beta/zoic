@@ -1,12 +1,19 @@
-import { Context, Response } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Context, Response, helpers } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
+import PerfMetrics from './performanceMetrics.js'
 
 interface options {
   cache?: 'LRU' | 'LFU',
   expire?: string | number,
   respondOnHit?: boolean
 }
+
+// interface PerfMetrics {
+//   numEntries: number,
+//   addEntry: (argument: string ): Number => number,
+
+// }
 
 /**
   * Class to initalize new instance of cache.
@@ -33,12 +40,17 @@ export class ZoicCache {
   cache: LRU | LFU;
   expire: number;
   respondOnHit: boolean;
+  metrics: any;
+  maxEntries: number;
   constructor (options?: options) {
 
     //initalizes cache options
     this.expire = this.#parseExpTime(options?.expire);
     this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
+    this.metrics = new PerfMetrics();
+    //5 entries is the current maximum
+    this.maxEntries = 5;
 
     this.use = this.use.bind(this);
     this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
@@ -97,13 +109,24 @@ export class ZoicCache {
     try {
       //query cache
       const cacheResults = this.cache.get(key);
-
       //check if cache miss
       if (!cacheResults) {
+        // count of cache miss
+        this.metrics.addMiss();
+
+        console.log('this.maxEntries: ', this.maxEntries)
+        console.log('this.metrics.numEntries: ', this.metrics.numEntries)
+
+        // If declared cache size is equal to current cache size, we decrement the count of entries. 
+        if (this.metrics.numEntries >= this.maxEntries) this.metrics.deleteEntry();
+        // Then we increment the count for the new entry.
+        this.metrics.addEntry();
         //makes response cacheable via patch
         this.makeResponseCacheable(ctx);
         return next();
       }
+
+      this.metrics.addHit();
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
@@ -156,6 +179,9 @@ export class ZoicCache {
       };
       
       cache.put(key, response);
+
+      //Attempt at removing bytes
+      // this.metrics.removeBytes(cache.put(key, response))
 
       //returns results to client
       responsePatch.headers = ctx.response.headers;
