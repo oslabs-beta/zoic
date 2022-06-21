@@ -36,7 +36,7 @@ export class ZoicCache {
   constructor (options?: options) {
 
     //initalizes cache options
-    this.expire = this.#parseNumStr(options?.expire);
+    this.expire = this.#parseExpTime(options?.expire);
     this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
 
@@ -64,7 +64,7 @@ export class ZoicCache {
    * @param numberString 
    * @returns number
    */
-  #parseNumStr (numberString?: string | number) {
+  #parseExpTime (numberString?: string | number) {
     if (!numberString) return 86400;
     let seconds;
     if (typeof numberString === 'string'){
@@ -75,7 +75,7 @@ export class ZoicCache {
         throw new TypeError(
           'Cache expiration time must be string formatted as a numerical value followed by \'h\', \'m\', or \'s\', or a number representing time in seconds.'
           )
-      }, 0)
+      }, 0);
     } else seconds = numberString;
     if (seconds > 86400 || seconds < 0) throw new TypeError('Cache expiration time out of range.');
     return seconds;
