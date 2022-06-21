@@ -118,9 +118,6 @@ export class ZoicCache {
         // count of cache miss
         this.metrics.addMiss();
 
-        console.log('this.maxEntries: ', this.maxEntries)
-        console.log('this.metrics.numEntries: ', this.metrics.numEntries)
-
         // If declared cache size is equal to current cache size, we decrement the count of entries. 
         if (this.metrics.numEntries >= this.maxEntries) this.metrics.deleteEntry();
         // Then we increment the count for the new entry.

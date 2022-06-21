@@ -41,16 +41,16 @@ class PerfMetrics {
         return new Promise(() => {
             this.cacheMissTime = newCacheTime;
             this.cacheHitTimes = [];
-            console.log('Miss latency timer: ', newCacheTime);
-        }, () => console.log('updateCacheMissTime'));
+            console.log('Miss latency timer: ', newCacheTime, 'ms');
+        }, () => console.log('updateCacheMissTime promise rejected'));
     };
 
     addCacheHitTime = (newCacheHitTime) => {
         return new Promise(() => {
             this.cacheHitTimes.push(newCacheHitTime);
             this.latency = this.cacheMissTime - this.cacheHitTimes[this.cacheHitTimes.length - 1];
-            console.log('Hit latency timer: ', newCacheHitTime);
-        }, () => console.log('addCacheHitTime'));
+            console.log('Hit latency timer: ', newCacheHitTime, 'ms');
+        }, () => console.log('addCacheHitTime promise rejected'));
     };
 
     //Attempt at implementing cache size (in bytes / mb) functionality
