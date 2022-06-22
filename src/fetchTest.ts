@@ -1,4 +1,4 @@
-export const test1 = async () => {
+export const multiRandomEndpointTest = async () => {
   for (let i = 1; i < 5000; i++){
     const res = await fetch(`http://localhost:8000/dbRead/${Math.floor(Math.random() * 100)}`);
     const body = await res.json();
@@ -6,7 +6,7 @@ export const test1 = async () => {
   }
 }
 
-export const test2 = async () => {
+export const singleRepeatedEndpointTest = async () => {
   for (let i = 1; i < 10; i++){
     const res = await fetch(`http://localhost:8000/dbRead/1`);
     const body = await res.json();
@@ -14,5 +14,18 @@ export const test2 = async () => {
   }
 }
 
-//test1();
- test2()
+export const multiRandomEndpointTestSlow = () => {
+  setInterval(() => {
+    fetch(`http://localhost:8000/dbRead/${Math.floor(Math.random() * 100)}`);
+  }, 1500)
+}
+
+export const singleRepeatedEndpointTestSlow = () => {
+  setInterval(() => {
+    fetch(`http://localhost:8000/dbRead/${Math.floor(Math.random() * 100)}`);
+  }, 1500)
+}
+
+multiRandomEndpointTest();
+//singleRepeatedEndpointTest()
+// multiRandomEndpointTestSlow()
