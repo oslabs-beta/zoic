@@ -1,1 +1,1 @@
-{"reads_processed":217,"writes_processed":238,"average_hit_latency":0.35023041474654376,"average_miss_latency":30.218487394957982,"latency_history":[38],"number_of_entries":50}
+{"reads_processed":112,"writes_processed":140,"average_hit_latency":0.32142857142857145,"average_miss_latency":28.3,"latency_history":[24],"number_of_entries":51}
