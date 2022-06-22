@@ -1,6 +1,6 @@
 import { Context, helpers } from "https://deno.land/x/oak/mod.ts";
 import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
-import Client from '../model/db.ts'
+import Client from './model/db.ts'
 
 const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) => Promise<unknown> | void> = {};
 

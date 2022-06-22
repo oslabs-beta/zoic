@@ -1,89 +1,46 @@
-// // import object here
-// // import PerfMetrics from '../../src/performanceMetrics';
-// //import ZoicCache from '../../src/zoicCache.ts';
-
-//import 'http://localhost:8000/dbRead/Darth%20Vader'
-// // import {metrics} from '/dbRead/Darth%20Vader'
-// // import ZoicCache from '../../src/zoicCache.ts';
-
-
-let obj = {
-  numEntries: 0,
-  numHits: 0,
-  numMisses: 0
-}
-
-
-
-const test = document.querySelector('div');
-
-const data = document.createElement('div');
-
-
-
-const hits = document.createElement('p');
-
-const misses = document.createElement('p');
-
-
-setInterval(function(){fetch("./localDB.json", {
-  headers: {
-    'Cache-Control': "no-cache"},
-    'pragma': 'no-cache'})
-.then(response => (
-  //THIS LINE IS HITTING
-  //THIS LINE IS HITTING TOO
-   response.json()))
-  // response.json())
-.then(obj => {
-
-  const {numEntries, numHits, numMisses} = obj;
+document.addEventListener('DOMContentLoaded', () => {  
+  
+  const root = document.querySelector('#root');
   const entries = document.createElement('p');
+  const hits = document.createElement('p');
+  const misses = document.createElement('p');
+  const avHitLatency = document.createElement('p');
+  const avMissLatency = document.createElement('p');
 
-entries.innerHTML = "numEntries: " + numEntries;
-data.appendChild(entries);
+  root.appendChild(entries);
+  root.appendChild(hits);
+  root.appendChild(misses);
+  root.appendChild(avHitLatency);
+  root.appendChild(avMissLatency);
 
-hits.innerHTML = "numHits: " + numHits;
-data.appendChild(hits);
-misses.innerHTML = "numMisses: " + numMisses;
-data.appendChild(misses);
+  entries.innerHTML = "Number of entries: loading...";
+  hits.innerHTML = "Reads processed: loading...";
+  misses.innerHTML = "Writes processed: loading...";
+  avHitLatency.innerHTML = "Average cache hit latency: loading...";
+  avMissLatency.innerHTML = "Average cache miss latency: loading...";
+  
+  setInterval(() => {
+    fetch("/localDB.json", {
+    headers: {
+      'Cache-Control': "no-cache"},
+      'pragma': 'no-cache'})
+    .then(response => response.json())
+    .then(metricsData => {
+      
+      const {
+        number_of_entries,
+        reads_processed,
+        writes_processed,
+        average_hit_latency,
+        average_miss_latency
+      } = metricsData;
+    
+      entries.innerHTML = `Number of entries: ${number_of_entries || '0'}`;
+      hits.innerHTML = `Reads processed: ${reads_processed || '0'}`;
+      misses.innerHTML = `Writes processed: ${writes_processed || '0'}`;
+      avHitLatency.innerHTML = `Average cache hit latency: ${average_hit_latency || '0'}ms`;
+      avMissLatency.innerHTML = `Average cache miss latency: ${average_miss_latency || '0'}ms`;
 
-test.appendChild(data);
+  })}, 1500);
 
-})}, 1000)
-
-
-// import '../../test_server/localDB.json';
-
-// const mydata = JSON.parse(data);
-
-// import { readJson, readJsonSync } from 'https://deno.land/x/jsonfile/mod.ts';
-
-// const f = await readJson('..localDB.json');
-// const foo = readJsonSync('../localDB.json');
-
-// console.log(f, foo)
-
-/////////////////////////// After this
-
-// const {numEntries, numHits, numMisses} = obj;
-
-// const test = document.querySelector('div');
-
-
-// const data = document.createElement('div');
-
-
-// const entries = document.createElement('p');
-// entries.innerHTML = "numEntries: " + numEntries;
-// data.appendChild(entries);
-
-// const hits = document.createElement('p');
-// hits.innerHTML = "numHits: " + numHits;
-// data.appendChild(hits);
-
-// const misses = document.createElement('p');
-// misses.innerHTML = "numMisses: " + numMisses;
-// data.appendChild(misses);
-
-// test.appendChild(data);
+});

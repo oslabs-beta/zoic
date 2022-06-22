@@ -23,12 +23,9 @@ class PerfMetrics {
     this.missLatencyTotal = 0;
     this.hitLatencyTotal = 0;
     this.cacheSize = 0;
-
-    //initalized output.txt to empty file.
-    //Deno.writeTextFile(`${Deno.cwd()}/test_file_dump/output.txt`, '');
   }
 
-  writeTestJsonLog = () => {
+  writeMetricsJson = () => {
     writeJsonSync(`${Deno.cwd()}/static/localDB.json`,
     {
       reads_processed: this.readsProcessed,
@@ -43,31 +40,9 @@ class PerfMetrics {
     });
   }
 
-    // updateFrontendDB writes to the json file an updated performance metrics object.
-  // It gets called at the end of: makeResponseCachable, respondOnHit, and !respondOnHit
-  // updateFrontendDB = () => {
-  //   writeJsonSync(`${Deno.cwd()}/static/localDB.json`,
-  //   { 
-  //     numberOfEntries: this.numberOfEntries,
-  //     readsProcessed : this.readsProcessed,
-  //     writesProcessed: this.writesProcessed, 
-  //     latencyHistory: this.latencyHistory,
-  //    }, 
-  //    { 
-  //     replacer:['numberOfEntries', 'readsProcessed', 'writesProcessed', 'latencyHistory']
-  //    })
-  // }
-
-  // outPutType = (outPutTypeArg: number, dataToLog: any, dataToLogDescription: string) => {
-  //   if (outPutTypeArg === 0 ) return;
-  //   if (outPutTypeArg === 1 ) console.log(dataToLogDescription + ', \n' + dataToLog);
-  //   if (outPutTypeArg === 2 ) Deno.writeTextFile(`${Deno.cwd()}/test_file_dump/output.txt`, dataToLogDescription + ': ' + dataToLog + '\n', {append:true});
-  // }
-
   addEntry = () => {
     return new Promise(resolve => {
       this.numberOfEntries++;
-      //console.log('new this.numberOfEntries after adding: ', this.numberOfEntries);
       resolve(this.numberOfEntries);
     });
   };
@@ -75,16 +50,14 @@ class PerfMetrics {
   deleteEntry = () => {
     return new Promise(resolve => {
       this.numberOfEntries--;
-      //console.log('new this.numberOfEntries after deleting: ', this.numberOfEntries);
-      resolve(this.numberOfEntries)
+      resolve(this.numberOfEntries);
     });
   };
 
   readProcessed = () => {
     return new Promise(resolve => {
       this.readsProcessed++;
-      this.writeTestJsonLog();
-      //this.outPutType(2, this.readsProcessed, 'Reads processed: ')
+      this.writeMetricsJson();
       console.log('Reads processed: ', this.readsProcessed);
       resolve(this.readsProcessed);
     });
@@ -93,7 +66,7 @@ class PerfMetrics {
   writeProcessed = () => {
     return new Promise(resolve => {
       this.writesProcessed++;
-      this.writeTestJsonLog();
+      this.writeMetricsJson();
       console.log('Writes processed: ', this.writesProcessed);
       resolve(this.writeProcessed);
     });
@@ -113,19 +86,18 @@ class PerfMetrics {
       if (hitOrMiss === 'hit'){
         this.hitLatencyTotal += latency;
         this.currentHitLatency = latency;
-        resolve(this.writeTestJsonLog());
+        resolve(this.writeMetricsJson());
       }
+      
       if (hitOrMiss === 'miss'){
-        this.missLatencyTotal += latency
+        this.missLatencyTotal += latency;
         this.currentMissLatency = latency;
-        resolve(this.writeTestJsonLog());
+        resolve(this.writeMetricsJson());
       }
 
       throw reject(new TypeError('Hit or miss not specified'));
     });
   };
-
-
 
   //Attempt at implementing cache size (in bytes / mb) functionality
 
@@ -141,6 +113,7 @@ class PerfMetrics {
   //     this.cacheSize -= whateverOurCountBytesFunctionIs(evictedCachePiece)
   //     console.log('new this.cacheSize after deleting is: ', this.cacheSize)
   // }
+
 }
 
 export default PerfMetrics;
