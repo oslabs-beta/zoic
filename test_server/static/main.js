@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   avMissLatency.innerHTML = "Average cache miss latency: loading...";
   
   setInterval(() => {
-    fetch("./localDB.json", {
+    fetch("/localDB.json", {
     headers: {
       'Cache-Control': "no-cache"},
       'pragma': 'no-cache'})
