@@ -5,7 +5,7 @@ import { ZoicCache } from '../src/zoicCache.ts';
 const router = new Router();
 const cache = new ZoicCache({
   cache: 'LRU',
-  expire: '5m, 3s',
+  expire: '3s',
   capacity: 50
 });
 

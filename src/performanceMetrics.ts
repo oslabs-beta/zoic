@@ -1,35 +1,61 @@
-import { writeJsonSync, readJsonSync } from 'https://deno.land/x/jsonfile/mod.ts';
+import { writeJsonSync } from 'https://deno.land/x/jsonfile/mod.ts';
 
 class PerfMetrics {
-  numEntries: number;
+  numberOfEntries: number;
   readsProcessed: number;
   writesProcessed: number;
   currentHitLatency: number;
   currentMissLatency: number;
+  currentEndPoint: string;
+  latencyHistory: Array<number>;
   missLatencyTotal: number;
   hitLatencyTotal: number
   cacheSize: number;
+
   constructor() {
-    this.numEntries = 0;
+    this.numberOfEntries = 0;
     this.readsProcessed = 0;
     this.writesProcessed = 0;
     this.currentHitLatency = 0;
     this.currentMissLatency = 0;
+    this.currentEndPoint = '';
+    this.latencyHistory = [];
     this.missLatencyTotal = 0;
     this.hitLatencyTotal = 0;
     this.cacheSize = 0;
 
     //initalized output.txt to empty file.
-    Deno.writeTextFile(`${Deno.cwd()}/test_file_dump/output.txt`, '');
+    //Deno.writeTextFile(`${Deno.cwd()}/test_file_dump/output.txt`, '');
   }
 
-  writeJsonLog = (contentType: string) => {
-    const currentJSON: any = readJsonSync(`${Deno.cwd()}/test_file_dump/test_output.json`);
-    if (contentType === 'readProcessed') currentJSON.reads_processed = this.readsProcessed;
-    if (contentType === 'writeProcessed') currentJSON.writes_processed = this.writesProcessed;
-    if (contentType === 'hitLatency') currentJSON.average_hit_latency = this.hitLatencyTotal / this.readsProcessed;
-    if (contentType === 'missLatency') currentJSON.average_miss_latency = this.missLatencyTotal / this.writesProcessed;
-    writeJsonSync(`${Deno.cwd()}/test_file_dump/test_output.json`, currentJSON);
+  writeTestJsonLog = () => {
+    writeJsonSync(`${Deno.cwd()}/test_file_dump/test_output.json`,
+    {
+      reads_processed: this.readsProcessed,
+      writes_processed: this.writesProcessed,
+      average_hit_latency: this.hitLatencyTotal / this.readsProcessed,
+      average_miss_latency: this.missLatencyTotal / this.writesProcessed
+    },
+     {
+      replacer: ['reads_processed', 'writes_processed', 'average_hit_latency', 'average_miss_latency']
+    });
+
+    return this.updateFrontendDB();
+  }
+
+    // updateFrontendDB writes to the json file an updated performance metrics object.
+  // It gets called at the end of: makeResponseCachable, respondOnHit, and !respondOnHit
+  updateFrontendDB = () => {
+    writeJsonSync(`${Deno.cwd()}/static/localDB.json`,
+    { 
+      numberOfEntries: this.numberOfEntries,
+      readsProcessed : this.readsProcessed,
+      writesProcessed: this.writesProcessed, 
+      latencyHistory: this.latencyHistory,
+     }, 
+     { 
+      replacer:['numberOfEntries', 'readsProcessed', 'writesProcessed', 'latencyHistory']
+     })
   }
 
   // outPutType = (outPutTypeArg: number, dataToLog: any, dataToLogDescription: string) => {
@@ -39,72 +65,67 @@ class PerfMetrics {
   // }
 
   addEntry = () => {
-    return new Promise(() => {
-      this.numEntries++;
-      //console.log('new this.numEntries after adding: ', this.numEntries);
+    return new Promise(resolve => {
+      this.numberOfEntries++;
+      //console.log('new this.numberOfEntries after adding: ', this.numberOfEntries);
+      resolve(this.numberOfEntries);
     });
   };
 
   deleteEntry = () => {
-    return new Promise(() => {
-      this.numEntries--;
-      //console.log('new this.numEntries after deleting: ', this.numEntries);
+    return new Promise(resolve => {
+      this.numberOfEntries--;
+      //console.log('new this.numberOfEntries after deleting: ', this.numberOfEntries);
+      resolve(this.numberOfEntries)
     });
   };
 
   readProcessed = () => {
-    return new Promise(() => {
+    return new Promise(resolve => {
       this.readsProcessed++;
-      this.writeJsonLog('readProcessed')
+      this.writeTestJsonLog();
       //this.outPutType(2, this.readsProcessed, 'Reads processed: ')
-      console.log('Reads processed: ', this.readsProcessed);
+      //console.log('Reads processed: ', this.readsProcessed);
+      resolve(this.readsProcessed);
     });
   };
 
   writeProcessed = () => {
-    return new Promise(() => {
+    return new Promise(resolve => {
       this.writesProcessed++;
-      this.writeJsonLog('writeProcessed')
+      this.writeTestJsonLog();
       console.log('Writes processed: ', this.writesProcessed);
+      resolve(this.writeProcessed);
     });
   }
 
-  updateMissLatency = (newCacheMissTime: number) => {
-    return new Promise(() => {
-      this.missLatencyTotal += newCacheMissTime
-      this.currentMissLatency = newCacheMissTime;
-      this.writeJsonLog('missLatency');
-      console.log('Miss latency timer: ', newCacheMissTime, 'ms');
-      //this.outPutType(2, newCacheMissTime, 'Miss latency timer: ')
+
+  updateLatency = (latency: number, endpoint: string, hitOrMiss: 'hit' | 'miss') => {
+    return new Promise((resolve, reject) => {
+
+      if (this.currentEndPoint === endpoint){
+        this.latencyHistory.push(latency);
+      } else {
+        this.latencyHistory = [latency];
+        this.currentEndPoint = endpoint;
+      }
+
+      if (hitOrMiss === 'hit'){
+        this.hitLatencyTotal += latency;
+        this.currentHitLatency = latency;
+        resolve(this.writeTestJsonLog());
+      }
+      if (hitOrMiss === 'miss'){
+        this.missLatencyTotal += latency
+        this.currentMissLatency = latency;
+        resolve(this.writeTestJsonLog());
+      }
+
+      throw reject(new TypeError('Hit or miss not specified'));
     });
   };
 
-  updateHitLatency = (newCacheHitTime: number) => {
-    return new Promise(() => {
-      this.hitLatencyTotal += newCacheHitTime;
-      this.currentHitLatency = newCacheHitTime;
-      this.writeJsonLog('hitLatency');
-      console.log('Hit latency timer: ', newCacheHitTime, 'ms');
-      //this.outPutType(2, newCacheHitTime, 'Hit latency timer: ')
-    });
-  };
 
-  // updateDB writes to the json file an updated performance metrics object.
-  // It gets called at the end of: makeResponseCachable, respondOnHit, and !respondOnHit
-  updateDB = (): void => {
-    writeJsonSync('../test_server/static/localDB.json',
-    { 
-     numEntries: this.numEntries,
-     readsProcessed : this.readsProcessed,
-     writesProcessed: this.writesProcessed, 
-     cacheMissTime: this.currentMissLatency,
-     cacheHitTimes: this.currentHitLatency,
-     }, 
-     { 
-      replacer:['numEntries', 'readsProcessed', 'writesProcessed', 'currentMissLatency', 'currentHitLatency']
-     })
-     console.log('JSON DB updated');
-  }
 
   //Attempt at implementing cache size (in bytes / mb) functionality
 

@@ -33,18 +33,18 @@ interface options {
 */
 export class ZoicCache {
   capacity: number;
-  cache: LRU | LFU;
   expire: number;
-  respondOnHit: boolean;
   metrics: InstanceType <typeof PerfMetrics>;
+  respondOnHit: boolean;
+  cache: LRU | LFU;
   constructor (options?: options) {
 
     //initalizes cache options
     this.capacity = options?.capacity || 50;
     this.expire = this.#parseExpTime(options?.expire);
-    this.cache = this.#initCacheType(this.expire, options?.cache);
-    this.respondOnHit = options?.respondOnHit || true;
     this.metrics = new PerfMetrics();
+    this.respondOnHit = options?.respondOnHit || true;
+    this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache);
 
     this.use = this.use.bind(this);
     this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
@@ -58,11 +58,11 @@ export class ZoicCache {
    * @param cache 
    * @returns LRU | LFU
    */
-  #initCacheType (expire: number, cache?: string) {
+  #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
     if (this.capacity < 0) throw new TypeError('Cache capacity must exceed 0 entires.')
-    if (cache === 'LFU') return new LFU(expire, this.capacity);
-    return new LRU(expire, this.capacity);
+    if (cache === 'LFU') return new LFU(expire, metrics, this.capacity);
+    return new LRU(expire, metrics, this.capacity);
   }
 
 
@@ -115,9 +115,9 @@ export class ZoicCache {
         this.metrics.writeProcessed();
 
         // If declared cache size is equal to current cache size, we decrement the count of entries. 
-        if (this.metrics.numEntries >= this.capacity) this.metrics.deleteEntry();
-        // Then we increment the count for the new entry.
-        this.metrics.addEntry();
+        //TODO: needs to account for deletion via expiration timer.
+        if (this.metrics.numberOfEntries <= this.capacity) this.metrics.addEntry();
+        
         //makes response cacheable via patch
         this.makeResponseCacheable(ctx);
         return next();
@@ -135,15 +135,15 @@ export class ZoicCache {
 
         //dnding mark for cache hit latency performance test.
         performance.mark('endingMark');
-        this.metrics.updateHitLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
-        this.metrics.updateDB();
+        // this.metrics.updateHitLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
+        this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'hit');
 
         return;
       }
 
       //attach query results to ctx.state.zoic
       ctx.state.zoicResponse = Object.assign({}, cacheResults);
-      this.metrics.updateDB();
+
       return next();
 
     } catch (err) {
@@ -192,8 +192,8 @@ export class ZoicCache {
 
       //ending mark for a cache miss latency performance test.
       performance.mark('endingMark');
-      metrics.updateMissLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
-      metrics.updateDB();
+      // metrics.updateMissLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
+      metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'miss');
 
       return new Promise (resolve => {                
         resolve(responsePatch.toDomResponse());
