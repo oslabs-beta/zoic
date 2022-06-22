@@ -37,8 +37,8 @@ export class ZoicCache {
   metrics: InstanceType <typeof PerfMetrics>;
   respondOnHit: boolean;
   cache: LRU | LFU;
-  constructor (options?: options) {
 
+  constructor (options?: options) {
     //initalizes cache options
     this.capacity = options?.capacity || 50;
     this.expire = this.#parseExpTime(options?.expire);

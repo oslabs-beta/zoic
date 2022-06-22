@@ -12,6 +12,7 @@ class LRU {
   capacity: number;
   expire: number;
   metricsDelete: () => Promise<unknown>;
+  
   constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
     this.list = new DoublyLinkedList();
     this.cache = {};
