@@ -7,12 +7,12 @@ class LFU {
   minUsage: number;
   capacity: number;
   expire: number;
-  constructor (expire: number) {
+  constructor (expire: number, capacity: number) {
     this.cache = {};
     this.frequencyMap = {};
     this.length = 0;
     this.minUsage = 0;
-    this.capacity = 5;
+    this.capacity = capacity;
     this.expire = expire;
   }
 
