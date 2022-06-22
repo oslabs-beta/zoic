@@ -14,5 +14,5 @@ export const test2 = async () => {
   }
 }
 
-test1();
-// test2()
+//test1();
+ test2()

@@ -29,34 +29,34 @@ class PerfMetrics {
   }
 
   writeTestJsonLog = () => {
-    writeJsonSync(`${Deno.cwd()}/test_file_dump/test_output.json`,
+    writeJsonSync(`${Deno.cwd()}/static/localDB.json`,
     {
       reads_processed: this.readsProcessed,
       writes_processed: this.writesProcessed,
       average_hit_latency: this.hitLatencyTotal / this.readsProcessed,
-      average_miss_latency: this.missLatencyTotal / this.writesProcessed
+      average_miss_latency: this.missLatencyTotal / this.writesProcessed,
+      latency_history: this.latencyHistory,
+      number_of_entries: this.numberOfEntries
     },
      {
-      replacer: ['reads_processed', 'writes_processed', 'average_hit_latency', 'average_miss_latency']
+      replacer: ['reads_processed', 'writes_processed', 'average_hit_latency', 'average_miss_latency', 'latency_history', 'number_of_entries']
     });
-
-    return this.updateFrontendDB();
   }
 
     // updateFrontendDB writes to the json file an updated performance metrics object.
   // It gets called at the end of: makeResponseCachable, respondOnHit, and !respondOnHit
-  updateFrontendDB = () => {
-    writeJsonSync(`${Deno.cwd()}/static/localDB.json`,
-    { 
-      numberOfEntries: this.numberOfEntries,
-      readsProcessed : this.readsProcessed,
-      writesProcessed: this.writesProcessed, 
-      latencyHistory: this.latencyHistory,
-     }, 
-     { 
-      replacer:['numberOfEntries', 'readsProcessed', 'writesProcessed', 'latencyHistory']
-     })
-  }
+  // updateFrontendDB = () => {
+  //   writeJsonSync(`${Deno.cwd()}/static/localDB.json`,
+  //   { 
+  //     numberOfEntries: this.numberOfEntries,
+  //     readsProcessed : this.readsProcessed,
+  //     writesProcessed: this.writesProcessed, 
+  //     latencyHistory: this.latencyHistory,
+  //    }, 
+  //    { 
+  //     replacer:['numberOfEntries', 'readsProcessed', 'writesProcessed', 'latencyHistory']
+  //    })
+  // }
 
   // outPutType = (outPutTypeArg: number, dataToLog: any, dataToLogDescription: string) => {
   //   if (outPutTypeArg === 0 ) return;
