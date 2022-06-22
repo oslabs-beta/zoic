@@ -50,6 +50,7 @@ class PerfMetrics {
   deleteEntry = () => {
     return new Promise(resolve => {
       this.numberOfEntries--;
+      this.writeProcessed;
       resolve(this.numberOfEntries);
     });
   };
