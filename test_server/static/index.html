@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Zoic Metrics</title>
-  <link rel="icon" href="zoic.ico" />
+  <link rel="icon" href="favicon.ico" />
   <script src='../localDB.json'></script>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -24,10 +24,24 @@
     <!-- <img src="https://i.ytimg.com/vi/fOd16PT1S7A/maxresdefault.jpg" width = "500px" alt="Puppy cat"> -->
     <img src="https://pbs.twimg.com/media/DFNwuD3UwAAeZFI.jpg" width = "500px" alt="Puppy cat">
       </div>
+      <div class="metricsContainer">
+        <div class="metricContainer">
+          <div id="entries">Number of entries: loading...</div>
+        </div>
+        <div class="metricContainer">
+          <div id="hits">Reads processed: loading...</div>
+        </div>
+        <div class="metricContainer">
+          <div id="misses">Writes processed: loading...</div>
+        </div>
+        <div class="metricContainer">
+          <div id="avHitLatency">Average cache hit latency: loading...</div>
+        </div>
+        <div class="metricContainer">
+          <div id="avMissLatency">Average cache miss latency: loading...</div>
+        </div>
+      </div>
   </div>
-  
-  <!-- <script src='main.js'></script> -->
-  <!-- <script type="text/javascript" src="../../test_server/localDB.json"></script> -->
 
   <script type="module" src='main.js'></script>
   <footer class="footer"></footer>

@@ -6,41 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
   root.appendChild(metrics);
   metrics.setAttribute('class', 'metricsContainer');
 
-  const entries = document.createElement('div')
-  const hits = document.createElement('div');
-  const misses = document.createElement('div');
-  const avHitLatency = document.createElement('div');
-  const avMissLatency = document.createElement('div');
-
-  const entriesContainer = document.createElement('div')
-  const hitsContainer = document.createElement('div')
-  const missesContainer = document.createElement('div')
-  const avHitLatencyContainer = document.createElement('div')
-  const avMissLatencyContainer = document.createElement('div')
-
-  entriesContainer.setAttribute('class', 'metricContainer');
-  hitsContainer.setAttribute('class', 'metricContainer');
-  missesContainer.setAttribute('class', 'metricContainer');
-  avHitLatencyContainer.setAttribute('class', 'metricContainer');
-  avMissLatencyContainer.setAttribute('class', 'metricContainer');
-
-  metrics.appendChild(entriesContainer);
-  metrics.appendChild(hitsContainer);
-  metrics.appendChild(missesContainer);
-  metrics.appendChild(avHitLatencyContainer);
-  metrics.appendChild(avMissLatencyContainer);
-
-  entriesContainer.appendChild(entries)
-  hitsContainer.appendChild(hits);
-  missesContainer.appendChild(misses);
-  avHitLatencyContainer.appendChild(avHitLatency);
-  avMissLatencyContainer.appendChild(avMissLatency);
-
-  entries.innerHTML = "Number of entries: loading...";
-  hits.innerHTML = "Reads processed: loading...";
-  misses.innerHTML = "Writes processed: loading...";
-  avHitLatency.innerHTML = "Average cache hit latency: loading...";
-  avMissLatency.innerHTML = "Average cache miss latency: loading...";
+  const entries = document.querySelector('#entries');
+  const hits = document.querySelector('#hits');
+  const misses = document.querySelector('#misses');
+  const avHitLatency = document.querySelector('#avHitLatency');
+  const avMissLatency = document.querySelector('#avMissLatency');
   
   setInterval(() => {
     fetch("/localDB.json", {
