@@ -36,6 +36,8 @@ controller.dbWrite = async (ctx: Context, next: () => Promise<unknown>) => {
     }
     return;
   }
+
+  //Hank code
   const reqBodyVal = await reqBody.value;
   const currentJSON: any = await readJson(`${Deno.cwd()}/test.json`);
   Object.keys(reqBodyVal).forEach((key: string) => {

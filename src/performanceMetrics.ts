@@ -4,6 +4,8 @@ class PerfMetrics {
   numEntries: number;
   readsProcessed: number;
   writesProcessed: number;
+  currentHitLatency: number;
+  currentMissLatency: number;
   missLatencyTotal: number;
   hitLatencyTotal: number
   cacheSize: number;
@@ -11,6 +13,8 @@ class PerfMetrics {
     this.numEntries = 0;
     this.readsProcessed = 0;
     this.writesProcessed = 0;
+    this.currentHitLatency = 0;
+    this.currentMissLatency = 0;
     this.missLatencyTotal = 0;
     this.hitLatencyTotal = 0;
     this.cacheSize = 0;
@@ -63,11 +67,12 @@ class PerfMetrics {
       this.writeJsonLog('writeProcessed')
       console.log('Writes processed: ', this.writesProcessed);
     });
-  };
+  }
 
   updateMissLatency = (newCacheMissTime: number) => {
     return new Promise(() => {
       this.missLatencyTotal += newCacheMissTime
+      this.currentMissLatency = newCacheMissTime;
       this.writeJsonLog('missLatency');
       console.log('Miss latency timer: ', newCacheMissTime, 'ms');
       //this.outPutType(2, newCacheMissTime, 'Miss latency timer: ')
@@ -77,11 +82,29 @@ class PerfMetrics {
   updateHitLatency = (newCacheHitTime: number) => {
     return new Promise(() => {
       this.hitLatencyTotal += newCacheHitTime;
+      this.currentHitLatency = newCacheHitTime;
       this.writeJsonLog('hitLatency');
       console.log('Hit latency timer: ', newCacheHitTime, 'ms');
       //this.outPutType(2, newCacheHitTime, 'Hit latency timer: ')
     });
   };
+
+  // updateDB writes to the json file an updated performance metrics object.
+  // It gets called at the end of: makeResponseCachable, respondOnHit, and !respondOnHit
+  updateDB = (): void => {
+    writeJsonSync('../test_server/static/localDB.json',
+    { 
+     numEntries: this.numEntries,
+     readsProcessed : this.readsProcessed,
+     writesProcessed: this.writesProcessed, 
+     cacheMissTime: this.currentMissLatency,
+     cacheHitTimes: this.currentHitLatency,
+     }, 
+     { 
+      replacer:['numEntries', 'readsProcessed', 'writesProcessed', 'currentMissLatency', 'currentHitLatency']
+     })
+     console.log('JSON DB updated');
+  }
 
   //Attempt at implementing cache size (in bytes / mb) functionality
 
