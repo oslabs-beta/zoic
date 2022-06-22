@@ -1,3 +1,5 @@
+import { writeJson, writeJsonSync } from 'https://deno.land/x/jsonfile/mod.ts';
+
 class PerfMetrics {
   numEntries: number;
   numHits: number;
@@ -34,15 +36,16 @@ class PerfMetrics {
     return new Promise(() => {
       this.numHits++;
       console.log('Cache hits: ', this.numHits);
-    });
+    })
   };
 
   addMiss = () => {
+
     return new Promise(() => {
       this.numMisses++;
       console.log('Cache misses: ', this.numMisses);
     });
-  };
+  }
 
   updateCacheMissTime = (newCacheTime: number) => {
     return new Promise(() => {
@@ -59,6 +62,25 @@ class PerfMetrics {
       console.log('Hit latency timer: ', newCacheHitTime, 'ms');
     });
   };
+
+  // updateDB writes to the json file an updated performance metrics object.
+  // It gets called at the end of: makeResponseCachable, respondOnHit, and !respondOnHit
+  updateDB = (): void => {
+    writeJson('../test_server/static/localDB.json',
+    { 
+     numEntries: this.numEntries,
+     numHits: this.numHits,
+     numMisses: this.numMisses, 
+     cacheMissTime: this.cacheMissTime,
+     cacheHitTimes: this.cacheHitTimes,
+     latency: this.latency
+     }, 
+     { 
+      replacer:['numEntries', 'numHits', 'numMisses', 'cacheMissTime', 'cacheHitTimes', 'latency']
+     })
+     .then(() => console.log('JSON DB updated'))
+     .catch((err) => console.log(err))
+  }
 
   //Attempt at implementing cache size (in bytes / mb) functionality
 

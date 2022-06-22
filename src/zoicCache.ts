@@ -140,13 +140,13 @@ export class ZoicCache {
         //dnding mark for cache hit latency performance test.
         performance.mark('endingMark');
         this.metrics.addCacheHitTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
-
+        this.metrics.updateDB();
         return;
       }
 
       //attach query results to ctx.state.zoic
       ctx.state.zoicResponse = Object.assign({}, cacheResults);
-    
+      this.metrics.updateDB();
       return next();
 
     } catch (err) {
@@ -196,7 +196,7 @@ export class ZoicCache {
       //ending mark for a cache miss latency performance test.
       performance.mark('endingMark');
       metrics.updateCacheMissTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
-
+      metrics.updateDB();
       return new Promise (resolve => {                
         resolve(responsePatch.toDomResponse());
       });
