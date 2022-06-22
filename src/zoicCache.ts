@@ -1,19 +1,14 @@
-import { Context, Response, helpers } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Context, Response } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import PerfMetrics from './performanceMetrics.ts'
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
-import PerfMetrics from './performanceMetrics.ts'
 
 interface options {
-  cache?: 'LRU' | 'LFU',
-  expire?: string | number,
-  respondOnHit?: boolean
+  cache?: 'LRU' | 'LFU';
+  expire?: string | number;
+  respondOnHit?: boolean;
+  capacity?: number;
 }
-
-// interface PerfMetrics {
-//   numEntries: number,
-//   addEntry: (argument: string ): Number => number,
-
-// }
 
 /**
   * Class to initalize new instance of cache.
@@ -37,20 +32,19 @@ interface options {
   * @returns LRU | LFU (new cache)
 */
 export class ZoicCache {
+  capacity: number;
   cache: LRU | LFU;
   expire: number;
   respondOnHit: boolean;
-  metrics: any;
-  maxEntries: number;
+  metrics: InstanceType <typeof PerfMetrics>;
   constructor (options?: options) {
 
     //initalizes cache options
+    this.capacity = options?.capacity || 50;
     this.expire = this.#parseExpTime(options?.expire);
     this.cache = this.#initCacheType(this.expire, options?.cache);
     this.respondOnHit = options?.respondOnHit || true;
     this.metrics = new PerfMetrics();
-    //5 entries is the current maximum
-    this.maxEntries = 50;
 
     this.use = this.use.bind(this);
     this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
@@ -66,8 +60,9 @@ export class ZoicCache {
    */
   #initCacheType (expire: number, cache?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
-    if (cache === 'LFU') return new LFU(expire);
-    return new LRU(expire);
+    if (this.capacity < 0) throw new TypeError('Cache capacity must exceed 0 entires.')
+    if (cache === 'LFU') return new LFU(expire, this.capacity);
+    return new LRU(expire, this.capacity);
   }
 
 
@@ -120,7 +115,7 @@ export class ZoicCache {
         this.metrics.writeProcessed();
 
         // If declared cache size is equal to current cache size, we decrement the count of entries. 
-        if (this.metrics.numEntries >= this.maxEntries) this.metrics.deleteEntry();
+        if (this.metrics.numEntries >= this.capacity) this.metrics.deleteEntry();
         // Then we increment the count for the new entry.
         this.metrics.addEntry();
         //makes response cacheable via patch
@@ -250,21 +245,3 @@ export class ZoicCache {
 }
 
 export default ZoicCache;
-
-// const lru = new LRU();
-// lru.put('a', 1)
-// lru.put('b', 2)
-// lru.put('c', 3)
-// lru.put('d', 4)
-// lru.put('b', 5)
-// lru.put('e', 7)
-// lru.put('c', 10)
-// lru.put('d', 11)
-// lru.put('d', 12)
-// lru.put('f', 15)
-// lru.put('d', 11)
-
-// lru.printLru();
-// lru.get('e')
-// lru.printLru();
-// console.log('length', lru.length)

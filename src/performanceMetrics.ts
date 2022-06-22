@@ -7,7 +7,7 @@ class PerfMetrics {
   missLatencyTotal: number;
   hitLatencyTotal: number
   cacheSize: number;
-  constructor(){
+  constructor() {
     this.numEntries = 0;
     this.readsProcessed = 0;
     this.writesProcessed = 0;
@@ -28,11 +28,11 @@ class PerfMetrics {
     writeJsonSync(`${Deno.cwd()}/test_file_dump/test_output.json`, currentJSON);
   }
 
-  outPutType = (outPutTypeArg: number, dataToLog: any, dataToLogDescription: string) => {
-    if (outPutTypeArg === 0 ) return;
-    if (outPutTypeArg === 1 ) console.log(dataToLogDescription + ', \n' + dataToLog);
-    if (outPutTypeArg === 2 ) Deno.writeTextFile(`${Deno.cwd()}/test_file_dump/output.txt`, dataToLogDescription + ': ' + dataToLog + '\n', {append:true});
-  }
+  // outPutType = (outPutTypeArg: number, dataToLog: any, dataToLogDescription: string) => {
+  //   if (outPutTypeArg === 0 ) return;
+  //   if (outPutTypeArg === 1 ) console.log(dataToLogDescription + ', \n' + dataToLog);
+  //   if (outPutTypeArg === 2 ) Deno.writeTextFile(`${Deno.cwd()}/test_file_dump/output.txt`, dataToLogDescription + ': ' + dataToLog + '\n', {append:true});
+  // }
 
   addEntry = () => {
     return new Promise(() => {
@@ -52,7 +52,7 @@ class PerfMetrics {
     return new Promise(() => {
       this.readsProcessed++;
       this.writeJsonLog('readProcessed')
-      this.outPutType(2, this.readsProcessed, 'Reads processed: ')
+      //this.outPutType(2, this.readsProcessed, 'Reads processed: ')
       console.log('Reads processed: ', this.readsProcessed);
     });
   };
@@ -67,19 +67,19 @@ class PerfMetrics {
 
   updateMissLatency = (newCacheMissTime: number) => {
     return new Promise(() => {
-      console.log('Miss latency timer: ', newCacheMissTime, 'ms');
       this.missLatencyTotal += newCacheMissTime
       this.writeJsonLog('missLatency');
-      this.outPutType(2, newCacheMissTime, 'Miss latency timer: ')
+      console.log('Miss latency timer: ', newCacheMissTime, 'ms');
+      //this.outPutType(2, newCacheMissTime, 'Miss latency timer: ')
     });
   };
 
   updateHitLatency = (newCacheHitTime: number) => {
     return new Promise(() => {
-      console.log('Hit latency timer: ', newCacheHitTime, 'ms');
       this.hitLatencyTotal += newCacheHitTime;
       this.writeJsonLog('hitLatency');
-      this.outPutType(2, newCacheHitTime, 'Hit latency timer: ')
+      console.log('Hit latency timer: ', newCacheHitTime, 'ms');
+      //this.outPutType(2, newCacheHitTime, 'Hit latency timer: ')
     });
   };
 

@@ -1,16 +1,20 @@
 import { DoublyLinkedList } from './doublyLinkedList.ts'
 
+/**
+ * Cache implementing a "least recently used" eviction policy.
+ * O(n) insert, lookup, and deletion time.
+ */
 class LRU {
   list: DoublyLinkedList;
   cache: any;
   length: number;
   capacity: number;
   expire: number;
-  constructor (expire: number) {
+  constructor (expire: number, capacity: number) {
     this.list = new DoublyLinkedList();
     this.cache = {};
     this.length = 0;
-    this.capacity = 50;
+    this.capacity = capacity;
     this.expire = expire;
 
     this.get = this.get.bind(this);
