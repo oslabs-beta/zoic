@@ -111,11 +111,7 @@ export class ZoicCache {
       //check if cache miss
       if (!cacheResults) {
 
-        // count of cache miss
-        this.metrics.writeProcessed();
-
-        // If declared cache size is equal to current cache size, we decrement the count of entries. 
-        //TODO: needs to account for deletion via expiration timer.
+        // If declared cache size is less than current cache size, we increment the count of entries. 
         if (this.metrics.numberOfEntries <= this.capacity) this.metrics.addEntry();
         
         //makes response cacheable via patch
@@ -181,6 +177,9 @@ export class ZoicCache {
       };
       
       cache.put(key, response);
+
+      // count of cache miss
+      metrics.writeProcessed();
 
       //Attempt at removing bytes for performance test
       // this.metrics.removeBytes(cache.put(key, response))

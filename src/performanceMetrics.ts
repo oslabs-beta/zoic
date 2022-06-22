@@ -85,7 +85,7 @@ class PerfMetrics {
       this.readsProcessed++;
       this.writeTestJsonLog();
       //this.outPutType(2, this.readsProcessed, 'Reads processed: ')
-      //console.log('Reads processed: ', this.readsProcessed);
+      console.log('Reads processed: ', this.readsProcessed);
       resolve(this.readsProcessed);
     });
   };
