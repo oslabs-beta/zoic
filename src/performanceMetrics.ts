@@ -50,7 +50,7 @@ class PerfMetrics {
   deleteEntry = () => {
     return new Promise(resolve => {
       this.numberOfEntries--;
-      this.writeProcessed;
+      this.writeProcessed();
       resolve(this.numberOfEntries);
     });
   };
@@ -69,7 +69,7 @@ class PerfMetrics {
       this.writesProcessed++;
       this.writeMetricsJson();
       console.log('Writes processed: ', this.writesProcessed);
-      resolve(this.writeProcessed);
+      resolve(this.writesProcessed);
     });
   }
 
