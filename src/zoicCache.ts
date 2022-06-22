@@ -112,7 +112,7 @@ export class ZoicCache {
       if (!cacheResults) {
 
         // If declared cache size is less than current cache size, we increment the count of entries. 
-        if (this.metrics.numberOfEntries <= this.capacity) this.metrics.addEntry();
+        if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
         
         //makes response cacheable via patch
         this.makeResponseCacheable(ctx);

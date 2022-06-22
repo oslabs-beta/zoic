@@ -1,17 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {  
   
   const root = document.querySelector('#root');
-  const entries = document.createElement('p');
-  const hits = document.createElement('p');
-  const misses = document.createElement('p');
-  const avHitLatency = document.createElement('p');
-  const avMissLatency = document.createElement('p');
+  const metrics = document.createElement('div');
 
-  root.appendChild(entries);
-  root.appendChild(hits);
-  root.appendChild(misses);
-  root.appendChild(avHitLatency);
-  root.appendChild(avMissLatency);
+  root.appendChild(metrics);
+  metrics.setAttribute('class', 'metricsContainer');
+
+  const entries = document.createElement('div')
+  const hits = document.createElement('div');
+  const misses = document.createElement('div');
+  const avHitLatency = document.createElement('div');
+  const avMissLatency = document.createElement('div');
+
+  const entriesContainer = document.createElement('div')
+  const hitsContainer = document.createElement('div')
+  const missesContainer = document.createElement('div')
+  const avHitLatencyContainer = document.createElement('div')
+  const avMissLatencyContainer = document.createElement('div')
+
+  entriesContainer.setAttribute('class', 'metricContainer');
+  hitsContainer.setAttribute('class', 'metricContainer');
+  missesContainer.setAttribute('class', 'metricContainer');
+  avHitLatencyContainer.setAttribute('class', 'metricContainer');
+  avMissLatencyContainer.setAttribute('class', 'metricContainer');
+
+  metrics.appendChild(entriesContainer);
+  metrics.appendChild(hitsContainer);
+  metrics.appendChild(missesContainer);
+  metrics.appendChild(avHitLatencyContainer);
+  metrics.appendChild(avMissLatencyContainer);
+
+  entriesContainer.appendChild(entries)
+  hitsContainer.appendChild(hits);
+  missesContainer.appendChild(misses);
+  avHitLatencyContainer.appendChild(avHitLatency);
+  avMissLatencyContainer.appendChild(avMissLatency);
 
   entries.innerHTML = "Number of entries: loading...";
   hits.innerHTML = "Reads processed: loading...";
@@ -35,11 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
         average_miss_latency
       } = metricsData;
     
-      entries.innerHTML = `Number of entries: ${number_of_entries || '0'}`;
-      hits.innerHTML = `Reads processed: ${reads_processed || '0'}`;
+      entries.innerHTML = `Number of entries:  ${number_of_entries || '0'}`;
+      hits.innerHTML = `Reads processed:  ${reads_processed || '0'}`;
       misses.innerHTML = `Writes processed: ${writes_processed || '0'}`;
-      avHitLatency.innerHTML = `Average cache hit latency: ${average_hit_latency || '0'}ms`;
-      avMissLatency.innerHTML = `Average cache miss latency: ${average_miss_latency || '0'}ms`;
+      avHitLatency.innerHTML = `Average cache hit latency:  ${average_hit_latency.toString().slice(0, 5) || '0'}ms`;
+      avMissLatency.innerHTML = `Average cache miss latency:  ${average_miss_latency.toString().slice(0, 6)  || '0'}ms`;
 
   })}, 1500);
 
