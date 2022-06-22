@@ -55,8 +55,8 @@ class LRU {
     setTimeout(() => {
       if (this.cache[key]) {
         this.delete(key);
-        this.metricsDelete().then(() => {
-          console.log(`Zoic cache entry at '${key}' expired.`);
+        this.metricsDelete().then(res => {
+          console.log(`Zoic cache entry at '${key}' expired. Currently ${res} entries exist.`);
         });
       }    
     }, this.expire * 1000);
