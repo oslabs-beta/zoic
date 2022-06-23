@@ -47,7 +47,7 @@ export class ZoicCache {
     this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache);
 
     this.use = this.use.bind(this);
-    this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
+    this.cacheResponse = this.cacheResponse.bind(this);
     this.put = this.put.bind(this);
   }
 
@@ -115,7 +115,7 @@ export class ZoicCache {
         if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
         
         //makes response cacheable via patch
-        this.makeResponseCacheable(ctx);
+        this.cacheResponse(ctx);
         return next();
       }
 
@@ -156,7 +156,7 @@ export class ZoicCache {
    * @param ctx 
    * @returns void
    */
-  makeResponseCacheable (ctx: Context) {
+  cacheResponse (ctx: Context) {
 
     //create new response object to retain access to original toDomResponse function def
     const responsePatch = new Response(ctx.request);
