@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"reads_processed":37,"writes_processed":61,"average_hit_latency":0.16216216216216217,"average_miss_latency":26.885245901639344,"latency_history":[32],"number_of_entries":50}
+=======
+{"reads_processed":3276,"writes_processed":3672,"average_hit_latency":17.773504273504273,"average_miss_latency":34.949891067538125,"latency_history":[10],"number_of_entries":0}
+>>>>>>> af6d2d6a8be574b9932bffd32ad374753a46698b
