@@ -4,6 +4,10 @@ body {
     background-color: #35465c;
 }
 
+.logoText {
+  margin-top: 150px;
+}
+
 #root {
     display: flex;
     flex-direction: column;
@@ -49,10 +53,6 @@ div {
     font-family: 'Cabin', sans-serif;
 }
 
-img {
-    border-radius: 50%;
-    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-}
 
 .field {
     display: flex;
