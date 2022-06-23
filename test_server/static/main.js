@@ -28,11 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
         average_miss_latency
       } = metricsData;
     
-      entries.innerHTML = `Number of entries:  ${number_of_entries || '0'}`;
-      hits.innerHTML = `Reads processed:  ${reads_processed || '0'}`;
-      misses.innerHTML = `Writes processed: ${writes_processed || '0'}`;
-      avHitLatency.innerHTML = `Average cache hit latency:  ${average_hit_latency.toString().slice(0, 5) || '0'}ms`;
-      avMissLatency.innerHTML = `Average cache miss latency:  ${average_miss_latency.toString().slice(0, 6)  || '0'}ms`;
+      entries.innerHTML = `${number_of_entries || '0'}`;
+      hits.innerHTML = `${reads_processed || '0'}`;
+      misses.innerHTML = `${writes_processed || '0'}`;
+      avHitLatency.innerHTML = `${average_hit_latency.toString().slice(0, 5) || '0'}ms`;
+      avMissLatency.innerHTML = `${average_miss_latency.toString().slice(0, 6)  || '0'}ms`;
 
   })}, 1500);
 
