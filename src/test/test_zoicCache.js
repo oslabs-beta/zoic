@@ -1,11 +1,14 @@
-import { assert, assertThrows, assertEquals } from "https://deno.land/std@0.145.0/testing/asserts.ts";
+import { assert, assertThrows, assertEquals, assertInstanceOf } from "https://deno.land/std@0.145.0/testing/asserts.ts";
 import { afterEach, beforeEach, beforeAll, describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
 import { ZoicCache } from '../zoicCache.ts';
 import LRU from '../lru.ts';
 import PerfMetrics from '../performanceMetrics.ts'
-// import { Context, Response } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+// import { Context, Response, Request } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+// import { Application, Router } from "https://deno.land/x/oak@v6.0.1/mod.ts";
+// import { superdeno } from "https://deno.land/x/superdeno@2.1.1/mod.ts";
+// import { superoak } from "https://deno.land/x/superoak@2.1.0/mod.ts";
 
-describe("Arguments passed to Deno are correctly reflected in instantiated class", () => {
+describe("Arguments passed into the performance metrics change ", () => {
 
   const testCacheInstance = new ZoicCache(
     {
@@ -47,7 +50,7 @@ describe("ZoicCache should handle default args approporately", () => {
   })
 
   it("should handle when nothing input for cache type", () => {
-    assert(testCacheInstance.cache instanceof (LRU));
+    assertInstanceOf(testCacheInstance.cache, LRU)
   })
 
 })
@@ -63,9 +66,16 @@ describe("ZoicCache should handle poorly formatted args appropriately", () => {
 });
 
 // describe("ZoicCache should update cache appropriately", () => {
+  
+//   const router = new Router();
+//   router.get("/", (ctx) => {
+//     ctx.response.bo
+
+//   })
+  
 //   const testCacheInstance = new ZoicCache({
 //     capacity: 5,
-//     expire: '10s',
+//     expire: '1m',
 //     cache: 'LRU',
 //   })
 
@@ -77,10 +87,14 @@ describe("ZoicCache should handle poorly formatted args appropriately", () => {
 //   })
 
 //   testCxt.request.url.pathname = '/testEndpoint/';
-//   testCxt.request.url.search = 'test' + String(i);
 
+//   it("should update the cache with a new cache hit", () => {
+//     testCxt.request.url.search = 'Obi-Wan Kenobi';
+//     const key = testCxt.request.url.pathname + testCxt.request.url.search;
+//     testCacheInstance.use(testCxt, Next());
 
+//     assertEquals(testCacheInstance.cache.cache.key,)
 
-
+//   })
 
 // })
