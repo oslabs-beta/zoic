@@ -15,6 +15,8 @@ router.get('/dbRead/:name', cache.use, controller.dbRead, async ctx => {
     ctx.response.headers.set('Content-type', 'application/json');
     const value = await etag.calculate('hello')
     ctx.response.headers.set("ETag", value);
+    // const blob = new Blob(['<a id="a"><b id="b">hey!</b></a>'],  {type: 'text/html'});
+    // ctx.state.test.push()
     ctx.response.body = ctx.state.test;
 });
 

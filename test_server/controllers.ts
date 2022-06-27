@@ -1,6 +1,5 @@
 import { Context, helpers } from "https://deno.land/x/oak/mod.ts";
 import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
-import { connect, parseURL } from "https://deno.land/x/redis/mod.ts";
 import Client from './model/db.ts'
 
 

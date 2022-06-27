@@ -3,6 +3,7 @@ import { connect, Redis } from "https://deno.land/x/redis/mod.ts";
 import PerfMetrics from './performanceMetrics.ts'
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
+import {  decode,  encode,} from "https://deno.land/std@0.89.0/encoding/base64.ts";
 
 interface options {
   cache?: string;
@@ -64,7 +65,9 @@ export class ZoicCache {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
     if (this.capacity < 0) throw new TypeError('Cache capacity must exceed 0 entires.');
     if (cache === 'REDIS') {
-      if (!redisPort) throw new Error('Redis requires port number passed in as an options property.')
+      if (!redisPort) {
+        throw new Error('Redis requires port number passed in as an options property.');
+      } 
       const redis = await connect({
         hostname: '127.0.0.1',
         port: redisPort
@@ -130,7 +133,6 @@ export class ZoicCache {
 
     try {
       //query cache
-
       let cacheResults = await cache.get(key);
 
       //check if cache miss
@@ -147,7 +149,7 @@ export class ZoicCache {
 
       //checking if cache is Redis cache and parsing string
       if (this.#redisTypeCheck(cache)) {
-        cacheResults = JSON.parse(cacheResults);
+        cacheResults = JSON.parse(atob(cacheResults));
       }
 
       //if user selects respondOnHit option, return cache query results immediately 
@@ -221,7 +223,8 @@ export class ZoicCache {
       
       //check if current cache is in memory or Redis and handle accordingly
       if (redisTypeCheck(cache)){
-        cache.set(key, JSON.stringify(response));
+        cache.set(key, btoa(JSON.stringify(response)));
+        //cache.set(key, btoa(response));
       } else {
         cache.put(key, response);
       }
@@ -251,9 +254,14 @@ export class ZoicCache {
    * Manually clears all current cache entries.
    */
   //TODO: link method with perf metrics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // clearCache () {
-  //   this.cache.clear();
-  // }
+  async clear () {
+    const cache = await this.cache;
+    if (this.#redisTypeCheck(cache)) {
+      return cache.flushdb();
+    } else {
+      return cache.clear();
+    }
+  }
 
 
   /**
