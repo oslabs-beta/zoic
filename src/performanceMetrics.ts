@@ -26,7 +26,7 @@ class PerfMetrics {
   }
 
   writeMetricsJson = () => {
-    writeJsonSync(`${Deno.cwd()}/static/localDB.json`,
+    writeJsonSync(`/${Deno.cwd()}/static/localDB.json`,
     {
       reads_processed: this.readsProcessed,
       writes_processed: this.writesProcessed,
