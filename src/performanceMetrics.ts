@@ -59,7 +59,7 @@ class PerfMetrics {
     return new Promise(resolve => {
       this.readsProcessed++;
       this.writeMetricsJson();
-      console.log('Reads processed: ', this.readsProcessed);
+      //console.log('Reads processed: ', this.readsProcessed);
       resolve(this.readsProcessed);
     });
   };
@@ -68,7 +68,7 @@ class PerfMetrics {
     return new Promise(resolve => {
       this.writesProcessed++;
       this.writeMetricsJson();
-      console.log('Writes processed: ', this.writesProcessed);
+      //console.log('Writes processed: ', this.writesProcessed);
       resolve(this.writesProcessed);
     });
   }
