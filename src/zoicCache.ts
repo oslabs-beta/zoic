@@ -1,19 +1,14 @@
-import { Context, Response, helpers } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Context, Response } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import PerfMetrics from './performanceMetrics.ts'
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
-import PerfMetrics from './performanceMetrics.js'
 
 interface options {
-  cache?: 'LRU' | 'LFU',
-  expire?: string | number,
-  respondOnHit?: boolean
+  cache?: 'LRU' | 'LFU';
+  expire?: string | number;
+  respondOnHit?: boolean;
+  capacity?: number;
 }
-
-// interface PerfMetrics {
-//   numEntries: number,
-//   addEntry: (argument: string ): Number => number,
-
-// }
 
 /**
   * Class to initalize new instance of cache.
@@ -37,23 +32,22 @@ interface options {
   * @returns LRU | LFU (new cache)
 */
 export class ZoicCache {
-  cache: LRU | LFU;
+  capacity: number;
   expire: number;
+  metrics: InstanceType <typeof PerfMetrics>;
   respondOnHit: boolean;
-  metrics: any;
-  maxEntries: number;
-  constructor (options?: options) {
+  cache: LRU | LFU;
 
+  constructor (options?: options) {
     //initalizes cache options
+    this.capacity = options?.capacity || 50;
     this.expire = this.#parseExpTime(options?.expire);
-    this.cache = this.#initCacheType(this.expire, options?.cache);
-    this.respondOnHit = options?.respondOnHit || true;
     this.metrics = new PerfMetrics();
-    //5 entries is the current maximum
-    this.maxEntries = 5;
+    this.respondOnHit = options?.respondOnHit || true;
+    this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache);
 
     this.use = this.use.bind(this);
-    this.makeResponseCacheable = this.makeResponseCacheable.bind(this);
+    this.cacheResponse = this.cacheResponse.bind(this);
     this.put = this.put.bind(this);
   }
 
@@ -64,10 +58,11 @@ export class ZoicCache {
    * @param cache 
    * @returns LRU | LFU
    */
-  #initCacheType (expire: number, cache?: string) {
+  #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
-    if (cache === 'LFU') return new LFU(expire);
-    return new LRU(expire);
+    if (this.capacity < 0) throw new TypeError('Cache capacity must exceed 0 entires.')
+    if (cache === 'LFU') return new LFU(expire, metrics, this.capacity);
+    return new LRU(expire, metrics, this.capacity);
   }
 
 
@@ -109,26 +104,23 @@ export class ZoicCache {
 
     //defines key via api endpoint
     const key: string = ctx.request.url.pathname + ctx.request.url.search;
+
     try {
       //query cache
       const cacheResults = this.cache.get(key);
       //check if cache miss
       if (!cacheResults) {
 
-        // count of cache miss
-        this.metrics.addMiss();
-
-        // If declared cache size is equal to current cache size, we decrement the count of entries. 
-        if (this.metrics.numEntries >= this.maxEntries) this.metrics.deleteEntry();
-        // Then we increment the count for the new entry.
-        this.metrics.addEntry();
+        // If declared cache size is less than current cache size, we increment the count of entries. 
+        if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
+        
         //makes response cacheable via patch
-        this.makeResponseCacheable(ctx);
+        this.cacheResponse(ctx);
         return next();
       }
 
       //adds cache hit to perf log metrics
-      this.metrics.addHit();
+      this.metrics.readProcessed();
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
@@ -139,14 +131,15 @@ export class ZoicCache {
 
         //dnding mark for cache hit latency performance test.
         performance.mark('endingMark');
-        this.metrics.addCacheHitTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
+        // this.metrics.updateHitLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
+        this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'hit');
 
         return;
       }
 
       //attach query results to ctx.state.zoic
       ctx.state.zoicResponse = Object.assign({}, cacheResults);
-    
+
       return next();
 
     } catch (err) {
@@ -163,7 +156,7 @@ export class ZoicCache {
    * @param ctx 
    * @returns void
    */
-  makeResponseCacheable (ctx: Context) {
+  cacheResponse (ctx: Context) {
 
     //create new response object to retain access to original toDomResponse function def
     const responsePatch = new Response(ctx.request);
@@ -185,6 +178,9 @@ export class ZoicCache {
       
       cache.put(key, response);
 
+      // count of cache miss
+      metrics.writeProcessed();
+
       //Attempt at removing bytes for performance test
       // this.metrics.removeBytes(cache.put(key, response))
       
@@ -195,7 +191,8 @@ export class ZoicCache {
 
       //ending mark for a cache miss latency performance test.
       performance.mark('endingMark');
-      metrics.updateCacheMissTime(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration);
+      // metrics.updateMissLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
+      metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'miss');
 
       return new Promise (resolve => {                
         resolve(responsePatch.toDomResponse());
@@ -249,21 +246,3 @@ export class ZoicCache {
 }
 
 export default ZoicCache;
-
-// const lru = new LRU();
-// lru.put('a', 1)
-// lru.put('b', 2)
-// lru.put('c', 3)
-// lru.put('d', 4)
-// lru.put('b', 5)
-// lru.put('e', 7)
-// lru.put('c', 10)
-// lru.put('d', 11)
-// lru.put('d', 12)
-// lru.put('f', 15)
-// lru.put('d', 11)
-
-// lru.printLru();
-// lru.get('e')
-// lru.printLru();
-// console.log('length', lru.length)

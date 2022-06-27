@@ -1,17 +1,25 @@
 import { DoublyLinkedList } from './doublyLinkedList.ts'
+import PerfMetrics from './performanceMetrics.ts'
 
+/**
+ * Cache implementing a "least recently used" eviction policy.
+ * O(n) insert, lookup, and deletion time.
+ */
 class LRU {
   list: DoublyLinkedList;
   cache: any;
   length: number;
   capacity: number;
   expire: number;
-  constructor (expire: number) {
+  metricsDelete: () => Promise<unknown>;
+
+  constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
     this.list = new DoublyLinkedList();
     this.cache = {};
     this.length = 0;
-    this.capacity = 10;
+    this.capacity = capacity;
     this.expire = expire;
+    this.metricsDelete = metrics.deleteEntry;
 
     this.get = this.get.bind(this);
     this.put = this.put.bind(this);
@@ -38,6 +46,7 @@ class LRU {
 
     //evalutes if least recently used item should be evicted.
     if (this.length < this.capacity) this.length++;
+
     else {
       const deletedNode: any = this.list.deleteTail();
       delete this.cache[deletedNode.key];
@@ -47,7 +56,10 @@ class LRU {
     setTimeout(() => {
       if (this.cache[key]) {
         this.delete(key);
-        console.log(`node at key '${key}' expired.`);
+        this.metricsDelete()
+        .then(res => {
+          console.log(`Zoic cache entry at '${key}' expired.\n${res} entries currently exist.`);
+        });
       }    
     }, this.expire * 1000);
 

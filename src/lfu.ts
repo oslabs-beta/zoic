@@ -1,5 +1,9 @@
 import { DoublyLinkedList } from './doublyLinkedList.ts'
+import PerfMetrics from './performanceMetrics.ts'
 
+/**
+ * Cache implementing a "least recently used" eviction policy. 
+ */
 class LFU {
   cache: any;
   frequencyMap: Record<string, DoublyLinkedList>;
@@ -7,13 +11,15 @@ class LFU {
   minUsage: number;
   capacity: number;
   expire: number;
-  constructor (expire: number) {
+  metricsDelete: () => Promise<unknown>;
+  constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
     this.cache = {};
     this.frequencyMap = {};
     this.length = 0;
     this.minUsage = 0;
-    this.capacity = 5;
+    this.capacity = capacity;
     this.expire = expire;
+    this.metricsDelete = metrics.deleteEntry;
   }
 
   /**

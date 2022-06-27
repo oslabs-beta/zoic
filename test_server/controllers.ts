@@ -1,20 +1,16 @@
 import { Context, helpers } from "https://deno.land/x/oak/mod.ts";
 import { writeJson, readJson } from 'https://deno.land/x/jsonfile/mod.ts';
-import Client from '../model/db.ts'
+import Client from './model/db.ts'
 
 const controller: Record <string, (ctx: Context, next: () => Promise<unknown>) => Promise<unknown> | void> = {};
 
 controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
 
-  interface Name {
-    name: any
-  }
-
   // Get params of query for performance metrics testing
   const { name } = helpers.getQuery(ctx, { mergeParams: true })
-
+  
   const queryObj = await Client.queryArray(
-    `SELECT * FROM "public"."people" WHERE name=$CHARNAME;`,
+    `SELECT * FROM "public"."people" WHERE _id=$CHARNAME;`,
     //Parameterization
     { CHARNAME: name }
   );
@@ -39,6 +35,8 @@ controller.dbWrite = async (ctx: Context, next: () => Promise<unknown>) => {
     }
     return;
   }
+
+  //Hank code
   const reqBodyVal = await reqBody.value;
   const currentJSON: any = await readJson(`${Deno.cwd()}/test.json`);
   Object.keys(reqBodyVal).forEach((key: string) => {
