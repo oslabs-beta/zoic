@@ -1,16 +1,26 @@
-import { Router } from "https://deno.land/x/oak/mod.ts";
+import { Router, etag } from "https://deno.land/x/oak/mod.ts";
 import controller from './controllers.ts';
-import  { ZoicCache } from '../src/zoicCache.ts';
+import { ZoicCache } from '../src/zoicCache.ts';
 
 const router = new Router();
-const cache = new ZoicCache();
 
-router.get('/readJson', cache.use, controller.jsonRead, ctx => {
-  ctx.response.headers.set('Etag', 'test tag')
-  ctx.response.body = ctx.state.test;
+const cache = new ZoicCache({
+  cache: 'Redis',
+  port: 6379,
+  capacity: 200,
+  respondOnHit: true
 });
 
-router.post('/writeJson', controller.writeJson, controller.jsonRead, ctx => {
+router.get('/dbRead/:name', cache.use, controller.dbRead, async ctx => {
+    ctx.response.headers.set('Content-type', 'application/json');
+    const value = await etag.calculate('hello')
+    ctx.response.headers.set("ETag", value);
+    // const blob = new Blob(['<a id="a"><b id="b">hey!</b></a>'],  {type: 'text/html'});
+    // ctx.state.test.push()
+    ctx.response.body = ctx.state.test;
+});
+
+router.post('/dbWrite', controller.dbWrite, controller.dbRead, ctx => {
   ctx.response.body = ctx.state.zoic;
 })
 

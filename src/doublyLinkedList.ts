@@ -3,11 +3,14 @@ class Node {
   prev: Node | null;
   value: any;
   key: string;
+  count: number;
   constructor (value: any, next: Node | null, key: any){
     this.next = next;
     this.prev = null;
     this.value = value;
-    this.key = key; // added this to delete the value from the cache
+    this.key = key;
+    this.count = 1;
+
   }
 }
 
@@ -17,6 +20,7 @@ export class DoublyLinkedList {
   constructor () {
     this.head = null;
     this.tail = null;
+    this.printList = this.printList.bind(this);
   }
 
   addHead (value: any, key: any) {
@@ -51,7 +55,7 @@ export class DoublyLinkedList {
   printList() {
     let current = this.tail;
     while(current) {
-      console.log(current.key + ': ' + current.value)
+      console.log(current.key + ': ' + current.value.body)
       current = current.prev;
     }
   }
