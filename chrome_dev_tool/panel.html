@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="panelContainer">
+            <h1>
+                <span style="color:#E76020">Z</span>
+                <span style="color:#EE892F">O</span>
+                <span style="color:#E0BB76">I</span>
+                <span style="color:#6E896A">C</span>
+            </h1>
+            <h3>devtools panel</h3>
+            <div class="localHostInput"> 
+                <input id='localHostInputID' type="text" placeholder="Enter server URL">
+                </input>
+                <button id="submitButton">Submit</button>
+            </div>
+            <div class="metricsContainer">
+                <div class="metricContainer">
+                    <div class="text">Number of entries: <span class="metric" id="entries">loading...</span></div>
+                </div>
+                <div class="metricContainer">
+                    <div class="text">Reads processed: <span class="metric" id="hits">loading...</span></div>
+                </div>
+                <div class="metricContainer">
+                    <div class="text">Writes processed: <span class="metric" id="misses">loading...</span></div>
+                </div>
+                <div class="metricContainer">
+                    <div class="text">Average cache hit latency: <span class="metric" id="avHitLatency">loading...</span></div>
+                </div>
+                <div class="metricContainer">
+                    <div class="text">Average cache miss latency: <span class="metric" id="avMissLatency">loading...</span></div>
+                </div>
+            </div>
+    </div>
+
+    <script type="module" src='main.js'></script>
+  </body>
+</html>
