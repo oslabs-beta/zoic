@@ -8,6 +8,7 @@ import {  decode,  encode,} from "https://deno.land/std@0.89.0/encoding/base64.t
 interface options {
   cache?: string;
   port?: number;
+  hostname?: string;
   expire?: string | number;
   respondOnHit?: boolean;
   capacity?: number;
@@ -43,11 +44,11 @@ export class ZoicCache {
 
   constructor (options?: options) {
     //initalizes cache options
-    this.capacity = options?.capacity || 50;
+    this.capacity = options?.capacity || Infinity;
     this.expire = this.#parseExpTime(options?.expire);
     this.metrics = new PerfMetrics();
     this.respondOnHit = options?.respondOnHit || true;
-    this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache?.toUpperCase(), options?.port);
+    this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache?.toUpperCase(), options?.port, options?.hostname);
 
     this.use = this.use.bind(this);
     this.cacheResponse = this.cacheResponse.bind(this);
@@ -61,7 +62,7 @@ export class ZoicCache {
    * @param cache 
    * @returns LRU | LFU
    */
-  async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number) {
+  async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number, hostname?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
     if (this.capacity < 0) throw new TypeError('Cache capacity must exceed 0 entires.');
     if (cache === 'REDIS') {
@@ -69,7 +70,7 @@ export class ZoicCache {
         throw new Error('Redis requires port number passed in as an options property.');
       } 
       const redis = await connect({
-        hostname: '127.0.0.1',
+        hostname: hostname || '127.0.0.1',
         port: redisPort
       });
       await redis.flushall();
@@ -121,17 +122,18 @@ export class ZoicCache {
    * @param next 
    * @returns Promise | void
    */
-  async use (ctx: Context, next: () => Promise<unknown>) {
-    
-    const cache = await this.cache;
-
-    //starting mark for cache hit/miss latency performance test.
-    performance.mark('startingMark');
-
-    //defines key via api endpoint
-    const key: string = ctx.request.url.pathname + ctx.request.url.search;
+  async use (ctx: Context, next: () => Promise<unknown>) {      
 
     try {
+
+      const cache = await this.cache;
+  
+      //starting mark for cache hit/miss latency performance test.
+      performance.mark('startingMark');
+  
+      //defines key via api endpoint
+      const key: string = ctx.request.url.pathname + ctx.request.url.search;
+
       //query cache
       let cacheResults = await cache.get(key);
 
@@ -147,21 +149,23 @@ export class ZoicCache {
         return next();
       }
 
-      //checking if cache is Redis cache and parsing string
+      //checking if cache is Redis cache and parsing string / decoding base64 string
       if (this.#redisTypeCheck(cache)) {
-        cacheResults = JSON.parse(atob(cacheResults));
+        cacheResults = JSON.parse(cacheResults);
+        cacheResults.body = decode(cacheResults.body);
       }
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
+
         ctx.response.body = cacheResults.body;
-        ctx.response.type = cacheResults.type;
         ctx.response.status = cacheResults.status;
-  
+
         //populate headers from mock header object
         Object.keys(cacheResults.headers).forEach(key => {
           ctx.response.headers.set(key, cacheResults.headers[key]);
         });
+
   
         //adds cache hit to perf log metrics
         this.metrics.readProcessed();
@@ -195,46 +199,37 @@ export class ZoicCache {
    */
   async cacheResponse (ctx: Context) {
 
-    // const responsePatch = new Response(ctx.request);
-
     const cache = await this.cache;
     const metrics = this.metrics;
-    const toDomResponsePatch = ctx.response.toDomResponse;
+    const toDomResponsePrePatch = ctx.response.toDomResponse;
     const redisTypeCheck = this.#redisTypeCheck;
 
     //patch toDomResponse to cache response body before returning results to client
-    ctx.response.toDomResponse = function() {
+    ctx.response.toDomResponse = async function() {
 
       //defines key via api endpoint and adds response body to cache
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
-
-      //data to be cached
+      
+      //extract native http response from toDomResponse to get correct headers and readable body
+      const nativeResponse = await toDomResponsePrePatch.apply(this);
+      
       const response: any = {
-        headers: {},
-        body: ctx.response.body,
+        headers: Object.fromEntries(nativeResponse.headers.entries()),
         status: ctx.response.status,
-        type: ctx.response.type
       };
       
-      //iterate through current headers and store in mock headers object
-      ctx.response.headers.forEach((value, key) => {
-        response.headers[key] = value;
-      });
-      
       //check if current cache is in memory or Redis and handle accordingly
-      if (redisTypeCheck(cache)){
-        cache.set(key, btoa(JSON.stringify(response)));
-        //cache.set(key, btoa(response));
+      if (redisTypeCheck(cache)) {
+        const arrBuffer = await nativeResponse.clone().arrayBuffer();
+        response.body = encode(new Uint8Array(arrBuffer));
+        cache.set(key, JSON.stringify(response));
       } else {
+        response.body = ctx.response.body;
         cache.put(key, response);
       }
       
       // count of cache miss
       metrics.writeProcessed();
-
-      // responsePatch.body = ctx.response.body;
-      // responsePatch.status = ctx.response.status;
-      // responsePatch.type = ctx.response.type;
 
       //ending mark for a cache miss latency performance test.
       performance.mark('endingMark');
@@ -242,7 +237,7 @@ export class ZoicCache {
       metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'miss');
 
       return new Promise (resolve => {                
-        resolve(toDomResponsePatch.apply(this));
+        resolve(nativeResponse);
       });
     }
 

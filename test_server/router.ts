@@ -5,18 +5,19 @@ import { ZoicCache } from '../src/zoicCache.ts';
 const router = new Router();
 
 const cache = new ZoicCache({
-  cache: 'Redis',
+  cache: 'redis',
   port: 6379,
-  capacity: 200,
   respondOnHit: true
 });
 
 router.get('/dbRead/:name', cache.use, controller.dbRead, async ctx => {
-    ctx.response.headers.set('Content-type', 'application/json');
+    //ctx.response.headers.set('Content-type', 'application/json');
     const value = await etag.calculate('hello')
     ctx.response.headers.set("ETag", value);
-    // const blob = new Blob(['<a id="a"><b id="b">hey!</b></a>'],  {type: 'text/html'});
-    // ctx.state.test.push()
+    const unit8 = new Uint8Array([12, 10, 13]);
+    const blob = new Blob(['<div>hello</div>'])
+    ctx.state.test.push(unit8)
+    ctx.state.test.push(blob)
     ctx.response.body = ctx.state.test;
 });
 
