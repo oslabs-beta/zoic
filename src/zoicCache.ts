@@ -219,6 +219,7 @@ export class ZoicCache {
       };
       
       //check if current cache is in memory or Redis and handle accordingly
+      //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
         const arrBuffer = await nativeResponse.clone().arrayBuffer();
         response.body = encode(new Uint8Array(arrBuffer));
