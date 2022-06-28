@@ -218,7 +218,6 @@ export class ZoicCache {
         status: ctx.response.status,
       };
       
-      //check if current cache is in memory or Redis and handle accordingly
       //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
         const arrBuffer = await nativeResponse.clone().arrayBuffer();
