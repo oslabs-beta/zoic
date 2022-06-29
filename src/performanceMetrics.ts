@@ -1,5 +1,7 @@
-import { writeJson } from 'https://deno.land/x/jsonfile/mod.ts';
 
+/**
+ * Keep tracks of in-memory cache performance
+ */
 class PerfMetrics {
   numberOfEntries: number;
   readsProcessed: number;
@@ -9,8 +11,7 @@ class PerfMetrics {
   currentEndPoint: string;
   latencyHistory: Array<number>;
   missLatencyTotal: number;
-  hitLatencyTotal: number
-  cacheSize: number;
+  hitLatencyTotal: number;
 
   constructor() {
     this.numberOfEntries = 0;
@@ -22,23 +23,7 @@ class PerfMetrics {
     this.latencyHistory = [];
     this.missLatencyTotal = 0;
     this.hitLatencyTotal = 0;
-    this.cacheSize = 0;
   }
-
-  // writeMetricsJson = () => {
-  //   writeJson(`/${Deno.cwd()}/static/localDB.json`,
-  //   {
-  //     reads_processed: this.readsProcessed,
-  //     writes_processed: this.writesProcessed,
-  //     average_hit_latency: this.hitLatencyTotal / this.readsProcessed,
-  //     average_miss_latency: this.missLatencyTotal / this.writesProcessed,
-  //     latency_history: this.latencyHistory,
-  //     number_of_entries: this.numberOfEntries
-  //   },
-  //    {
-  //     replacer: ['reads_processed', 'writes_processed', 'average_hit_latency', 'average_miss_latency', 'latency_history', 'number_of_entries']
-  //   });
-  // }
 
   addEntry = () => {
     return new Promise(resolve => {
@@ -58,8 +43,6 @@ class PerfMetrics {
   readProcessed = () => {
     return new Promise(resolve => {
       this.readsProcessed++;
-      //this.writeMetricsJson();
-      //console.log('Reads processed: ', this.readsProcessed);
       resolve(this.readsProcessed);
     });
   };
@@ -67,10 +50,15 @@ class PerfMetrics {
   writeProcessed = () => {
     return new Promise(resolve => {
       this.writesProcessed++;
-      //this.writeMetricsJson();
-      //console.log('Writes processed: ', this.writesProcessed);
       resolve(this.writesProcessed);
     });
+  }
+
+  clearEntires = () => {
+    return new Promise(resolve => {
+      this.numberOfEntries = 0;
+      resolve(this.numberOfEntries);
+    })
   }
 
 
@@ -103,4 +91,3 @@ class PerfMetrics {
 }
 
 export default PerfMetrics;
-

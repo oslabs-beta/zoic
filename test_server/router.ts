@@ -5,7 +5,7 @@ import { ZoicCache } from '../src/zoicCache.ts';
 const router = new Router();
 
 const zoic = new ZoicCache({
-  cache: 'lru',
+  cache: 'redis',
   port: 6379,
   respondOnHit: true
 });

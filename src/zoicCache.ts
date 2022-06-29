@@ -76,7 +76,6 @@ export class ZoicCache {
         hostname: hostname || '127.0.0.1',
         port: redisPort
       });
-      await redis.flushall();
       return redis;
     }
     if (cache === 'LFU') return new LFU(expire, metrics, this.capacity);
@@ -126,7 +125,6 @@ export class ZoicCache {
    * @returns Promise | void
    */
   async use (ctx: Context, next: () => Promise<unknown>) {      
-
     try {
 
       const cache = await this.cache;
@@ -222,7 +220,7 @@ export class ZoicCache {
       
       //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
-        const arrBuffer = await nativeResponse.clone().arrayBuffer();
+        const arrBuffer = await nativeResponse.arrayBuffer();
         response.body = base64encode(new Uint8Array(arrBuffer));
         cache.set(key, JSON.stringify(response));
       } else {
@@ -239,7 +237,7 @@ export class ZoicCache {
       metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'miss');
 
       return new Promise (resolve => {                
-        resolve(nativeResponse);
+        resolve(toDomResponsePrePatch.apply(this));
       });
     }
 
@@ -250,31 +248,24 @@ export class ZoicCache {
   /**
    * Manually clears all current cache entries.
    */
-  //TODO: link method with perf metrics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   async clear (ctx: Context, next: () => Promise<unknown>) {
     const cache = await this.cache;
     this.#redisTypeCheck(cache) ? cache.flushdb() : cache.clear();
+    this.metrics.clearEntires();
     return next()
   }
 
 
   /**
-   * Retrives cache metrics and responds.
-   * Designed for use with Chrome extension
+   * Retrives cache metrics. Designed for use with Chrome extension.
    * @param ctx 
    */
   getMetrics (ctx: Context) {
-
     try {
-
       const sendMetrics = async () => {
+        
         const cache = await this.cache;
-    
-        if (this.#redisTypeCheck(cache)) {
-          ctx.response.body = 'Support for redis currently unavailable.';
-          return;
-        } 
-    
+  
         const {
           numberOfEntries,
           readsProcessed,
@@ -284,6 +275,21 @@ export class ZoicCache {
         } = this.metrics;
       
         ctx.response.headers.set('Access-Control-Allow-Origin', '*');
+
+        if (this.#redisTypeCheck(cache)) {
+          const redisInfo = await cache.info();
+          const redisSize = await cache.dbsize();
+          const infoArr: string[] = redisInfo.split('\r\n');
+
+          ctx.response.body = {
+            number_of_entries: redisSize,
+            reads_processed: infoArr?.find((line: string) => line.match(/keyspace_hits/))?.split(':')[1],
+            writes_processed: infoArr?.find((line: string) => line.match(/keyspace_misses/))?.split(':')[1],
+            average_hit_latency: hitLatencyTotal / readsProcessed,
+            average_miss_latency: missLatencyTotal / writesProcessed
+          }
+          return;
+        } 
     
         ctx.response.body = {
           number_of_entries: numberOfEntries,
@@ -292,6 +298,7 @@ export class ZoicCache {
           average_hit_latency: hitLatencyTotal / readsProcessed,
           average_miss_latency: missLatencyTotal / writesProcessed
         }
+        return;
       }
 
       const enableRouteCors = oakCors();
@@ -323,25 +330,14 @@ export class ZoicCache {
       
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
   
-      // call to put to cache: response 0 for good put, -1 for err
-      if (this.#redisTypeCheck(cache)){
-        cache.set(key, JSON.stringify(value));
-      } else {
-        const putResponse: number = await cache.put(key, value);
-    
-        if (putResponse === 0) return next();
-        else if (putResponse === -1) ctx.response.body = {
-          success: false,
-          message: 'failed to add entry to cache'
-        } 
-      }
-    } catch (err) {
+      this.#redisTypeCheck(cache) ? cache.set(key, JSON.stringify(value)) : cache.put(key, value);
 
-    // handle errors in caching process and emit
-      ctx.response.body = {
-        success: false,
-        message: `${err} ocurred when trying to add to the cache`
-      }
+      return next();
+
+    } catch (err) {
+      ctx.response.status = 400;
+      ctx.response.body = `error in ZoicCache.put: ${err}`
+      console.log(`error in ZoicCache.put: ${err}`);
     }
   }
 }

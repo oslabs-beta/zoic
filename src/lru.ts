@@ -101,7 +101,7 @@ class LRU {
    */
   delete (key: string) {
 
-    //locates node to be removed in constant time.
+    //locates node to be removed.
     const node = this.cache[key];
 
     //logic for removing node and connecting prev and next items, including in cases of head or tail.
