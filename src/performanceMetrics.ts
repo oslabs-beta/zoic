@@ -1,4 +1,4 @@
-import { writeJsonSync } from 'https://deno.land/x/jsonfile/mod.ts';
+import { writeJson } from 'https://deno.land/x/jsonfile/mod.ts';
 
 class PerfMetrics {
   numberOfEntries: number;
@@ -25,20 +25,20 @@ class PerfMetrics {
     this.cacheSize = 0;
   }
 
-  writeMetricsJson = () => {
-    writeJsonSync(`/${Deno.cwd()}/static/localDB.json`,
-    {
-      reads_processed: this.readsProcessed,
-      writes_processed: this.writesProcessed,
-      average_hit_latency: this.hitLatencyTotal / this.readsProcessed,
-      average_miss_latency: this.missLatencyTotal / this.writesProcessed,
-      latency_history: this.latencyHistory,
-      number_of_entries: this.numberOfEntries
-    },
-     {
-      replacer: ['reads_processed', 'writes_processed', 'average_hit_latency', 'average_miss_latency', 'latency_history', 'number_of_entries']
-    });
-  }
+  // writeMetricsJson = () => {
+  //   writeJson(`/${Deno.cwd()}/static/localDB.json`,
+  //   {
+  //     reads_processed: this.readsProcessed,
+  //     writes_processed: this.writesProcessed,
+  //     average_hit_latency: this.hitLatencyTotal / this.readsProcessed,
+  //     average_miss_latency: this.missLatencyTotal / this.writesProcessed,
+  //     latency_history: this.latencyHistory,
+  //     number_of_entries: this.numberOfEntries
+  //   },
+  //    {
+  //     replacer: ['reads_processed', 'writes_processed', 'average_hit_latency', 'average_miss_latency', 'latency_history', 'number_of_entries']
+  //   });
+  // }
 
   addEntry = () => {
     return new Promise(resolve => {
@@ -58,7 +58,7 @@ class PerfMetrics {
   readProcessed = () => {
     return new Promise(resolve => {
       this.readsProcessed++;
-      this.writeMetricsJson();
+      //this.writeMetricsJson();
       //console.log('Reads processed: ', this.readsProcessed);
       resolve(this.readsProcessed);
     });
@@ -67,7 +67,7 @@ class PerfMetrics {
   writeProcessed = () => {
     return new Promise(resolve => {
       this.writesProcessed++;
-      this.writeMetricsJson();
+      //this.writeMetricsJson();
       //console.log('Writes processed: ', this.writesProcessed);
       resolve(this.writesProcessed);
     });
@@ -87,33 +87,18 @@ class PerfMetrics {
       if (hitOrMiss === 'hit'){
         this.hitLatencyTotal += latency;
         this.currentHitLatency = latency;
-        resolve(this.writeMetricsJson());
+        resolve(undefined);
       }
       
       if (hitOrMiss === 'miss'){
         this.missLatencyTotal += latency;
         this.currentMissLatency = latency;
-        resolve(this.writeMetricsJson());
+        resolve(undefined);
       }
 
       throw reject(new TypeError('Hit or miss not specified'));
     });
   };
-
-  //Attempt at implementing cache size (in bytes / mb) functionality
-
-  // addingBytesToCache = async function(newCachePiece){
-
-  //     const file = new File(["Hello World😔😔😔😔"], "hello.txt");
-  //     console.log('Bytes: ',file.size);
-  //     this.cacheSize += whateverOurCountBytesFunctionIs(newCachePiece)
-  //     console.log('new this.cacheSize after adding is: ', this.cacheSize)
-  // }; 
-
-  // deletingBytesFromCache = (evictedCachePiece) => {
-  //     this.cacheSize -= whateverOurCountBytesFunctionIs(evictedCachePiece)
-  //     console.log('new this.cacheSize after deleting is: ', this.cacheSize)
-  // }
 
 }
 

@@ -1,9 +1,10 @@
 import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import { connect, Redis } from "https://deno.land/x/redis/mod.ts";
+import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import PerfMetrics from './performanceMetrics.ts'
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
-import {  decode,  encode,} from "https://deno.land/std@0.89.0/encoding/base64.ts";
+import { decode as base64decode, encode as base64encode } from "https://deno.land/std@0.89.0/encoding/base64.ts";
 
 interface options {
   cache?: string;
@@ -37,6 +38,7 @@ interface options {
 */
 export class ZoicCache {
   capacity: number;
+
   expire: number;
   metrics: InstanceType <typeof PerfMetrics>;
   respondOnHit: boolean;
@@ -52,6 +54,7 @@ export class ZoicCache {
 
     this.use = this.use.bind(this);
     this.cacheResponse = this.cacheResponse.bind(this);
+    this.getMetrics = this.getMetrics.bind(this);
     this.put = this.put.bind(this);
   }
 
@@ -152,7 +155,7 @@ export class ZoicCache {
       //checking if cache is Redis cache and parsing string / decoding base64 string
       if (this.#redisTypeCheck(cache)) {
         cacheResults = JSON.parse(cacheResults);
-        cacheResults.body = decode(cacheResults.body);
+        cacheResults.body = base64decode(cacheResults.body);
       }
 
       //if user selects respondOnHit option, return cache query results immediately 
@@ -166,7 +169,6 @@ export class ZoicCache {
           ctx.response.headers.set(key, cacheResults.headers[key]);
         });
 
-  
         //adds cache hit to perf log metrics
         this.metrics.readProcessed();
 
@@ -201,8 +203,8 @@ export class ZoicCache {
 
     const cache = await this.cache;
     const metrics = this.metrics;
-    const toDomResponsePrePatch = ctx.response.toDomResponse;
     const redisTypeCheck = this.#redisTypeCheck;
+    const toDomResponsePrePatch = ctx.response.toDomResponse;
 
     //patch toDomResponse to cache response body before returning results to client
     ctx.response.toDomResponse = async function() {
@@ -221,7 +223,7 @@ export class ZoicCache {
       //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
         const arrBuffer = await nativeResponse.clone().arrayBuffer();
-        response.body = encode(new Uint8Array(arrBuffer));
+        response.body = base64encode(new Uint8Array(arrBuffer));
         cache.set(key, JSON.stringify(response));
       } else {
         response.body = ctx.response.body;
@@ -249,12 +251,56 @@ export class ZoicCache {
    * Manually clears all current cache entries.
    */
   //TODO: link method with perf metrics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  async clear () {
+  async clear (ctx: Context, next: () => Promise<unknown>) {
     const cache = await this.cache;
-    if (this.#redisTypeCheck(cache)) {
-      return cache.flushdb();
-    } else {
-      return cache.clear();
+    this.#redisTypeCheck(cache) ? cache.flushdb() : cache.clear();
+    return next()
+  }
+
+
+  /**
+   * Retrives cache metrics and responds.
+   * Designed for use with Chrome extension
+   * @param ctx 
+   */
+  getMetrics (ctx: Context) {
+
+    try {
+
+      const sendMetrics = async () => {
+        const cache = await this.cache;
+    
+        if (this.#redisTypeCheck(cache)) {
+          ctx.response.body = 'Support for redis currently unavailable.';
+          return;
+        } 
+    
+        const {
+          numberOfEntries,
+          readsProcessed,
+          writesProcessed,
+          missLatencyTotal,
+          hitLatencyTotal
+        } = this.metrics;
+      
+        ctx.response.headers.set('Access-Control-Allow-Origin', '*');
+    
+        ctx.response.body = {
+          number_of_entries: numberOfEntries,
+          reads_processed: readsProcessed,
+          writes_processed: writesProcessed,
+          average_hit_latency: hitLatencyTotal / readsProcessed,
+          average_miss_latency: missLatencyTotal / writesProcessed
+        }
+      }
+
+      const enableRouteCors = oakCors();
+      return enableRouteCors(ctx, sendMetrics);
+
+    } catch (err) {
+      ctx.response.status = 400;
+      ctx.response.body = `error in ZoicCache.getMetrics: ${err}`
+      console.log(`error in ZoicCache.getMetrics: ${err}`);
     }
   }
 

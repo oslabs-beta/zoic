@@ -12,8 +12,6 @@
     const avHitLatency = document.querySelector('#avHitLatency');
     const avMissLatency = document.querySelector('#avMissLatency');
 
-    let serverURL;
-
     document.querySelector('#localHostInputID').setAttribute('size',document.querySelector('#localHostInputID').getAttribute('placeholder').length);
 
 
@@ -24,11 +22,12 @@
         console.log('serverURL: ', serverURL)
 
         setInterval(() => {
-          fetch(`${serverURL}/localDB.json`, {
-          mode: 'cors',
-          headers: {
-            'Cache-Control': "no-cache"},
-            'pragma': 'no-cache'})
+          fetch(`${serverURL}/zoicMetrics`, {
+          method:'get',
+          // headers: {
+          //   'Cache-Control': "no-cache"},
+          //   'pragma': 'no-cache'
+          })
           .then(response => {
             console.log("hey")
             return response.json()})

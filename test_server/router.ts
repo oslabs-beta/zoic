@@ -4,13 +4,13 @@ import { ZoicCache } from '../src/zoicCache.ts';
 
 const router = new Router();
 
-const cache = new ZoicCache({
-  cache: 'redis',
+const zoic = new ZoicCache({
+  cache: 'lru',
   port: 6379,
   respondOnHit: true
 });
 
-router.get('/dbRead/:name', cache.use, controller.dbRead, async ctx => {
+router.get('/dbRead/:name', zoic.use, controller.dbRead, async ctx => {
     //ctx.response.headers.set('Content-type', 'application/json');
     const value = await etag.calculate('hello')
     ctx.response.headers.set("ETag", value);
@@ -20,6 +20,9 @@ router.get('/dbRead/:name', cache.use, controller.dbRead, async ctx => {
     ctx.state.test.push(blob)
     ctx.response.body = ctx.state.test;
 });
+
+
+router.get('/zoicMetrics', zoic.getMetrics);
 
 router.post('/dbWrite', controller.dbWrite, controller.dbRead, ctx => {
   ctx.response.body = ctx.state.zoic;
