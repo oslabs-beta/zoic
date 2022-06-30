@@ -210,7 +210,7 @@ export class ZoicCache {
     const cache = await this.cache;
     const metrics = this.metrics;
     const redisTypeCheck = this.#redisTypeCheck;
-    const toDomResponsePrePatch = ctx.response.toDomResponse;
+    const toDomResponsePrePatch = ctx.response.toDomResponse.bind(this);
 
     //patch toDomResponse to cache response body before returning results to client
     ctx.response.toDomResponse = async function() {
@@ -219,7 +219,7 @@ export class ZoicCache {
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
       
       //extract native http response from toDomResponse to get correct headers and readable body
-      const nativeResponse = await toDomResponsePrePatch.apply(this);
+      const nativeResponse = await toDomResponsePrePatch()//.apply(this);
       
       const responseToCache: any = {
         headers: Object.fromEntries(nativeResponse.headers.entries()),
