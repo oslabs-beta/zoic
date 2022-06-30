@@ -10,6 +10,7 @@ const zoic = new ZoicCache({
   expire: '5m'
 });
 
+router.get('/zoicMetrics', zoic.getMetrics);
 
 router.get('/dbRead/:name', zoic.use, controller.dbRead, async ctx => {
     const value = await etag.calculate('hello');
@@ -19,11 +20,8 @@ router.get('/dbRead/:name', zoic.use, controller.dbRead, async ctx => {
     ctx.response.body = ctx.state.test;
 });
 
-
-router.get('/zoicMetrics', zoic.getMetrics);
-
-router.post('/dbWrite', controller.dbWrite, controller.dbRead, ctx => {
-  ctx.response.body = ctx.state.zoic;
+router.post('/dbRead/2', zoic.manualPut, controller.dbWrite, ctx => {
+  ctx.response.body = ctx.state.test;
 })
 
 router.get('/object', controller.objectRead, ctx => {

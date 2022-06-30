@@ -29,26 +29,12 @@ controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
   return next();
 };
 
-controller.dbWrite = async (ctx: Context, next: () => Promise<unknown>) => {
-  const reqBody = ctx.request.body();
-  if (!reqBody.value || reqBody.type !== 'json') {
-    ctx.response.status = 400;
-    ctx.response.body = {
-      success: false,
-      message: 'no data provided'
-    }
-    return;
+controller.dbWrite = (ctx: Context, next: () => Promise<unknown>) => {
+  ctx.state.test = {
+    test: 'test'
   }
-
-  //Hank code
-  const reqBodyVal = await reqBody.value;
-  const currentJSON: any = await readJson(`${Deno.cwd()}/test.json`);
-  Object.keys(reqBodyVal).forEach((key: string) => {
-    currentJSON[key] = reqBodyVal[key];
-  });
-  await writeJson(`${Deno.cwd()}/test.json`, currentJSON);
   return next();
-};
+}
 
 controller.objectRead = (ctx: Context, next: () => Promise<unknown>) => {
   const testObj: Record <string, number | string> = {

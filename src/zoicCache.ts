@@ -58,7 +58,6 @@ export class ZoicCache {
     this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache?.toUpperCase(), options?.port, options?.hostname);
 
     this.use = this.use.bind(this);
-    this.cacheResponse = this.cacheResponse.bind(this);
     this.getMetrics = this.getMetrics.bind(this);
     this.manualPut = this.manualPut.bind(this);
   }
@@ -165,7 +164,7 @@ export class ZoicCache {
         if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
         
         //makes response cacheable via patch
-        this.cacheResponse(ctx);
+        this.#cacheResponse(ctx);
 
         return next();
       }
@@ -218,7 +217,7 @@ export class ZoicCache {
    * @param ctx 
    * @returns void
    */
-  async cacheResponse (ctx: Context) {
+  async #cacheResponse (ctx: Context) {
 
     const cache = await this.cache;
     const metrics = this.metrics;
@@ -361,9 +360,11 @@ export class ZoicCache {
   manualPut (ctx: Context, next: () => Promise<unknown>) {
     try {
      
+      performance.mark('startingMark');
+
       if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
 
-      this.cacheResponse(ctx);
+      this.#cacheResponse(ctx);
 
       return next();
 
