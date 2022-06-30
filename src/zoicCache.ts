@@ -59,7 +59,7 @@ export class ZoicCache {
 
     this.use = this.use.bind(this);
     this.getMetrics = this.getMetrics.bind(this);
-    this.manualPut = this.manualPut.bind(this);
+    this.put = this.put.bind(this);
   }
 
 
@@ -357,7 +357,7 @@ export class ZoicCache {
    * @param next 
    * @returns 
    */
-  manualPut (ctx: Context, next: () => Promise<unknown>) {
+  put (ctx: Context, next: () => Promise<unknown>) {
     try {
      
       performance.mark('startingMark');

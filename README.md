@@ -1,4 +1,15 @@
-<h1 align="center">Zoic</h1>
+<!-- <h1 align="center">
+  <span style="color:#E76020">Z</span>
+  <span style="color:#EE892F">O</span>
+  <span style="color:#E0BB76">I</span>
+  <span style="color:#6E896A">C</span>
+</h1> -->
+
+<img style="display: block;
+  margin-left: auto;
+  margin-right: auto;" align="center" src=".assets/zoic_clear.png" width = "300px" alt="Puppy cat">
+
+<hr>
 
 <br>
 <div align="center">Caching middleware library for Oak in Deno</div>
@@ -20,6 +31,7 @@ Zoic is an easy-to-use middleware library for caching responses from RESTful API
 ### Zoic Developer Tool
 
 The Zoic Developer Tool allows developers to monitor cache metrics in real time, and is available as a Chrome Developer Tools extension [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
+- [Zoic Developer Tool README](./chrome_dev_tool/README.md/)
 
 ## <a name="get-started"></a>Getting Started
 
@@ -35,12 +47,12 @@ import { ZoicCache } from "our deno land link";
 
 ### Create a cache
 
-Initalize a new ZoicCache object, passing in your user defined options object. If no options object is passed, Zoic will set all proprties to their default values.
+Initalize a new `ZoicCache` object, passing in your user defined `options` object. If no `options` object is passed, `ZoicCache` will set all proprties to their default values.
 
-- cache: Sets cache eviction policy (Defaults to LRU).
-- expire: Sets cache invalidation/expiration time for each entry (Defaults to 24 hours).
-- capacity: Sets the maximum number of entries (Defaults to no maximum).
-- respondOnHit: Determines if cache hits should be sent as an HTTP response immediately upon retrival. If this is set to false, the cached response data will be attached to Oak Context.state property, context.state.zoicResponse. It is recommended to leave this set to true, unless additonal processing on the response data is desired in the event of a cache hit (Defaults to true).
+- `cache`: Sets cache eviction policy. - Default value: `'LRU'`
+- `expire`: Sets cache invalidation/expiration time for each entry. This can be set in human readable time, as a comma seperated string, denoting hours with value followed by `'h'`, minutes followed by `'m'`, and seconds followed by `'s'`. Alternatively, you may pass in the time as a `number` representing seconds. - Default value: `'24h'`
+- `capacity`: Sets the maximum number of entries. - Default value: `Infinity`
+- `respondOnHit`: Determines if cache hits should be sent as an HTTP response immediately upon retrival. If this is set to `false`, the cached response data will be attached to Oak `Context.state` property, `context.state.zoicResponse`. It is recommended to leave this set to `true`, unless additonal processing on the response data is desired in the event of a cache hit. - Default value: `true`
 
 
 Example:
@@ -55,10 +67,10 @@ const cache = new ZoicCache({
 
 ### Redis cache
 
-To use an instance of Redis as your cache, initalize a new Zoic object, passing in "Redis" as the cache property on your options object. You also must specify the port your instance of Redis is running on. Optionally, you may pass the hostname as well. This value defaults to 127.0.0.1.
+To use an instance of Redis as your cache, initalize a new `ZoicCache` object, passing in `'redis'` as the `cache` property on your options object. You also must specify the port your instance of Redis is running on, via the `port` property. Optionally, you may pass the hostname as well. This value defaults to `'127.0.0.1'`.
 <br>
 <br>
-NOTE: Options "expire" and "capacity" do not have an effect on Zoic if using Redis, as these would be defined in your Redis configuration.
+NOTE: Options `expire` and `capacity` do not have an effect on `ZoicCache` if using Redis, as these would be defined in your Redis configuration.
 <br>
 <br>
 Example:
@@ -72,17 +84,53 @@ const cache = new ZoicCache({
 
 ## <a name="middleware"></a>Middleware and caching
 
-### How to use Zoic for get requests
-
-Place the use method in your caching object after the router and before the first function.
+### - ZoicCache.use()
+`Zoic.use()` is responsible for both sending cached responses, and storing responses in the cache. When `.use` is called in a middleware chain, it will check if data exists in the cache at a key representing that route's endpoint. If the query is successful, it will send an HTTP response with the cached body, headers, and status. If the query is unsucessful, `.use` will automaticly listen for when the subsequent middleware in that route has been executed, and will cache the contents of the HTTP response before being sent to the client. This way, the developer only needs to place `.use` in their middleware chain at the point where they would like the response to be sent in the event of a cache hit, making it extremely easy to use.
+<br>
+<br>
+NOTE: if the user has selected `false` for `respondOnHit` when intializing `ZoicCache`, the reponse data will be stored on `ctx.state.zoicResponse` instead of being sent as an HTTP response.
+<br>
+<br>
+Example:
 
 ```typescript
-router.get('/dbRead/:name', cache.use, controller.dbRead, ctx => {
+const cache = new ZoicCache();
+
+router.get('/userInfo/:name', cache.use, controller.dbRead, ctx => {
     ctx.response.headers.set('Content-Type', 'application/json');
     ctx.response.body = ctx.state.somethingFromYourDB;
 });
 ```
+### - ZoicCache.put()
+`Zoic.put()` will add responses to the cache without first querying to see if an entry already exists. The primary use being to replace data at an already existing keys, or manually add responses without anything being returned. Like with `.use()`, `.put()` will automaticlly store the response body, headers, and status at the end of a middleware chaing before the response is sent.
+<br>
+<br>
+Example:
 
+```typescript
+const cache = new ZoicCache();
+
+router.put('/userInfo/:name', cache.put, controller.dbWrite, ctx => {
+    ctx.response.body = ctx.state.someDataYouChanged;
+});
+```
+### - ZoicCache.clear()
+`ZoicCache.clear()` clears the contents of the cache.
+<br>
+<br>
+Example:
+
+```typescript
+const cache = new ZoicCache();
+
+// On it's own..
+router.post('/userInfo/:name', cache.clear);
+
+// In conjunction with another function...
+router.post('/otherUserInfo/', cache.clear, controller.dbWrite, ctx => {
+    ctx.response.body = ctx.state.someFreshData;
+});
+```
 ## <a name="authors"></a>Authors
 
 - [Joe Borrow](https://github.com/jmborrow)
