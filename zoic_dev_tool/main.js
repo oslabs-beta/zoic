@@ -18,7 +18,7 @@ document.querySelector('#localHostInputID').setAttribute('size',document.querySe
 const button = document.querySelector('button');
 button.addEventListener('click', () => {
     const serverURL = 'http://localhost:8000/zoicMetrics';
-    // serverURL = document.querySelector('#localHostInputID').value;
+    // serverURL = document.querySelector('#localHostInputID').value
     console.log('serverURL: ', serverURL)
 
     setInterval(() => {

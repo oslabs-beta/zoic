@@ -23,7 +23,7 @@ Zoic is an easy-to-use middleware library for caching responses from RESTful API
 ### Zoic Developer Tool
 
 The Zoic Developer Tool allows developers to monitor cache metrics in real time, and is available as a Chrome Developer Tools extension [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
-- [Zoic Developer Tool README](./chrome_dev_tool/README.md/)
+- [Zoic Developer Tool README](./zoic_dev_tool/README.md/)
 
 ## <a name="get-started"></a>Getting Started
 
@@ -132,8 +132,6 @@ router.post('/otherUserInfo/', cache.clear, controller.dbWrite, ctx => {
 - [Jasper Narvil](https://github.com/jnarvil3)
 
 ## <a name="license"></a>License
-
-This product is licensed under the MIT License - see the LICENSE file for details.
 
 This is an open source product.
 
