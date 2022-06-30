@@ -1,10 +1,3 @@
-<!-- <h1 align="center">
-  <span style="color:#E76020">Z</span>
-  <span style="color:#EE892F">O</span>
-  <span style="color:#E0BB76">I</span>
-  <span style="color:#6E896A">C</span>
-</h1> -->
-
 <p align="center"><img style="display: block;
   margin-left: auto;
   margin-right: auto;" src=".assets/zoic_clear.png" width = "300px" alt="Zoic logo">

@@ -8,9 +8,6 @@
   <br>
 <hr>
 
-<!-- Hey kids, do you like your new Zoic cache, but don't know how to track all of the metrics? Do we have a tool for you? Introducing the all brand new Zoic developer tool. See all of your caching metrics in one convenient location!
-
-Just download it and you're good to go. No further instructions. Deal with it. -->
 ## Table of Contents
 1. [Description](#description)
 2. [Installation](#installation)
@@ -31,6 +28,20 @@ The latest build can also be added manually as a Chrome extension.
 In the Chrome Extensions Page (`chrome://extensions/`), click on "Load unpacked" and navigate to `.../zoic/zoic_dev_tool/` and click "Select". (You may need to toggle on "Developer mode" to do this.) The extension should now be loaded and available in the Chrome Developer Tools.
 
 ## <a name="#usage"></a>Usage and Configuration
+
+To configure the dev tools, you must link your server address via the input field on the dev tool panel.
+- First: specify your server address, and endpoint at which you will serve the cache metrics from. (Ex: `http://localhost:3000/getZoicMetrics`)
+- Second: in your server routes, create a new route matching the endpoint specified in the dev tool. In this route add middleware `Zoic.getMetrics`.
+
+
+NOTE: This route WILL have CORS enabled.
+
+#### Example configuration:
+```typescript
+const cache = new Zoic();
+
+router.get('/getZoicMetrics', cache.getMetrics);
+```
 
 ## <a name="authors"></a>Authors
 
