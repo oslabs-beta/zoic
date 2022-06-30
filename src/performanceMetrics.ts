@@ -3,6 +3,7 @@
  * Keep tracks of in-memory cache performance
  */
 class PerfMetrics {
+  cacheType: 'LRU' | 'LFU' | 'Redis';
   memoryUsed: number;
   numberOfEntries: number;
   readsProcessed: number;
@@ -15,6 +16,7 @@ class PerfMetrics {
   hitLatencyTotal: number;
 
   constructor() {
+    this.cacheType = 'LRU';
     this.memoryUsed = 0;
     this.numberOfEntries = 0;
     this.readsProcessed = 0;

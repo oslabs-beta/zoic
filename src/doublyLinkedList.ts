@@ -4,13 +4,15 @@ class Node {
   value: any;
   key: string;
   count: number;
-  constructor (value: any, next: Node | null, key: any){
+  byteSize: number;
+
+  constructor (value: any, next: Node | null, key: any, byteSize: number){
     this.next = next;
     this.prev = null;
     this.value = value;
     this.key = key;
     this.count = 1;
-
+    this.byteSize = byteSize;
   }
 }
 
@@ -23,8 +25,8 @@ export class DoublyLinkedList {
     this.printList = this.printList.bind(this);
   }
 
-  addHead (value: any, key: any) {
-    this.head = new Node(value, this.head, key);
+  addHead (value: any, key: any, byteSize: number) {
+    this.head = new Node(value, this.head, key, byteSize);
   
     if (!this.tail) this.tail = this.head;
     else this.head.next.prev = this.head;

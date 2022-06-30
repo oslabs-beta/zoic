@@ -42,14 +42,16 @@ class LRU {
     } 
 
     //add new item to list head.
-    this.cache[key] = this.list.addHead(value, key);
+    this.cache[key] = this.list.addHead(value, key, byteSize);
+    this.metrics.increaseBytes(byteSize);
 
     //evalutes if least recently used item should be evicted.
-    if (this.length < this.capacity) this.length++;
-
-    else {
+    if (this.length < this.capacity) {
+      this.length++;
+    } else {
       const deletedNode: any = this.list.deleteTail();
       delete this.cache[deletedNode.key];
+      this.metrics.decreaseBytes(deletedNode.byteSize);
     }
 
     //deletes node after set expiration time.
@@ -57,7 +59,7 @@ class LRU {
       if (this.cache[key]) {
         this.delete(key);
         this.metrics.deleteEntry();
-        this.metrics.decreaseBytes(byteSize);
+        this.metrics.decreaseBytes(this.cache[key].byteSize);
         console.log(`Zoic cache entry at '${key}' expired.`);
       }    
     }, this.expire * 1000);
@@ -82,7 +84,7 @@ class LRU {
       //create new node, then delete node at current key, to replace at list head.
       const node = this.cache[key];
       this.delete(key);
-      this.cache[key] = this.list.addHead(node.value, node.key);
+      this.cache[key] = this.list.addHead(node.value, node.key, node.byteSize);
       this.length++;
 
       //Return the newly cached node, which should now be the head, to the top-level caching layer.

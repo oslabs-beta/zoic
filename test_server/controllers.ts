@@ -11,8 +11,8 @@ controller.dbRead = async (ctx: Context, next: () => Promise<unknown>) => {
   const { name } = helpers.getQuery(ctx, { mergeParams: true });
   
   const queryObj = await Client.queryArray(
-    // `SELECT * FROM "public"."people" WHERE _id=$CHARNAME;`,
-    `SELECT * FROM "public"."people";`,
+    `SELECT * FROM "public"."people" WHERE _id=$CHARNAME;`,
+    // `SELECT * FROM "public"."people";`,
     //Parameterization
     { CHARNAME: name }
   );

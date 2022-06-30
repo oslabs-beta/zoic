@@ -6,6 +6,7 @@
     root.appendChild(metrics);
     metrics.setAttribute('class', 'metricsContainer');
   
+    const cacheType = document.querySelector('#cacheType');
     const memoryUsed = document.querySelector('#memUsed');
     const entries = document.querySelector('#entries');
     const hits = document.querySelector('#hits');
@@ -35,6 +36,7 @@
           .then(metricsData => {
             
             const {
+              cache_type,
               memory_used,
               number_of_entries,
               reads_processed,
@@ -43,7 +45,8 @@
               average_miss_latency
             } = metricsData;
           
-            memoryUsed.innerHTML = `${(memory_used * 1000).toString().slice(0, 6) || '0'}mb`
+            cacheType.innerHTML = `${cache_type}`;
+            memoryUsed.innerHTML = `${(memory_used / 1048576).toString().slice(0, 6) || '0'}mb`
             entries.innerHTML = `${number_of_entries || '0'}`;
             hits.innerHTML = `${reads_processed || '0'}`;
             misses.innerHTML = `${writes_processed || '0'}`;
