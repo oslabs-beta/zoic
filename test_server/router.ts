@@ -4,24 +4,24 @@ import { ZoicCache } from '../src/zoicCache.ts';
 
 const router = new Router();
 
-const cache = new ZoicCache({
-  cache: 'Redis',
+const zoic = new ZoicCache({
+  cache: 'lru',
   port: 6379,
-  capacity: 200,
-  respondOnHit: true
+  expire: '5m'
 });
 
-router.get('/dbRead/:name', cache.use, controller.dbRead, async ctx => {
-    ctx.response.headers.set('Content-type', 'application/json');
-    const value = await etag.calculate('hello')
+router.get('/zoicMetrics', zoic.getMetrics);
+
+router.get('/dbRead/:name', zoic.use, controller.dbRead, async ctx => {
+    const value = await etag.calculate('hello');
     ctx.response.headers.set("ETag", value);
-    // const blob = new Blob(['<a id="a"><b id="b">hey!</b></a>'],  {type: 'text/html'});
-    // ctx.state.test.push()
+    const unit8 = new Uint8Array([12, 10, 13]);
+    ctx.state.test.push(unit8);
     ctx.response.body = ctx.state.test;
 });
 
-router.post('/dbWrite', controller.dbWrite, controller.dbRead, ctx => {
-  ctx.response.body = ctx.state.zoic;
+router.post('/dbRead/2', zoic.manualPut, controller.dbWrite, ctx => {
+  ctx.response.body = ctx.state.test;
 })
 
 router.get('/object', controller.objectRead, ctx => {

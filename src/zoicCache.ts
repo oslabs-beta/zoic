@@ -1,13 +1,15 @@
+import { decode as base64decode, encode as base64encode } from "https://deno.land/std@0.89.0/encoding/base64.ts";
 import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import { connect, Redis } from "https://deno.land/x/redis/mod.ts";
+import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import PerfMetrics from './performanceMetrics.ts'
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
-import {  decode,  encode,} from "https://deno.land/std@0.89.0/encoding/base64.ts";
 
 interface options {
   cache?: string;
   port?: number;
+  hostname?: string;
   expire?: string | number;
   respondOnHit?: boolean;
   capacity?: number;
@@ -23,11 +25,18 @@ interface options {
   * 
   * import { ZoicCache } from '../src/zoicCache.ts';
   * 
-  * const cache = new ZoicCache({ cache: 'LFU', expire: '2h, 5m, 3s', respondOnHit: true });
+  * const cache = new ZoicCache({ cache: 'LRU', expire: '2h, 5m, 3s'});
   * 
   * router.get('/dbRead', cache.use, controller.dbRead, ctx => {
   *  ctx.response.body = ctx.state.somethingFromDb;});
   * 
+  * ```
+  * 
+  * ### Wtih Redis
+  *  Note: with Reids options "expire" and "capacity" do not apply.
+  * ```ts
+  * 
+  * const cache = new ZoicCache({ cache: 'Redis', port: 6379 })
   * 
   * ```
   * 
@@ -42,16 +51,15 @@ export class ZoicCache {
   cache: Promise < LRU | LFU | Redis >;
 
   constructor (options?: options) {
-    //initalizes cache options
-    this.capacity = options?.capacity || 50;
+    this.capacity = options?.capacity || Infinity;
     this.expire = this.#parseExpTime(options?.expire);
     this.metrics = new PerfMetrics();
-    this.respondOnHit = options?.respondOnHit || true;
-    this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache?.toUpperCase(), options?.port);
+    this.respondOnHit = this.#setRespondOnHit(options);
+    this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache?.toUpperCase(), options?.port, options?.hostname);
 
     this.use = this.use.bind(this);
-    this.cacheResponse = this.cacheResponse.bind(this);
-    this.put = this.put.bind(this);
+    this.getMetrics = this.getMetrics.bind(this);
+    this.manualPut = this.manualPut.bind(this);
   }
 
 
@@ -61,7 +69,7 @@ export class ZoicCache {
    * @param cache 
    * @returns LRU | LFU
    */
-  async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number) {
+  async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number, hostname?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
     if (this.capacity < 0) throw new TypeError('Cache capacity must exceed 0 entires.');
     if (cache === 'REDIS') {
@@ -69,13 +77,16 @@ export class ZoicCache {
         throw new Error('Redis requires port number passed in as an options property.');
       } 
       const redis = await connect({
-        hostname: '127.0.0.1',
+        hostname: hostname || '127.0.0.1',
         port: redisPort
       });
-      await redis.flushall();
+      this.metrics.cacheType = 'Redis';
       return redis;
     }
-    if (cache === 'LFU') return new LFU(expire, metrics, this.capacity);
+    if (cache === 'LFU'){
+      this.metrics.cacheType = 'LFU';
+      return new LFU(expire, metrics, this.capacity);
+    } 
     return new LRU(expire, metrics, this.capacity);
   }
 
@@ -104,6 +115,17 @@ export class ZoicCache {
 
 
   /**
+   * Sets respond on hit value, defaults to true.
+   * @param options 
+   * @returns 
+   */
+  #setRespondOnHit (options?: options) {
+    if (options?.respondOnHit === undefined) return true;
+    return options.respondOnHit;
+  }
+
+
+  /**
    * typecheck for Redis cache
    * @param cache 
    * @returns 
@@ -121,17 +143,17 @@ export class ZoicCache {
    * @param next 
    * @returns Promise | void
    */
-  async use (ctx: Context, next: () => Promise<unknown>) {
-    
-    const cache = await this.cache;
-
-    //starting mark for cache hit/miss latency performance test.
-    performance.mark('startingMark');
-
-    //defines key via api endpoint
-    const key: string = ctx.request.url.pathname + ctx.request.url.search;
-
+  async use (ctx: Context, next: () => Promise<unknown>) {      
     try {
+
+      const cache = await this.cache;
+  
+      //starting mark for cache hit/miss latency performance test.
+      performance.mark('startingMark');
+  
+      //defines key via api endpoint
+      const key: string = ctx.request.url.pathname + ctx.request.url.search;
+
       //query cache
       let cacheResults = await cache.get(key);
 
@@ -142,27 +164,27 @@ export class ZoicCache {
         if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
         
         //makes response cacheable via patch
-        this.cacheResponse(ctx);
+        this.#cacheResponse(ctx);
 
         return next();
       }
 
-      //checking if cache is Redis cache and parsing string
+      //checking if cache is Redis cache and parsing string / decoding base64 string
       if (this.#redisTypeCheck(cache)) {
-        cacheResults = JSON.parse(atob(cacheResults));
+        cacheResults = JSON.parse(cacheResults);
+        cacheResults.body = base64decode(cacheResults.body);
       }
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
         ctx.response.body = cacheResults.body;
-        ctx.response.type = cacheResults.type;
         ctx.response.status = cacheResults.status;
-  
+        
         //populate headers from mock header object
         Object.keys(cacheResults.headers).forEach(key => {
           ctx.response.headers.set(key, cacheResults.headers[key]);
         });
-  
+
         //adds cache hit to perf log metrics
         this.metrics.readProcessed();
 
@@ -170,19 +192,21 @@ export class ZoicCache {
         performance.mark('endingMark');
         // this.metrics.updateHitLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
         this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'hit');
-
+        
         return;
       }
 
       //attach query results to ctx.state.zoic
       ctx.state.zoicResponse = Object.assign({}, cacheResults);
+      ctx.state.zoicResponse.body = JSON.parse(new TextDecoder().decode(ctx.state.zoicResponse.body));
+      console.log(ctx.state.zoicResponse);
 
       return next();
 
     } catch (err) {
       ctx.response.status = 400;
-      ctx.response.body = `error in ZoicCache.use: ${err}`
-      console.log(`error in ZoicCache.use: ${err}`);
+      ctx.response.body = 'Error in ZoicCache.use. Check server logs for details.';
+      console.log(`Error in ZoicCache.use: ${err}`);
     }
   }
 
@@ -193,56 +217,59 @@ export class ZoicCache {
    * @param ctx 
    * @returns void
    */
-  async cacheResponse (ctx: Context) {
-
-    // const responsePatch = new Response(ctx.request);
+  async #cacheResponse (ctx: Context) {
 
     const cache = await this.cache;
     const metrics = this.metrics;
-    const toDomResponsePatch = ctx.response.toDomResponse;
     const redisTypeCheck = this.#redisTypeCheck;
+    const toDomResponsePrePatch = ctx.response.toDomResponse;
 
     //patch toDomResponse to cache response body before returning results to client
-    ctx.response.toDomResponse = function() {
+    ctx.response.toDomResponse = async function() {
 
       //defines key via api endpoint and adds response body to cache
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
-
-      //data to be cached
-      const response: any = {
-        headers: {},
-        body: ctx.response.body,
-        status: ctx.response.status,
-        type: ctx.response.type
+      
+      //extract native http response from toDomResponse to get correct headers and readable body
+      const nativeResponse = await toDomResponsePrePatch.apply(this);
+      
+      const responseToCache: Record<string,{[k:string]:string}|string|number|Uint8Array> = {
+        headers: Object.fromEntries(nativeResponse.headers.entries()),
+        status: nativeResponse.status
       };
       
-      //iterate through current headers and store in mock headers object
-      ctx.response.headers.forEach((value, key) => {
-        response.headers[key] = value;
-      });
-      
-      //check if current cache is in memory or Redis and handle accordingly
-      if (redisTypeCheck(cache)){
-        cache.set(key, btoa(JSON.stringify(response)));
-        //cache.set(key, btoa(response));
+      //redis cache stores body as a base64 string encoded from a buffer
+      if (redisTypeCheck(cache)) {
+
+        //make response body string, and then stringify response object for storage in redis
+        const arrBuffer = await nativeResponse.clone().arrayBuffer();
+        responseToCache.body = base64encode(new Uint8Array(arrBuffer));
+        cache.set(key, JSON.stringify(responseToCache));
+
       } else {
-        cache.put(key, response);
+
+        //make response body unit8array and read size for metrics
+        const arrBuffer = await nativeResponse.clone().arrayBuffer();
+        responseToCache.body = new Uint8Array(arrBuffer);
+
+        const headerBytes = Object.entries(responseToCache.headers)
+          .reduce((acc: number, headerArr: Array<string>) => {
+            return acc += (headerArr[0].length * 2) + (headerArr[1].length * 2);
+          }, 0);
+
+        //34 represents size of obj keys + status code.
+        const resByteLength = (key.length * 2) + responseToCache.body.byteLength + headerBytes + 34;
+  
+        cache.put(key, responseToCache, resByteLength);
       }
       
-      // count of cache miss
-      metrics.writeProcessed();
-
-      // responsePatch.body = ctx.response.body;
-      // responsePatch.status = ctx.response.status;
-      // responsePatch.type = ctx.response.type;
-
       //ending mark for a cache miss latency performance test.
       performance.mark('endingMark');
-      // metrics.updateMissLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
       metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'miss');
+      metrics.writeProcessed();
 
       return new Promise (resolve => {                
-        resolve(toDomResponsePatch.apply(this));
+        resolve(nativeResponse);
       });
     }
 
@@ -253,54 +280,98 @@ export class ZoicCache {
   /**
    * Manually clears all current cache entries.
    */
-  //TODO: link method with perf metrics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  async clear () {
+  async clear (ctx: Context, next: () => Promise<unknown>) {
     const cache = await this.cache;
-    if (this.#redisTypeCheck(cache)) {
-      return cache.flushdb();
-    } else {
-      return cache.clear();
+    this.#redisTypeCheck(cache) ? cache.flushdb() : cache.clear();
+    this.metrics.clearEntires();
+    return next()
+  }
+
+
+  /**
+   * Retrives cache metrics. Designed for use with Chrome extension.
+   * @param ctx 
+   */
+  getMetrics (ctx: Context) {
+    try {
+
+      //wrap functionality of sending metrics inside of oakCors to enable route specific cors by passing in as 'next'.
+      const enableRouteCors = oakCors();
+      return enableRouteCors(ctx, async () => {
+
+        const cache = await this.cache;
+  
+        const {
+          cacheType,
+          memoryUsed,
+          numberOfEntries,
+          readsProcessed,
+          writesProcessed,
+          missLatencyTotal,
+          hitLatencyTotal
+        } = this.metrics;
+      
+        ctx.response.headers.set('Access-Control-Allow-Origin', '*');
+
+        //fetch stats from redis client if needed.
+        if (this.#redisTypeCheck(cache)) {
+          const redisInfo = await cache.info();
+          const redisSize = await cache.dbsize();
+          const infoArr: string[] = redisInfo.split('\r\n');
+
+          ctx.response.body = {
+            cache_type: cacheType,
+            number_of_entries: redisSize,
+            memory_used: infoArr?.find((line: string) => line.match(/used_memory/))?.split(':')[1],
+            reads_processed: infoArr?.find((line: string) => line.match(/keyspace_hits/))?.split(':')[1],
+            writes_processed: infoArr?.find((line: string) => line.match(/keyspace_misses/))?.split(':')[1],
+            average_hit_latency: hitLatencyTotal / readsProcessed,
+            average_miss_latency: missLatencyTotal / writesProcessed
+          }
+          return;
+        } 
+    
+        //set in-memory stats
+        ctx.response.body = {
+          cache_type: cacheType,
+          memory_used: memoryUsed,
+          number_of_entries: numberOfEntries,
+          reads_processed: readsProcessed,
+          writes_processed: writesProcessed,
+          average_hit_latency: hitLatencyTotal / readsProcessed,
+          average_miss_latency: missLatencyTotal / writesProcessed
+        }
+        return;      
+      })      
+    } catch (err) {
+      ctx.response.status = 400;
+      ctx.response.body = 'Error in ZoicCache.getMetrics. Check server logs for details.';
+      console.log(`Error in ZoicCache.getMetrics: ${err}`);
     }
   }
 
 
   /**
-   *  manually adds ctx.state.zoic to cache, in the form of a middleware function.
-   *  ~~*potentailly no longer needed, via makeReponseCacheable*~~
-   * //TODO: touch up and add connection to perf metrics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   *  Manually sets response to cache.
    * @param ctx 
    * @param next 
    * @returns 
    */
-  async put (ctx: Context, next: () => Promise<unknown>) {
-
-    const cache = await this.cache;
-
+  manualPut (ctx: Context, next: () => Promise<unknown>) {
     try {
-      // deconstruct context obj for args to cache put
-      const value: unknown = ctx.state.zoic; 
-      
-      const key: string = ctx.request.url.pathname + ctx.request.url.search;
-  
-      // call to put to cache: response 0 for good put, -1 for err
-      if (this.#redisTypeCheck(cache)){
-        cache.set(key, JSON.stringify(value));
-      } else {
-        const putResponse: number = await cache.put(key, value);
-    
-        if (putResponse === 0) return next();
-        else if (putResponse === -1) ctx.response.body = {
-          success: false,
-          message: 'failed to add entry to cache'
-        } 
-      }
-    } catch (err) {
+     
+      performance.mark('startingMark');
 
-    // handle errors in caching process and emit
-      ctx.response.body = {
-        success: false,
-        message: `${err} ocurred when trying to add to the cache`
-      }
+      if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
+
+      this.#cacheResponse(ctx);
+
+      return next();
+
+    } catch (err) {
+      ctx.response.status = 400;
+      ctx.response.body = 'Error in ZoicCache.put. Check server logs for details.';
+      console.log(`Error in ZoicCache.put: ${err}`);
     }
   }
 }

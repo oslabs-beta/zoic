@@ -11,7 +11,7 @@ class LRU {
   length: number;
   capacity: number;
   expire: number;
-  metricsDelete: () => Promise<unknown>;
+  metrics: InstanceType<typeof PerfMetrics>;
 
   constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
     this.list = new DoublyLinkedList();
@@ -19,7 +19,7 @@ class LRU {
     this.length = 0;
     this.capacity = capacity;
     this.expire = expire;
-    this.metricsDelete = metrics.deleteEntry;
+    this.metrics = metrics;
 
     this.get = this.get.bind(this);
     this.put = this.put.bind(this);
@@ -33,7 +33,7 @@ class LRU {
    * @param value 
    * @returns 
    */
-  put (key: string, value: any)  {
+  put (key: string, value: any, byteSize: number)  {
 
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
     if (this.cache[key]){
@@ -42,28 +42,29 @@ class LRU {
     } 
 
     //add new item to list head.
-    this.cache[key] = this.list.addHead(value, key);
+    this.cache[key] = this.list.addHead(value, key, byteSize);
+    this.metrics.increaseBytes(byteSize);
 
     //evalutes if least recently used item should be evicted.
-    if (this.length < this.capacity) this.length++;
-
-    else {
+    if (this.length < this.capacity) {
+      this.length++;
+    } else {
       const deletedNode: any = this.list.deleteTail();
       delete this.cache[deletedNode.key];
+      this.metrics.decreaseBytes(deletedNode.byteSize);
     }
 
     //deletes node after set expiration time.
     setTimeout(() => {
       if (this.cache[key]) {
         this.delete(key);
-        this.metricsDelete()
-        .then(res => {
-          console.log(`Zoic cache entry at '${key}' expired.\n${res} entries currently exist.`);
-        });
+        this.metrics.deleteEntry();
+        this.metrics.decreaseBytes(this.cache[key].byteSize);
+        console.log(`Zoic cache entry at '${key}' expired.`);
       }    
     }, this.expire * 1000);
 
-    return 0;
+    return
   }
 
 
@@ -83,7 +84,7 @@ class LRU {
       //create new node, then delete node at current key, to replace at list head.
       const node = this.cache[key];
       this.delete(key);
-      this.cache[key] = this.list.addHead(node.value, node.key);
+      this.cache[key] = this.list.addHead(node.value, node.key, node.byteSize);
       this.length++;
 
       //Return the newly cached node, which should now be the head, to the top-level caching layer.
@@ -101,7 +102,7 @@ class LRU {
    */
   delete (key: string) {
 
-    //locates node to be removed in constant time.
+    //locates node to be removed.
     const node = this.cache[key];
 
     //logic for removing node and connecting prev and next items, including in cases of head or tail.

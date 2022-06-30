@@ -11,7 +11,7 @@ class LFU {
   minUsage: number;
   capacity: number;
   expire: number;
-  metricsDelete: () => Promise<unknown>;
+  metricsDelete: () => void;
   constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
     this.cache = {};
     this.frequencyMap = {};
@@ -28,7 +28,7 @@ class LFU {
    * @param value 
    * @returns 
    */
-  put(key: string, value: any) {
+  put(key: string, value: any, byteSize: number) {
     if(this.cache[key]) {
       const node = this.getNode(key);
       node.value = value;
@@ -42,7 +42,7 @@ class LFU {
     else ++this.length;
 
     if(!this.frequencyMap[1]) this.frequencyMap[1] = new DoublyLinkedList();
-    const newNode = this.frequencyMap[1].addHead(value, key);
+    const newNode = this.frequencyMap[1].addHead(value, key, byteSize);
     //this.frequencyMap[1].length++;
     this.cache[key] = newNode;
     this.minUsage = 1;
