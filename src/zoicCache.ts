@@ -257,7 +257,7 @@ export class ZoicCache {
             return acc += (headerArr[0].length * 2) + (headerArr[1].length * 2);
           }, 0);
 
-          //34 represents size of obj keys + status code.
+        //34 represents size of obj keys + status code.
         const resByteLength = (key.length * 2) + responseToCache.body.byteLength + headerBytes + 34;
   
         cache.put(key, responseToCache, resByteLength);
