@@ -11,7 +11,7 @@ class LFU {
   minUsage: number;
   capacity: number;
   expire: number;
-  metricsDelete: () => Promise<unknown>;
+  metricsDelete: () => void;
   constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
     this.cache = {};
     this.frequencyMap = {};

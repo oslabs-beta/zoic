@@ -1,10 +1,10 @@
+import { decode as base64decode, encode as base64encode } from "https://deno.land/std@0.89.0/encoding/base64.ts";
 import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import { connect, Redis } from "https://deno.land/x/redis/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import PerfMetrics from './performanceMetrics.ts'
 import LRU from './lru.ts';
 import LFU from './lfu.ts';
-import { decode as base64decode, encode as base64encode } from "https://deno.land/std@0.89.0/encoding/base64.ts";
 
 interface options {
   cache?: string;
@@ -49,7 +49,7 @@ export class ZoicCache {
     this.capacity = options?.capacity || Infinity;
     this.expire = this.#parseExpTime(options?.expire);
     this.metrics = new PerfMetrics();
-    this.respondOnHit = options?.respondOnHit || true;
+    this.respondOnHit = this.#setRespondOnHit(options);
     this.cache = this.#initCacheType(this.expire, this.metrics, options?.cache?.toUpperCase(), options?.port, options?.hostname);
 
     this.use = this.use.bind(this);
@@ -76,6 +76,7 @@ export class ZoicCache {
         hostname: hostname || '127.0.0.1',
         port: redisPort
       });
+      redis.flushall()
       return redis;
     }
     if (cache === 'LFU') return new LFU(expire, metrics, this.capacity);
@@ -103,6 +104,12 @@ export class ZoicCache {
     } else seconds = numberString;
     if (seconds > 86400 || seconds < 0) throw new TypeError('Cache expiration time out of range.');
     return seconds;
+  }
+
+
+  #setRespondOnHit (options?: options) {
+    if (options?.respondOnHit === undefined) return true;
+    return options.respondOnHit;
   }
 
 
@@ -158,10 +165,9 @@ export class ZoicCache {
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
-
         ctx.response.body = cacheResults.body;
         ctx.response.status = cacheResults.status;
-
+        
         //populate headers from mock header object
         Object.keys(cacheResults.headers).forEach(key => {
           ctx.response.headers.set(key, cacheResults.headers[key]);
@@ -174,18 +180,20 @@ export class ZoicCache {
         performance.mark('endingMark');
         // this.metrics.updateHitLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
         this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'hit');
-
+        
         return;
       }
 
       //attach query results to ctx.state.zoic
       ctx.state.zoicResponse = Object.assign({}, cacheResults);
+      ctx.state.zoicResponse.body = JSON.parse(new TextDecoder().decode(ctx.state.zoicResponse.body));
+      console.log(ctx.state.zoicResponse);
 
       return next();
 
     } catch (err) {
       ctx.response.status = 400;
-      ctx.response.body = `error in ZoicCache.use: ${err}`
+      ctx.response.body = `error in ZoicCache.use: ${err}`;
       console.log(`error in ZoicCache.use: ${err}`);
     }
   }
@@ -213,19 +221,34 @@ export class ZoicCache {
       //extract native http response from toDomResponse to get correct headers and readable body
       const nativeResponse = await toDomResponsePrePatch.apply(this);
       
-      const response: any = {
+      const responseToCache: any = {
         headers: Object.fromEntries(nativeResponse.headers.entries()),
-        status: ctx.response.status,
+        status: nativeResponse.status
       };
       
       //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
-        const arrBuffer = await nativeResponse.arrayBuffer();
-        response.body = base64encode(new Uint8Array(arrBuffer));
-        cache.set(key, JSON.stringify(response));
+
+        //make response body string, and then stringify response object for storage in redis
+        const arrBuffer = await nativeResponse.clone().arrayBuffer();
+        responseToCache.body = base64encode(new Uint8Array(arrBuffer));
+        cache.set(key, JSON.stringify(responseToCache));
+
       } else {
-        response.body = ctx.response.body;
-        cache.put(key, response);
+
+        //make response body unit8array and read size for metrics
+        const arrBuffer = await nativeResponse.clone().arrayBuffer();
+        responseToCache.body = new Uint8Array(arrBuffer);
+
+        const headerBytes = Object.entries(responseToCache.headers)
+          .reduce<number>((acc: number, headerArr: any) => {
+            return acc += (headerArr[0].length * 2) + (headerArr[1].length * 2);
+          }, 0);
+
+        const resByteLength = responseToCache.body.byteLength + headerBytes + 34;
+        metrics.increaseBytes(resByteLength);
+  
+        cache.put(key, responseToCache, resByteLength);
       }
       
       // count of cache miss
@@ -237,7 +260,7 @@ export class ZoicCache {
       metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'miss');
 
       return new Promise (resolve => {                
-        resolve(toDomResponsePrePatch.apply(this));
+        resolve(nativeResponse);
       });
     }
 
@@ -262,11 +285,13 @@ export class ZoicCache {
    */
   getMetrics (ctx: Context) {
     try {
-      const sendMetrics = async () => {
-        
+      const enableRouteCors = oakCors();
+      return enableRouteCors(ctx, async () => {
+
         const cache = await this.cache;
   
         const {
+          memoryUsed,
           numberOfEntries,
           readsProcessed,
           writesProcessed,
@@ -283,6 +308,7 @@ export class ZoicCache {
 
           ctx.response.body = {
             number_of_entries: redisSize,
+            memory_used: infoArr?.find((line: string) => line.match(/used_memory/))?.split(':')[1],
             reads_processed: infoArr?.find((line: string) => line.match(/keyspace_hits/))?.split(':')[1],
             writes_processed: infoArr?.find((line: string) => line.match(/keyspace_misses/))?.split(':')[1],
             average_hit_latency: hitLatencyTotal / readsProcessed,
@@ -292,21 +318,18 @@ export class ZoicCache {
         } 
     
         ctx.response.body = {
+          memory_used: memoryUsed,
           number_of_entries: numberOfEntries,
           reads_processed: readsProcessed,
           writes_processed: writesProcessed,
           average_hit_latency: hitLatencyTotal / readsProcessed,
           average_miss_latency: missLatencyTotal / writesProcessed
         }
-        return;
-      }
-
-      const enableRouteCors = oakCors();
-      return enableRouteCors(ctx, sendMetrics);
-
+        return;      
+      })      
     } catch (err) {
       ctx.response.status = 400;
-      ctx.response.body = `error in ZoicCache.getMetrics: ${err}`
+      ctx.response.body = `error in ZoicCache.getMetrics: ${err}`;
       console.log(`error in ZoicCache.getMetrics: ${err}`);
     }
   }
@@ -330,13 +353,15 @@ export class ZoicCache {
       
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
   
-      this.#redisTypeCheck(cache) ? cache.set(key, JSON.stringify(value)) : cache.put(key, value);
+      //put now requires bytesize
+
+      //this.#redisTypeCheck(cache) ? cache.set(key, JSON.stringify(value)) : cache.put(key, value);
 
       return next();
 
     } catch (err) {
       ctx.response.status = 400;
-      ctx.response.body = `error in ZoicCache.put: ${err}`
+      ctx.response.body = `error in ZoicCache.put: ${err}`;
       console.log(`error in ZoicCache.put: ${err}`);
     }
   }

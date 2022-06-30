@@ -11,7 +11,7 @@ class LRU {
   length: number;
   capacity: number;
   expire: number;
-  metricsDelete: () => Promise<unknown>;
+  metrics: InstanceType<typeof PerfMetrics>;
 
   constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
     this.list = new DoublyLinkedList();
@@ -19,7 +19,7 @@ class LRU {
     this.length = 0;
     this.capacity = capacity;
     this.expire = expire;
-    this.metricsDelete = metrics.deleteEntry;
+    this.metrics = metrics;
 
     this.get = this.get.bind(this);
     this.put = this.put.bind(this);
@@ -33,7 +33,7 @@ class LRU {
    * @param value 
    * @returns 
    */
-  put (key: string, value: any)  {
+  put (key: string, value: any, byteSize: number)  {
 
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
     if (this.cache[key]){
@@ -56,14 +56,13 @@ class LRU {
     setTimeout(() => {
       if (this.cache[key]) {
         this.delete(key);
-        this.metricsDelete()
-        .then(res => {
-          console.log(`Zoic cache entry at '${key}' expired.\n${res} entries currently exist.`);
-        });
+        this.metrics.deleteEntry();
+        this.metrics.decreaseBytes(byteSize);
+        console.log(`Zoic cache entry at '${key}' expired.`);
       }    
     }, this.expire * 1000);
 
-    return 0;
+    return
   }
 
 

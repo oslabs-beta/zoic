@@ -5,19 +5,20 @@ import { ZoicCache } from '../src/zoicCache.ts';
 const router = new Router();
 
 const zoic = new ZoicCache({
-  cache: 'redis',
+  cache: 'lru',
   port: 6379,
-  respondOnHit: true
+  expire: '5m'
 });
+
 
 router.get('/dbRead/:name', zoic.use, controller.dbRead, async ctx => {
     //ctx.response.headers.set('Content-type', 'application/json');
-    const value = await etag.calculate('hello')
+    const value = await etag.calculate('hello');
     ctx.response.headers.set("ETag", value);
     const unit8 = new Uint8Array([12, 10, 13]);
-    const blob = new Blob(['<div>hello</div>'])
-    ctx.state.test.push(unit8)
-    ctx.state.test.push(blob)
+    const blob = new Blob(['<div>hello</div>']);
+    ctx.state.test.push(unit8);
+    ctx.state.test.push(blob);
     ctx.response.body = ctx.state.test;
 });
 
