@@ -5,16 +5,16 @@
   <span style="color:#6E896A">C</span>
 </h1> -->
 
-<img style="display: block;
+<p align="center"><img style="display: block;
   margin-left: auto;
-  margin-right: auto;" align="center" src=".assets/zoic_clear.png" width = "300px" alt="Puppy cat">
+  margin-right: auto;" src=".assets/zoic_clear.png" width = "300px" alt="Zoic logo"></p>
 
 <hr>
 
 <br>
 <div align="center">Caching middleware library for Oak in Deno</div>
 <br>
-
+<hr>
 
 ## Table of Contents
 
@@ -49,10 +49,10 @@ import { ZoicCache } from "our deno land link";
 
 Initalize a new `ZoicCache` object, passing in your user defined `options` object. If no `options` object is passed, `ZoicCache` will set all proprties to their default values.
 
-- `cache`: Sets cache eviction policy. - Default value: `'LRU'`
-- `expire`: Sets cache invalidation/expiration time for each entry. This can be set in human readable time, as a comma seperated string, denoting hours with value followed by `'h'`, minutes followed by `'m'`, and seconds followed by `'s'`. Alternatively, you may pass in the time as a `number` representing seconds. - Default value: `'24h'`
-- `capacity`: Sets the maximum number of entries. - Default value: `Infinity`
-- `respondOnHit`: Determines if cache hits should be sent as an HTTP response immediately upon retrival. If this is set to `false`, the cached response data will be attached to Oak `Context.state` property, `context.state.zoicResponse`. It is recommended to leave this set to `true`, unless additonal processing on the response data is desired in the event of a cache hit. - Default value: `true`
+- `cache`: Sets cache eviction policy. *Default value:* `'LRU'`
+- `expire`: Sets cache invalidation/expiration time for each entry. This can be set in human readable time, as a comma seperated string, denoting hours with value followed by `'h'`, minutes followed by `'m'`, and seconds followed by `'s'`. Alternatively, you may pass in the time as a `number` representing seconds. *Default value:* `'24h'`
+- `capacity`: Sets the maximum number of entries. *Default value:* `Infinity`
+- `respondOnHit`: Determines if cache hits should be sent as an HTTP response immediately upon retrival. If this is set to `false`, the cached response data will be attached to Oak `Context.state` property, `context.state.zoicResponse`. It is recommended to leave this set to `true`, unless additonal processing on the response data is desired in the event of a cache hit. *Default value:* `true`
 
 
 Example:
@@ -85,7 +85,7 @@ const cache = new ZoicCache({
 ## <a name="middleware"></a>Middleware and caching
 
 ### - ZoicCache.use()
-`Zoic.use()` is responsible for both sending cached responses, and storing responses in the cache. When `.use` is called in a middleware chain, it will check if data exists in the cache at a key representing that route's endpoint. If the query is successful, it will send an HTTP response with the cached body, headers, and status. If the query is unsucessful, `.use` will automaticly listen for when the subsequent middleware in that route has been executed, and will cache the contents of the HTTP response before being sent to the client. This way, the developer only needs to place `.use` in their middleware chain at the point where they would like the response to be sent in the event of a cache hit, making it extremely easy to use.
+`Zoic.use()` is responsible for both sending cached responses, and storing responses in the cache. When `.use()` is called in a middleware chain, it will check if data exists in the cache at a key representing that route's endpoint. If the query is successful, it will send an HTTP response with the cached body, headers, and status. If the query is unsucessful, `.use()` will automaticly listen for when the subsequent middleware in that route has been executed, and will cache the contents of the HTTP response before being sent to the client. This way, the developer only needs to place `.use()` in their middleware chain at the point where they would like the response to be sent in the event of a cache hit, making it extremely easy to use.
 <br>
 <br>
 NOTE: if the user has selected `false` for `respondOnHit` when intializing `ZoicCache`, the reponse data will be stored on `ctx.state.zoicResponse` instead of being sent as an HTTP response.
