@@ -7,13 +7,12 @@
 
 <p align="center"><img style="display: block;
   margin-left: auto;
-  margin-right: auto;" src=".assets/zoic_clear.png" width = "300px" alt="Zoic logo"></p>
-
+  margin-right: auto;" src=".assets/zoic_clear.png" width = "300px" alt="Zoic logo">
+</p>
 <hr>
-
-<br>
-<div align="center">Caching middleware library for Oak in Deno</div>
-<br>
+  <br>
+    <h3 align="center">Caching middleware library for Oak</h3>
+  <br>
 <hr>
 
 ## Table of Contents
