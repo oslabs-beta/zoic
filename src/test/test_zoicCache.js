@@ -1,6 +1,6 @@
 import { assert, assertThrows, assertEquals, assertInstanceOf } from "https://deno.land/std@0.145.0/testing/asserts.ts";
 import { afterEach, beforeEach, beforeAll, describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { ZoicCache } from '../zoicCache.ts';
+import { Zoic } from '../../zoic.ts';
 import LRU from '../lru.ts';
 import PerfMetrics from '../performanceMetrics.ts'
 // import { Context, Response, Request } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
@@ -10,7 +10,7 @@ import PerfMetrics from '../performanceMetrics.ts'
 
 describe("Arguments passed into the performance metrics change ", () => {
 
-  const testCacheInstance = new ZoicCache(
+  const testCacheInstance = new Zoic(
     {
       capacity: 10,
       expire: '2h, 3s, 5m',
@@ -37,9 +37,9 @@ describe("Arguments passed into the performance metrics change ", () => {
 
 });
 
-describe("ZoicCache should handle default args approporately", () => {
+describe("Zoic should handle default args approporately", () => {
 
-  const testCacheInstance = new ZoicCache();
+  const testCacheInstance = new Zoic();
 
   it("should handle when nothing input for expiration time", () => {
     assertEquals(testCacheInstance.expire, 86400);
@@ -55,9 +55,9 @@ describe("ZoicCache should handle default args approporately", () => {
 
 })
 
-describe("ZoicCache should handle poorly formatted args appropriately", () => {
+describe("Zoic should handle poorly formatted args appropriately", () => {
   it("should handle poorly formatted inputs to expiration time", () => {
-    assertThrows(() => new ZoicCache({
+    assertThrows(() => new Zoic({
       capacity: 10,
       expire: 'this should not work',
       cache: 'LRU'
@@ -65,7 +65,7 @@ describe("ZoicCache should handle poorly formatted args appropriately", () => {
   });
 });
 
-// describe("ZoicCache should update cache appropriately", () => {
+// describe("Zoic should update cache appropriately", () => {
   
 //   const router = new Router();
 //   router.get("/", (ctx) => {
@@ -73,7 +73,7 @@ describe("ZoicCache should handle poorly formatted args appropriately", () => {
 
 //   })
   
-//   const testCacheInstance = new ZoicCache({
+//   const testCacheInstance = new Zoic({
 //     capacity: 5,
 //     expire: '1m',
 //     cache: 'LRU',

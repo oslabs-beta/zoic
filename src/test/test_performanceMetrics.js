@@ -1,6 +1,6 @@
 import { assert, assertThrows, assertEquals } from "https://deno.land/std@0.145.0/testing/asserts.ts";
 import { afterEach, beforeEach, beforeAll, describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { ZoicCache } from '../zoicCache.ts';
+import { Zoic } from '../../zoic.ts';
 import LRU from '../lru.ts';
 import PerfMetrics from '../performanceMetrics.ts'
 
@@ -8,7 +8,7 @@ import PerfMetrics from '../performanceMetrics.ts'
 
 describe("Each cache instantiation has a metrics property with properties beginning with 0, '', or []", () => {
 
-  const testCacheInstance = new ZoicCache(
+  const testCacheInstance = new Zoic(
     {
       capacity: 10,
       expire: '2h, 3s, 5m',
@@ -36,7 +36,7 @@ describe("Each cache instantiation has a metrics property with properties beginn
 
 describe("Each cache instantiation has a metrics property with properties beginning with 0, '', or []", () => {
 
-  const testCacheInstance = new ZoicCache(
+  const testCacheInstance = new Zoic(
     {
       capacity: 10,
       expire: '2h, 3s, 5m',
@@ -64,7 +64,7 @@ describe("Each cache instantiation has a metrics property with properties beginn
 
 describe("Each cache's metrics property has six of its own methods that are functions", () => {
 
-  const testCacheInstance = new ZoicCache(
+  const testCacheInstance = new Zoic(
     {
       capacity: 10,
       expire: '2h, 3s, 5m',
@@ -84,7 +84,7 @@ describe("Each cache's metrics property has six of its own methods that are func
 
 describe("Each cache's metrics property should have six methods that work correctly", async () => {
 
-  const testCacheInstance = await new ZoicCache(
+  const testCacheInstance = await new Zoic(
     {
       capacity: 10,
       expire: '2h, 3s, 5m',

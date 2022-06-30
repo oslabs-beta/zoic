@@ -2,9 +2,9 @@ import { decode as base64decode, encode as base64encode } from "https://deno.lan
 import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import { connect, Redis } from "https://deno.land/x/redis/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
-import PerfMetrics from './performanceMetrics.ts'
-import LRU from './lru.ts';
-import LFU from './lfu.ts';
+import PerfMetrics from './src/performanceMetrics.ts'
+import LRU from './src/lru.ts';
+import LFU from './src/lfu.ts';
 
 interface options {
   cache?: string;
@@ -23,9 +23,9 @@ interface options {
   * 
   * ```ts
   * 
-  * import { ZoicCache } from '../src/zoicCache.ts';
+  * import { Zoic } from '../src/Zoic.ts';
   * 
-  * const cache = new ZoicCache({ cache: 'LRU', expire: '2h, 5m, 3s'});
+  * const cache = new Zoic({ cache: 'LRU', expire: '2h, 5m, 3s'});
   * 
   * router.get('/dbRead', cache.use, controller.dbRead, ctx => {
   *  ctx.response.body = ctx.state.somethingFromDb;});
@@ -36,14 +36,14 @@ interface options {
   *  Note: with Reids options "expire" and "capacity" do not apply.
   * ```ts
   * 
-  * const cache = new ZoicCache({ cache: 'Redis', port: 6379 })
+  * const cache = new Zoic({ cache: 'Redis', port: 6379 })
   * 
   * ```
   * 
   * @param option (cache options)
   * @returns LRU | LFU (new cache)
 */
-export class ZoicCache {
+export class Zoic {
   capacity: number;
   expire: number;
   metrics: InstanceType <typeof PerfMetrics>;
@@ -205,8 +205,8 @@ export class ZoicCache {
 
     } catch (err) {
       ctx.response.status = 400;
-      ctx.response.body = 'Error in ZoicCache.use. Check server logs for details.';
-      console.log(`Error in ZoicCache.use: ${err}`);
+      ctx.response.body = 'Error in Zoic.use. Check server logs for details.';
+      console.log(`Error in Zoic.use: ${err}`);
     }
   }
 
@@ -345,8 +345,8 @@ export class ZoicCache {
       })      
     } catch (err) {
       ctx.response.status = 400;
-      ctx.response.body = 'Error in ZoicCache.getMetrics. Check server logs for details.';
-      console.log(`Error in ZoicCache.getMetrics: ${err}`);
+      ctx.response.body = 'Error in Zoic.getMetrics. Check server logs for details.';
+      console.log(`Error in Zoic.getMetrics: ${err}`);
     }
   }
 
@@ -370,10 +370,10 @@ export class ZoicCache {
 
     } catch (err) {
       ctx.response.status = 400;
-      ctx.response.body = 'Error in ZoicCache.put. Check server logs for details.';
-      console.log(`Error in ZoicCache.put: ${err}`);
+      ctx.response.body = 'Error in Zoic.put. Check server logs for details.';
+      console.log(`Error in Zoic.put: ${err}`);
     }
   }
 }
 
-export default ZoicCache;
+export default Zoic;

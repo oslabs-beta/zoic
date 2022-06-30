@@ -28,7 +28,7 @@ The Zoic Developer Tool is currently available as a Chrome Developer Tools exten
 
 The latest build can also be added manually as a Chrome extension.
 
-In the Chrome Extensions Page (`chrome://extensions/`), click on "Load unpacked" and navigate to `.../Zoic/chrome_dev_tool/` and click "Select". (You may need to toggle on "Developer mode" to do this.) The extension should now be loaded and available in the Chrome Developer Tools.
+In the Chrome Extensions Page (`chrome://extensions/`), click on "Load unpacked" and navigate to `.../zoic/zoic_dev_tool/` and click "Select". (You may need to toggle on "Developer mode" to do this.) The extension should now be loaded and available in the Chrome Developer Tools.
 
 ## <a name="#usage"></a>Usage and Configuration
 

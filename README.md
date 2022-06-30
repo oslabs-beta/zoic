@@ -41,12 +41,12 @@ As Zoic is a middleware library for Oak in the Deno runtime envionement, it is p
 In your application, import the Zoic module from the deno.land [module](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
 
 ```typescript
-import { ZoicCache } from "our deno land link";
+import { Zoic } from "our deno land link";
 ```
 
 ### Create a cache
 
-Initalize a new `ZoicCache` object, passing in your user defined `options` object. If no `options` object is passed, `ZoicCache` will set all proprties to their default values.
+Initalize a new `Zoic` object, passing in your user defined `options` object. If no `options` object is passed, `Zoic` will set all proprties to their default values.
 
 - `cache`: Sets cache eviction policy. *Default value:* `'LRU'`
 - `expire`: Sets cache invalidation/expiration time for each entry. This can be set in human readable time, as a comma seperated string, denoting hours with value followed by `'h'`, minutes followed by `'m'`, and seconds followed by `'s'`. Alternatively, you may pass in the time as a `number` representing seconds. *Default value:* `'24h'`
@@ -57,7 +57,7 @@ Initalize a new `ZoicCache` object, passing in your user defined `options` objec
 Example:
 
 ```typescript
-const cache = new ZoicCache({
+const cache = new Zoic({
   cache: 'LRU',
   expire: '5m, 3s',
   capacity: 50,
@@ -66,15 +66,15 @@ const cache = new ZoicCache({
 
 ### Redis cache
 
-To use an instance of Redis as your cache, initalize a new `ZoicCache` object, passing in `'redis'` as the `cache` property on your options object. You also must specify the port your instance of Redis is running on, via the `port` property. Optionally, you may pass the hostname as well. This value defaults to `'127.0.0.1'`.
+To use an instance of Redis as your cache, initalize a new `Zoic` object, passing in `'redis'` as the `cache` property on your options object. You also must specify the port your instance of Redis is running on, via the `port` property. Optionally, you may pass the hostname as well. This value defaults to `'127.0.0.1'`.
 <br>
 <br>
-NOTE: Options `expire` and `capacity` do not have an effect on `ZoicCache` if using Redis, as these would be defined in your Redis configuration.
+NOTE: Options `expire` and `capacity` do not have an effect on `Zoic` if using Redis, as these would be defined in your Redis configuration.
 <br>
 <br>
 Example:
 ```typescript
-const cache = new ZoicCache({
+const cache = new Zoic({
   cache: 'redis',
   port: 6379
 })
@@ -83,44 +83,44 @@ const cache = new ZoicCache({
 
 ## <a name="middleware"></a>Middleware and caching
 
-### - ZoicCache.use()
+### - Zoic.use()
 `Zoic.use()` is responsible for both sending cached responses, and storing responses in the cache. When `.use()` is called in a middleware chain, it will check if data exists in the cache at a key representing that route's endpoint. If the query is successful, it will send an HTTP response with the cached body, headers, and status. If the query is unsucessful, `.use()` will automaticly listen for when the subsequent middleware in that route has been executed, and will cache the contents of the HTTP response before being sent to the client. This way, the developer only needs to place `.use()` in their middleware chain at the point where they would like the response to be sent in the event of a cache hit, making it extremely easy to use.
 <br>
 <br>
-NOTE: if the user has selected `false` for `respondOnHit` when intializing `ZoicCache`, the reponse data will be stored on `ctx.state.zoicResponse` instead of being sent as an HTTP response.
+NOTE: if the user has selected `false` for `respondOnHit` when intializing `Zoic`, the reponse data will be stored on `ctx.state.zoicResponse` instead of being sent as an HTTP response.
 <br>
 <br>
 Example:
 
 ```typescript
-const cache = new ZoicCache();
+const cache = new Zoic();
 
 router.get('/userInfo/:name', cache.use, controller.dbRead, ctx => {
     ctx.response.headers.set('Content-Type', 'application/json');
     ctx.response.body = ctx.state.somethingFromYourDB;
 });
 ```
-### - ZoicCache.put()
+### - Zoic.put()
 `Zoic.put()` will add responses to the cache without first querying to see if an entry already exists. The primary use being to replace data at an already existing keys, or manually add responses without anything being returned. Like with `.use()`, `.put()` will automaticlly store the response body, headers, and status at the end of a middleware chaing before the response is sent.
 <br>
 <br>
 Example:
 
 ```typescript
-const cache = new ZoicCache();
+const cache = new Zoic();
 
 router.put('/userInfo/:name', cache.put, controller.dbWrite, ctx => {
     ctx.response.body = ctx.state.someDataYouChanged;
 });
 ```
-### - ZoicCache.clear()
-`ZoicCache.clear()` clears the contents of the cache.
+### - Zoic.clear()
+`Zoic.clear()` clears the contents of the cache.
 <br>
 <br>
 Example:
 
 ```typescript
-const cache = new ZoicCache();
+const cache = new Zoic();
 
 // On it's own..
 router.post('/userInfo/:name', cache.clear);
