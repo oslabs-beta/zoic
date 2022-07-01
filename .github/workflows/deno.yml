@@ -35,8 +35,5 @@ jobs:
       # - name: Verify formatting
       #   run: deno fmt --check
 
-      - name: Run linter
-        run: deno lint
-
       - name: Run tests
         run: deno test ./src/tests/ --allow-net
