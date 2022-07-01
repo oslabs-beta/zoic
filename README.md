@@ -136,6 +136,8 @@ router.post('/otherUserInfo/', cache.clear, controller.dbWrite, ctx => {
 
 ## <a name="license"></a>License
 
+This product is licensed under the MIT License - see the LICENSE file for details.
+
 This is an open source product.
 
 This product is accelerated by <a href="https://opensourcelabs.io/">OS Labs.</a>
