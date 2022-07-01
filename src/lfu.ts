@@ -37,12 +37,12 @@ class LFU {
     
     if (this.length >= this.capacity) {
       const node = this.frequencyMap[this.minUsage].deleteTail();
-      delete this.cache[node.key];
+      if (node) delete this.cache[node.key];
     }
     else ++this.length;
 
     if(!this.frequencyMap[1]) this.frequencyMap[1] = new DoublyLinkedList();
-    const newNode = this.frequencyMap[1].addHead(value, key, byteSize);
+    const newNode = this.frequencyMap[1].addHead(value, key, byteSize, new Date());
     //this.frequencyMap[1].length++;
     this.cache[key] = newNode;
     this.minUsage = 1;
@@ -62,7 +62,7 @@ class LFU {
     const node = this.cache[key];
     const list = this.frequencyMap[node.count];
 
-    if(list.head === node) list.deleteHead();
+    if(list.head === node) this.delete(key)
     else if (list.tail === node) list.deleteTail();
     else {
       node.prev.next = node.next;
@@ -121,46 +121,6 @@ class LFU {
     this.length = 0;
     this.minUsage = 0;
   }
-
-  //TODO: also delete from cache
-  printLFU() {
-    for(let i = 1; i < 5; i++) {
-      if(this.frequencyMap[i]) {
-        const e = this.frequencyMap[i];
-        console.log(e.head.count)
-        e.printList();
-      }
-    }
-  }
 }
-
-// const lfu = new LFU(5)
-// lfu.put('A', {body: 1});
-// lfu.put('B', {body: 2});
-// lfu.put('C', {body: 3});
-// lfu.put('D', {body: 4});
-// lfu.put('E', {body: 5});
-// lfu.get('D');
-// lfu.get('A');
-// lfu.get('C');
-// lfu.get('B');
-// lfu.get('E');
-// lfu.get('E');
-// lfu.put('F', {body: 6});
-// lfu.put('B', {body: 7});
-// lfu.put('Z', {body: 8});
-
-// //console.log(lfu)
-// lfu.delete('B')
-// lfu.delete('A')
-// lfu.delete('Z')
-// lfu.delete('B')
-// lfu.delete('F')
-// lfu.delete('E')
-// lfu.delete('C')
-// lfu.put('A', {body: 1})
-// // lfu.printLFU();
-// lfu.printLFU();
-// console.log(lfu)
 
 export default LFU;
