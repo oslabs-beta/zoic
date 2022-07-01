@@ -4,41 +4,53 @@
   </head>
   <body>
     <div class="panelContainer">
+        <div id="root">
             <h1>
                 <span style="color:#E76020">Z</span>
                 <span style="color:#EE892F">O</span>
                 <span style="color:#E0BB76">I</span>
                 <span style="color:#6E896A">C</span>
             </h1>
-            <h3>devtools panel</h3>
+            <h3 style="color:white">devtools panel</h3>
             <div class="localHostInput"> 
                 <input id='localHostInputID' type="text" placeholder="Enter server URL">
                 </input>
                 <button id="submitButton">Submit</button>
             </div>
             <div class="metricsContainer">
-                <div class="metricContainer">
-                  <div class="text">Cache type: <span class="metric" id="cacheType">loading...</span></div>
+                <div>
+                    <div class="metricContainer">Cache type:</div>
+                    <div class="valueContainer" id="cacheType">loading...</div>
                 </div>
-                <div class="metricContainer">
-                    <div class="text">Memory used: <span class="metric" id="memUsed">loading...</span></div>
+                <div>
+                    <div class="metricContainer">Memory used:</div>
+                    <div class="valueContainer" id="memUsed">loading...</div>
                 </div>
-                <div class="metricContainer">
-                    <div class="text">Number of entries: <span class="metric" id="entries">loading...</span></div>
+                <div>
+                    <div class="metricContainer">Number of entries:</div>
+                    <div class="valueContainer" id="entries">loading...</div>
                 </div>
-                <div class="metricContainer">
-                    <div class="text">Reads processed: <span class="metric" id="hits">loading...</span></div>
+                <div>
+                    <div class="metricContainer">Reads processed:</div>
+                    <div class="valueContainer" id="hits">loading...</div>
                 </div>
-                <div class="metricContainer">
-                    <div class="text">Writes processed: <span class="metric" id="misses">loading...</span></div>
+
+                <div>
+                    <div class="metricContainer">Writes processed:</div>
+                    <div class="valueContainer" id="misses">loading...</div>
                 </div>
-                <div class="metricContainer">
-                    <div class="text">Average cache hit latency: <span class="metric" id="avHitLatency">loading...</span></div>
+
+                <div>
+                    <div class="metricContainer">Average cache hit latency:</div>
+                    <div class="valueContainer" id="avHitLatency">loading...</div>
                 </div>
-                <div class="metricContainer">
-                    <div class="text">Average cache miss latency: <span class="metric" id="avMissLatency">loading...</span></div>
+
+                <div>
+                    <div class="metricContainer">Average cache miss latency:</div>
+                    <div class="valueContainer" id="avMissLatency">loading...</div>
                 </div>
             </div>
+        </div>
     </div>
 
     <script type="module" src='main.js'></script>
