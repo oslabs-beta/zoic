@@ -5,6 +5,22 @@ body {
     background-color: #35465c;
 }
 
+button {
+  border-radius: 28px;
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 15px;
+  background: #35465c;
+  border: 2px solid white;
+  padding: 5px 10px 5px 10px;
+  text-decoration: none;
+}
+
+button:hover {
+  background: #26384d;
+  text-decoration: none;
+}
+
 .logoText {
   margin-top: 150px;
 }
