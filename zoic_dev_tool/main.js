@@ -53,12 +53,12 @@ button.addEventListener('click', () => {
           } = metricsData;
         
           cacheType.innerHTML = `${cache_type}`;
-          memoryUsed.innerHTML = `${(memory_used / 1048576).toString().slice(0, 6) || '0'}mb`
+          memoryUsed.innerHTML = `${(memory_used / 1048576)?.toString()?.slice(0, 6) || '0'}mb`
           entries.innerHTML = `${number_of_entries || '0'}`;
           hits.innerHTML = `${reads_processed || '0'}`;
           misses.innerHTML = `${writes_processed || '0'}`;
-          avHitLatency.innerHTML = `${average_hit_latency.toString().slice(0, 5) || '0'}ms`;
-          avMissLatency.innerHTML = `${average_miss_latency.toString().slice(0, 6)  || '0'}ms`;
+          avHitLatency.innerHTML = `${average_hit_latency?.toString()?.slice(0, 5) || '0'}ms`;
+          avMissLatency.innerHTML = `${average_miss_latency?.toString()?.slice(0, 6)  || '0'}ms`;
         }
     }).catch((err) =>{
       document.querySelector('#loadingError').innerHTML = "Error loading URL.";

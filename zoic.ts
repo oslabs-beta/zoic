@@ -103,19 +103,20 @@ export class Zoic {
    * @returns number
    */
   #parseExpTime (numberString?: string | number) {
-    if (!numberString) return 86400;
+    if (!numberString) return Infinity;
     let seconds;
     if (typeof numberString === 'string'){
       seconds = numberString.trim().split(',').reduce((arr, el) => {
+        if (el[el.length - 1] === 'd') return arr += parseInt(el.slice(0, -1)) * 86400;
         if (el[el.length - 1] === 'h') return arr += parseInt(el.slice(0, -1)) * 3600;
         if (el[el.length - 1] === 'm') return arr += parseInt(el.slice(0, -1)) * 60;
         if (el[el.length - 1] === 's') return arr += parseInt(el.slice(0, -1));
         throw new TypeError(
-          'Cache expiration time must be string formatted as a numerical value followed by \'h\', \'m\', or \'s\', or a number representing time in seconds.'
+          'Cache expiration time must be string formatted as a numerical value followed by \'d\', \'h\', \'m\', or \'s\', or a number representing time in seconds.'
           )
       }, 0);
     } else seconds = numberString;
-    if (seconds > 86400 || seconds < 0) throw new TypeError('Cache expiration time out of range.');
+    if (seconds > 31536000 || seconds < 0) throw new TypeError('Cache expiration time out of range.');
     return seconds;
   }
 

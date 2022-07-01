@@ -42,7 +42,7 @@ import { Zoic } from "our deno land link";
 Initalize a new `Zoic` object, passing in your user defined `options` object. If no `options` object is passed, `Zoic` will set all properties to their default values.
 
 - `cache`: Sets cache eviction policy. *Default value:* `'LRU'`
-- `expire`: Sets cache invalidation/expiration time for each entry. This can be set in human readable time, as a comma seperated string, denoting hours with value followed by `'h'`, minutes followed by `'m'`, and seconds followed by `'s'`. Alternatively, you may pass in the time as a `number` representing seconds. *Default value:* `'24h'`
+- `expire`: Sets cache invalidation/expiration time for each entry. This can be set in human readable time, as a comma seperated string, denoting hours with value followed by `'h'`, minutes followed by `'m'`, and seconds followed by `'s'`. Alternatively, you may pass in the time as a `number` representing seconds. *Default value:* `'Infinity'`
 - `capacity`: Sets the maximum number of entries. *Default value:* `Infinity`
 - `respondOnHit`: Determines if cache hits should be sent as an HTTP response immediately upon retrival. If this is set to `false`, the cached response data will be attached to Oak `Context.state` property, `context.state.zoicResponse`. It is recommended to leave this set to `true`, unless additonal processing on the response data is desired in the event of a cache hit. *Default value:* `true`
 
