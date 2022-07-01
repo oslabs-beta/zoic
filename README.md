@@ -3,9 +3,7 @@
   margin-right: auto;" src=".assets/zoic_clear.png" width = "300px" alt="Zoic logo">
 </p>
 
-
-
-![example workflow](https://github.com/oslabs-beta/zoic/actions/workflows/deno.yml/badge.svg)
+[![example workflow](https://github.com/oslabs-beta/zoic/actions/workflows/deno.yml/badge.svg)](https://github.com/oslabs-beta/zoic/tree/dev/src/tests)
 
 <hr>
   <br>

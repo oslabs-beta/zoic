@@ -1,10 +1,7 @@
-import { assert, assertThrows, assertEquals } from "https://deno.land/std@0.145.0/testing/asserts.ts";
-import { afterEach, beforeEach, beforeAll, describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { Zoic } from '../../zoic.ts';
-import LRU from '../lru.ts';
-import PerfMetrics from '../performanceMetrics.ts'
+import { assert, assertEquals } from "https://deno.land/std@0.145.0/testing/asserts.ts";
+import { describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
+import Zoic from '../../zoic.ts';
 
-//LOOK INTO DENO TESTING DOCUMENTATION FOR ASYNC STUFF
 
 describe("Each cache instantiation has a metrics property with properties beginning with 0, '', or []", () => {
 
@@ -60,7 +57,7 @@ describe("Each cache instantiation has a metrics property with properties beginn
   });
 });
 
-describe("Each cache's metrics property has six of its own methods that are functions", () => {
+describe("Each cache's metrics property should have six methods that work correctly", () => {
 
   const testCacheInstance = new Zoic(
     {
@@ -69,49 +66,35 @@ describe("Each cache's metrics property has six of its own methods that are func
       cache: 'LRU',
     }
   );
-});
-
-describe("Each cache's metrics property should have six methods that work correctly", async () => {
-
-  const testCacheInstance = await new Zoic(
-    {
-      capacity: 10,
-      expire: '2h, 3s, 5m',
-      cache: 'LRU',
-    }
-  );
 
 
-  it("should have a deleteEntry method that decreases the numberOfEntries correctly", async () => {
-    await testCacheInstance.metrics.deleteEntry();
+  it("should have a deleteEntry method that decreases the numberOfEntries correctly", () => {
+    testCacheInstance.metrics.deleteEntry();
     assertEquals(testCacheInstance.metrics.numberOfEntries, -1);
 
-    await testCacheInstance.metrics.deleteEntry();
-    await testCacheInstance.metrics.deleteEntry();
+    testCacheInstance.metrics.deleteEntry();
+    testCacheInstance.metrics.deleteEntry();
     assertEquals(testCacheInstance.metrics.numberOfEntries, -3);
   });
 
-  it("should have a readProcessed method that updates the readsProcessed correctly", async () => {
-    await testCacheInstance.metrics.readProcessed();
+  it("should have a readProcessed method that updates the readsProcessed correctly", () => {
+    testCacheInstance.metrics.readProcessed();
     assertEquals(testCacheInstance.metrics.readsProcessed, 1);
 
-    await testCacheInstance.metrics.readProcessed();
-    await testCacheInstance.metrics.readProcessed();
+    testCacheInstance.metrics.readProcessed();
+    testCacheInstance.metrics.readProcessed();
     assertEquals(testCacheInstance.metrics.readsProcessed, 3);
   });
 
-  it("should have a writeProcessed method that updates the writesProcessed correctly", async () => {
-    await testCacheInstance.metrics.writeProcessed();
+  it("should have a writeProcessed method that updates the writesProcessed correctly", () => {
+    testCacheInstance.metrics.writeProcessed();
     assertEquals(testCacheInstance.metrics.writesProcessed, 1);
 
-    await testCacheInstance.metrics.writeProcessed();
-    await testCacheInstance.metrics.writeProcessed();
+    testCacheInstance.metrics.writeProcessed();
+    testCacheInstance.metrics.writeProcessed();
     assertEquals(testCacheInstance.metrics.writesProcessed, 3);
   });
 
-  it("should have a updateLatency method that works as intended", async () => {
-    //Need logic here
-  });
 });
 
 
