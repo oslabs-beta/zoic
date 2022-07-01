@@ -41,7 +41,6 @@ button.addEventListener('click', () => {
       .then(metricsData => {
         
         if(metricsData) {
-
           const {
             cache_type,
             memory_used,

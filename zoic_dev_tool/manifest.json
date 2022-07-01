@@ -1,11 +1,8 @@
 {
-    "manifest_version": 3,
-  
-    "name": "Zoic Dev Tools",
-    "version": "0.1",
-  
-    "description": "Backend Developer Tools for Deno",
-    "author": "Zoic Team",
-  
-    "devtools_page": "devtools.html"
-  }
+  "manifest_version": 3,
+  "name": "Zoic Dev Tools",
+  "version": "0.1",
+  "description": "Backend Developer Tools for Deno",
+  "author": "Zoic Team",
+  "devtools_page": "devtools.html"
+}
