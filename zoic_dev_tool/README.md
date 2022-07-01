@@ -17,7 +17,7 @@
 
 ## <a name="description"></a>Description
 
-The Zoic Developer Tool is a Chrome Developer Tools extension for monitoring metrics in a ZoicCache instance. With Zoic Developer Tool, you can monitor and inspect memory usage, reads processed, writes proccesed, latency, and more.
+The Zoic Developer Tool is a Chrome Developer Tools extension for monitoring metrics in a ZoicCache instance. With the Zoic Developer Tool, you can monitor and inspect memory usage, reads processed, writes proccesed, latency, and more.
 
 ## <a name="installation"></a>Installation
 
@@ -29,9 +29,9 @@ In the Chrome Extensions Page (`chrome://extensions/`), click on "Load unpacked"
 
 ## <a name="#usage"></a>Usage and Configuration
 
-To configure the dev tools, you must link your server address via the input field on the dev tool panel.
-- First: specify your server address, and endpoint at which you will serve the cache metrics from. (Ex: `http://localhost:3000/getZoicMetrics`)
-- Second: in your server routes, create a new route matching the endpoint specified in the dev tool. In this route add middleware `Zoic.getMetrics`.
+To configure the dev tools, you must first link your server address via the input field on the dev tool panel.
+- First: Specify your server address, and endpoint at which you will serve the cache metrics from. (Ex: `http://localhost:3000/getZoicMetrics`)
+- Second: In your server routes, create a new route matching the endpoint specified in the dev tool. In this route add middleware `Zoic.getMetrics`.
 
 
 NOTE: This route WILL have CORS enabled.
