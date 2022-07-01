@@ -81,37 +81,6 @@ describe("Each cache's metrics property should have six methods that work correc
     }
   );
 
-  it("should have a writeMetricsJson method that writes to a dummy json file correctly", async () => {
-
-    await fetch(`${Deno.cwd()}/../../static/localDB.json`, {
-      headers: {
-        'Cache-Control': "no-cache"
-      },
-    })
-      .then(response => response.json())
-      .then(metricsData => {
-
-        const {
-          number_of_entries,
-          reads_processed,
-          writes_processed,
-        } = metricsData;
-
-        assertEquals(testCacheInstance.metrics.numberOfEntries, 0);
-        assertEquals(testCacheInstance.metrics.readsProcessed, 0);
-        assertEquals(testCacheInstance.metrics.writesProcessed, 0);
-      });
-  });
-
-  it("should have an addEntry method that increases the numberOfEntries correctly", async () => {
-    await testCacheInstance.metrics.addEntry();
-    assertEquals(testCacheInstance.metrics.numberOfEntries, 1);
-
-    await testCacheInstance.metrics.addEntry();
-    await testCacheInstance.metrics.addEntry();
-    assertEquals(testCacheInstance.metrics.numberOfEntries, 3);
-
-  });
 
   it("should have a deleteEntry method that decreases the numberOfEntries correctly", async () => {
     await testCacheInstance.metrics.deleteEntry();
