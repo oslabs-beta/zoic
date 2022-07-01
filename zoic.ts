@@ -1,6 +1,6 @@
 import { decode as base64decode, encode as base64encode } from "https://deno.land/std@0.89.0/encoding/base64.ts";
 import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
-import { connect, Redis } from "https://deno.land/x/redis/mod.ts";
+import { connect, Redis } from "https://deno.land/x/redis@v0.26.0/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts';
@@ -13,6 +13,12 @@ interface options {
   expire?: string | number;
   respondOnHit?: boolean;
   capacity?: number;
+}
+
+export interface cacheValue {
+  headers: {[k:string]:string};
+  body?: string | Uint8Array;
+  status: number;
 }
 
 /**
@@ -71,7 +77,7 @@ export class Zoic {
    */
   async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number, hostname?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
-    if (this.capacity < 0) throw new TypeError('Cache capacity must exceed 0 entires.');
+    if (this.capacity <= 0) throw new TypeError('Cache capacity must exceed 0 entires.');
     if (cache === 'REDIS') {
       if (!redisPort) {
         throw new Error('Redis requires port number passed in as an options property.');
@@ -233,7 +239,7 @@ export class Zoic {
       //extract native http response from toDomResponse to get correct headers and readable body
       const nativeResponse = await toDomResponsePrePatch.apply(this);
       
-      const responseToCache: Record<string,{[k:string]:string}|string|number|Uint8Array> = {
+      const responseToCache: cacheValue = {
         headers: Object.fromEntries(nativeResponse.headers.entries()),
         status: nativeResponse.status
       };
@@ -280,6 +286,7 @@ export class Zoic {
   /**
    * Manually clears all current cache entries.
    */
+  // deno-lint-ignore no-unused-vars
   async clear (ctx: Context, next: () => Promise<unknown>) {
     const cache = await this.cache;
     this.#redisTypeCheck(cache) ? cache.flushdb() : cache.clear();

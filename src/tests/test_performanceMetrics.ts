@@ -30,7 +30,6 @@ describe("Each cache instantiation has a metrics property with properties beginn
     assertEquals(testCacheInstance.metrics.latencyHistory, []);
     assertEquals(testCacheInstance.metrics.missLatencyTotal, 0);
     assertEquals(testCacheInstance.metrics.hitLatencyTotal, 0);
-    assertEquals(testCacheInstance.metrics.cacheSize, 0);
   });
 });
 
@@ -58,7 +57,6 @@ describe("Each cache instantiation has a metrics property with properties beginn
     assertEquals(testCacheInstance.metrics.latencyHistory, []);
     assertEquals(testCacheInstance.metrics.missLatencyTotal, 0);
     assertEquals(testCacheInstance.metrics.hitLatencyTotal, 0);
-    assertEquals(testCacheInstance.metrics.cacheSize, 0);
   });
 });
 
@@ -71,15 +69,6 @@ describe("Each cache's metrics property has six of its own methods that are func
       cache: 'LRU',
     }
   );
-
-  it("should have its six required methods, each being a function type", () => {
-    assert(typeof testCacheInstance.writeMetricsJson === 'function');
-    assert(typeof testCacheInstance.addEntry === 'function');
-    assert(typeof testCacheInstance.deleteEntry === 'function');
-    assert(typeof testCacheInstance.readProcessed === 'function');
-    assert(typeof testCacheInstance.writeProcessed === 'function');
-    assert(typeof testCacheInstance.updateLatency === 'function');
-  });
 });
 
 describe("Each cache's metrics property should have six methods that work correctly", async () => {
@@ -93,13 +82,11 @@ describe("Each cache's metrics property should have six methods that work correc
   );
 
   it("should have a writeMetricsJson method that writes to a dummy json file correctly", async () => {
-    await testCacheInstance.metrics.writeMetricsJson();
 
     await fetch(`${Deno.cwd()}/../../static/localDB.json`, {
       headers: {
         'Cache-Control': "no-cache"
       },
-      'pragma': 'no-cache'
     })
       .then(response => response.json())
       .then(metricsData => {
@@ -108,16 +95,11 @@ describe("Each cache's metrics property should have six methods that work correc
           number_of_entries,
           reads_processed,
           writes_processed,
-          average_hit_latency,
-          average_miss_latency
         } = metricsData;
 
-        assertEquals(testCacheInstance.metrics.number_of_entries, 0);
-        assertEquals(testCacheInstance.metrics.reads_processed, 0);
-        assertEquals(testCacheInstance.metrics.writes_processed, 0);
-        assertEquals(testCacheInstance.metrics.average_hit_latency, 0);
-        assertEquals(testCacheInstance.metrics.average_miss_latency, 0);
-
+        assertEquals(testCacheInstance.metrics.numberOfEntries, 0);
+        assertEquals(testCacheInstance.metrics.readsProcessed, 0);
+        assertEquals(testCacheInstance.metrics.writesProcessed, 0);
       });
   });
 

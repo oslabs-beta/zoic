@@ -1,4 +1,5 @@
-import { DoublyLinkedList } from './doublyLinkedList.ts'
+import { DoublyLinkedList, Node } from './doublyLinkedList.ts'
+import { cacheValue } from '../zoic.ts'
 import PerfMetrics from './performanceMetrics.ts'
 
 /**
@@ -7,7 +8,7 @@ import PerfMetrics from './performanceMetrics.ts'
  */
 class LRU {
   list: DoublyLinkedList;
-  cache: any;
+  cache: Record<string, InstanceType<typeof Node>>;
   length: number;
   capacity: number;
   expire: number;
@@ -33,7 +34,7 @@ class LRU {
    * @param value 
    * @returns 
    */
-  put (key: string, value: any, byteSize: number)  {
+  put (key: string, value: cacheValue, byteSize: number)  {
 
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
     if (this.cache[key]){
@@ -42,29 +43,20 @@ class LRU {
     } 
 
     //add new item to list head.
-    this.cache[key] = this.list.addHead(value, key, byteSize);
+    this.cache[key] = this.list.addHead(value, key, byteSize, new Date());
     this.metrics.increaseBytes(byteSize);
 
     //evalutes if least recently used item should be evicted.
     if (this.length < this.capacity) {
       this.length++;
     } else {
-      const deletedNode: any = this.list.deleteTail();
+      const deletedNode: InstanceType<typeof Node> | null = this.list.deleteTail();
+      if (deletedNode === null) throw new Error('Node is null. Ensure cache capcity is greater than 0.');
       delete this.cache[deletedNode.key];
       this.metrics.decreaseBytes(deletedNode.byteSize);
     }
 
-    //deletes node after set expiration time.
-    setTimeout(() => {
-      if (this.cache[key]) {
-        this.delete(key);
-        this.metrics.deleteEntry();
-        this.metrics.decreaseBytes(this.cache[key].byteSize);
-        console.log(`Zoic cache entry at '${key}' expired.`);
-      }    
-    }, this.expire * 1000);
-
-    return
+    return;
   }
 
 
@@ -78,17 +70,25 @@ class LRU {
     //If there is a matching cache
     if (this.cache[key]) {
 
+      //deletes key and returns if key is expired
+      const currentTime = new Date();
+      const timeElapsed = Math.abs(currentTime.getTime() - this.cache[key].timeStamp.getTime()) / 1000;
+      if (timeElapsed > this.expire) {
+        this.delete(key);
+        return;
+      }
+
       // if current key is already node at head of list, return immediately.
       if (this.cache[key] === this.list.head) return this.list.head.value;
 
       //create new node, then delete node at current key, to replace at list head.
       const node = this.cache[key];
       this.delete(key);
-      this.cache[key] = this.list.addHead(node.value, node.key, node.byteSize);
+      this.cache[key] = this.list.addHead(node.value, node.key, node.byteSize, node.timeStamp);
       this.length++;
 
       //Return the newly cached node, which should now be the head, to the top-level caching layer.
-      return this.list.head.value;
+      return node.value;
     } 
     //If no matching cache value (cache miss), return next();
     return undefined;
@@ -128,38 +128,6 @@ class LRU {
     this.cache = {};
     this.length = 0;
   }
-
-
-  /**
-   * prints list and cache for testing purposes.
-   */
-  printLru() {
-    console.log('cache\n', this.cache)
-    console.log('this.list: ', this.list)
-    console.log('LIST')
-    this.list.printList();
-    console.log('\n')
-  }
-
 }
-
-// const lru = new LRU(5)
-// lru.put('A', {body: 1});
-// lru.put('B', {body: 2});
-// lru.put('C', {body: 3});
-// lru.get('A');
-// lru.get('C');
-// lru.get('B');
-// lru.put('D', {body: 4});
-// lru.put('D', {body: 1000})
-// lru.put('E', {body: 5});
-// lru.delete('B')
-// lru.delete('C')
-// lru.delete('A')
-// lru.delete('D')
-// lru.delete('E')
-// // lru.put('e', {body: 7})
-// // lru.put('hello', {body: 9})
-// lru.printLru();
 
 export default LRU;

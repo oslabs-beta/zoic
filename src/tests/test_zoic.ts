@@ -10,31 +10,28 @@ import PerfMetrics from '../performanceMetrics.ts'
 
 describe("Arguments passed into the performance metrics change ", () => {
 
-  const testCacheInstance = new Zoic(
-    {
-      capacity: 10,
-      expire: '2h, 3s, 5m',
-      cache: 'LRU',
-    }
-  );
+  const testCacheInstance = new Zoic({capacity: 10, expire: '2h, 3s, 5m', cache: 'LrU'});
 
-  it("should return an object", () => {
+  it("Should return an object", () => {
     assert(typeof testCacheInstance === 'object');
   });
 
-  it("should set the right capcaity", () => {
+  it("Should set the right capcaity", () => {
     assertEquals(testCacheInstance.capacity, 10);
   });
 
-  it("should parse unordered strings for expiration", () => {
+  it("Should parse unordered strings for expiration", () => {
     assertEquals(testCacheInstance.expire, 7503);
   });
 
-  it("should instantiate the correct cache object", () => {
-    const newLRU = new LRU(7503, testCacheInstance.metrics, 10);
-    assert(testCacheInstance.cache instanceof (LRU));
+  it("Should return a promise", () => {
+    assert(testCacheInstance.cache instanceof Promise);
   });
 
+  it("Should resolve promise to correct cache type", async () => {
+    const cache = await testCacheInstance.cache;
+    assert(cache instanceof LRU)
+  });
 });
 
 describe("Zoic should handle default args approporately", () => {
@@ -46,11 +43,12 @@ describe("Zoic should handle default args approporately", () => {
   })
 
   it("should handle when nothing input for capacity", () => {
-    assertEquals(testCacheInstance.capacity, 50);
+    assertEquals(testCacheInstance.capacity, Infinity);
   })
 
-  it("should handle when nothing input for cache type", () => {
-    assertInstanceOf(testCacheInstance.cache, LRU)
+  it("should handle when nothing input for cache type", async () => {
+    const cache = await testCacheInstance.cache;
+    assert(cache instanceof LRU);
   })
 
 })

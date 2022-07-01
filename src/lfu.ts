@@ -37,12 +37,12 @@ class LFU {
     
     if (this.length >= this.capacity) {
       const node = this.frequencyMap[this.minUsage].deleteTail();
-      delete this.cache[node.key];
+      if (node) delete this.cache[node.key];
     }
     else ++this.length;
 
     if(!this.frequencyMap[1]) this.frequencyMap[1] = new DoublyLinkedList();
-    const newNode = this.frequencyMap[1].addHead(value, key, byteSize);
+    const newNode = this.frequencyMap[1].addHead(value, key, byteSize, new Date());
     //this.frequencyMap[1].length++;
     this.cache[key] = newNode;
     this.minUsage = 1;
@@ -62,7 +62,7 @@ class LFU {
     const node = this.cache[key];
     const list = this.frequencyMap[node.count];
 
-    if(list.head === node) list.deleteHead();
+    if(list.head === node) this.delete(key)
     else if (list.tail === node) list.deleteTail();
     else {
       node.prev.next = node.next;
@@ -120,17 +120,6 @@ class LFU {
     this.frequencyMap = {};
     this.length = 0;
     this.minUsage = 0;
-  }
-
-  //TODO: also delete from cache
-  printLFU() {
-    for(let i = 1; i < 5; i++) {
-      if(this.frequencyMap[i]) {
-        const e = this.frequencyMap[i];
-        console.log(e.head.count)
-        e.printList();
-      }
-    }
   }
 }
 
