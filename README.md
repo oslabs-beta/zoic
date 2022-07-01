@@ -39,7 +39,7 @@ import { Zoic } from "our deno land link";
 
 ### Create a cache
 
-Initalize a new `Zoic` object, passing in your user defined `options` object. If no `options` object is passed, `Zoic` will set all proprties to their default values.
+Initalize a new `Zoic` object, passing in your user defined `options` object. If no `options` object is passed, `Zoic` will set all properties to their default values.
 
 - `cache`: Sets cache eviction policy. *Default value:* `'LRU'`
 - `expire`: Sets cache invalidation/expiration time for each entry. This can be set in human readable time, as a comma seperated string, denoting hours with value followed by `'h'`, minutes followed by `'m'`, and seconds followed by `'s'`. Alternatively, you may pass in the time as a `number` representing seconds. *Default value:* `'24h'`
@@ -77,7 +77,7 @@ const cache = new Zoic({
 ## <a name="middleware"></a>Middleware and caching
 
 ### - Zoic.use()
-`Zoic.use()` is responsible for both sending cached responses, and storing responses in the cache. When `.use()` is called in a middleware chain, it will check if data exists in the cache at a key representing that route's endpoint. If the query is successful, it will send an HTTP response with the cached body, headers, and status. If the query is unsucessful, `.use()` will automaticly listen for when the subsequent middleware in that route has been executed, and will cache the contents of the HTTP response before being sent to the client. This way, the developer only needs to place `.use()` in their middleware chain at the point where they would like the response to be sent in the event of a cache hit, making it extremely easy to use.
+`Zoic.use()` is responsible for both sending cached responses, and storing responses in the cache. When `.use()` is called in a middleware chain, it will check if data exists in the cache at a key representing that route's endpoint. If the query is successful, it will send an HTTP response with the cached body, headers, and status. If the query is unsucessful, `.use()` will automatically listen for when the subsequent middleware in that route has been executed, and will cache the contents of the HTTP response before being sent to the client. This way, the developer only needs to place `.use()` in their middleware chain at the point where they would like the response to be sent in the event of a cache hit, making it extremely easy to use.
 <br>
 <br>
 NOTE: if the user has selected `false` for `respondOnHit` when intializing `Zoic`, the reponse data will be stored on `ctx.state.zoicResponse` instead of being sent as an HTTP response.
@@ -94,7 +94,7 @@ router.get('/userInfo/:name', cache.use, controller.dbRead, ctx => {
 });
 ```
 ### - Zoic.put()
-`Zoic.put()` will add responses to the cache without first querying to see if an entry already exists. The primary use being to replace data at an already existing keys, or manually add responses without anything being returned. Like with `.use()`, `.put()` will automaticlly store the response body, headers, and status at the end of a middleware chaing before the response is sent.
+`Zoic.put()` will add responses to the cache without first querying to see if an entry already exists. The primary use being to replace data at an already existing keys, or manually add responses without anything being returned. Like with `.use()`, `.put()` will automatically store the response body, headers, and status at the end of a middleware chain before the response is sent.
 <br>
 <br>
 Example:
