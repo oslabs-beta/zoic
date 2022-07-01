@@ -9,6 +9,14 @@ body {
   margin-top: 150px;
 }
 
+#loadingError{
+  color: rgb(215, 16, 16);
+}
+
+#localHostInputID {
+  width: 250px;
+}
+
 #root {
     display: flex;
     flex-direction: column;
