@@ -197,8 +197,7 @@ export class Zoic {
 
         //dnding mark for cache hit latency performance test.
         performance.mark('endingMark');
-        // this.metrics.updateHitLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key);
-        this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'hit');
+        this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, 'hit');
         
         return;
       }
@@ -272,7 +271,7 @@ export class Zoic {
       
       //ending mark for a cache miss latency performance test.
       performance.mark('endingMark');
-      metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, key, 'miss');
+      metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, 'miss');
       metrics.writeProcessed();
 
       return new Promise (resolve => {                
