@@ -27,7 +27,7 @@ The Zoic Developer Tool allows developers to monitor cache metrics in real time,
 
 ## <a name="get-started"></a>Getting Started
 
-As Zoic is a middleware library for Oak in the Deno runtime envionement, it is paramount that [Deno](https://deno.land) is first installed and configured.
+As Zoic is a middleware library for Oak in the Deno runtime environment, it is paramount that [Deno](https://deno.land) is first installed and configured.
 
 ### Quick Start
 
