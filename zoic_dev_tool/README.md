@@ -1,6 +1,6 @@
 <p align="center"><img style="display: block;
   margin-left: auto;
-  margin-right: auto;" src="../.assets/zoic_clear.png" width = "300px" alt="Zoic logo">
+  margin-right: auto;" src="zoic_clear.png" width = "300px" alt="Zoic logo">
 </p>
 <hr>
   <br>

@@ -10,8 +10,6 @@ class PerfMetrics {
   writesProcessed: number;
   currentHitLatency: number;
   currentMissLatency: number;
-  currentEndPoint: string;
-  latencyHistory: Array<number>;
   missLatencyTotal: number;
   hitLatencyTotal: number;
 
@@ -23,8 +21,6 @@ class PerfMetrics {
     this.writesProcessed = 0;
     this.currentHitLatency = 0;
     this.currentMissLatency = 0;
-    this.currentEndPoint = '';
-    this.latencyHistory = [];
     this.missLatencyTotal = 0;
     this.hitLatencyTotal = 0;
   }
@@ -36,15 +32,8 @@ class PerfMetrics {
   clearEntires = () => this.numberOfEntries = 0;
   increaseBytes = (bytes: number) => this.memoryUsed += bytes;
   decreaseBytes = (bytes: number) => this.memoryUsed -= bytes;
-  updateLatency = (latency: number, endpoint: string, hitOrMiss: 'hit' | 'miss') => {
+  updateLatency = (latency: number, hitOrMiss: 'hit' | 'miss') => {
    
-      if (this.currentEndPoint === endpoint){
-        this.latencyHistory.push(latency);
-      } else {
-        this.latencyHistory = [latency];
-        this.currentEndPoint = endpoint;
-      }
-
       if (hitOrMiss === 'hit'){
         this.hitLatencyTotal += latency;
         this.currentHitLatency = latency;
