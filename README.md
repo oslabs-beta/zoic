@@ -37,7 +37,7 @@ As Zoic is a middleware library for Oak in the Deno runtime environment, it is p
 In your application, import the Zoic module from the deno.land [module](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
 
 ```typescript
-import { Zoic } from "our deno land link";
+import { Zoic } from "https://deno.land/x/zoic/zoic.ts";
 ```
 
 ### Create a cache
