@@ -123,33 +123,4 @@ class LFU {
   }
 }
 
-// const lfu = new LFU(5)
-// lfu.put('A', {body: 1});
-// lfu.put('B', {body: 2});
-// lfu.put('C', {body: 3});
-// lfu.put('D', {body: 4});
-// lfu.put('E', {body: 5});
-// lfu.get('D');
-// lfu.get('A');
-// lfu.get('C');
-// lfu.get('B');
-// lfu.get('E');
-// lfu.get('E');
-// lfu.put('F', {body: 6});
-// lfu.put('B', {body: 7});
-// lfu.put('Z', {body: 8});
-
-// //console.log(lfu)
-// lfu.delete('B')
-// lfu.delete('A')
-// lfu.delete('Z')
-// lfu.delete('B')
-// lfu.delete('F')
-// lfu.delete('E')
-// lfu.delete('C')
-// lfu.put('A', {body: 1})
-// // lfu.printLFU();
-// lfu.printLFU();
-// console.log(lfu)
-
 export default LFU;
