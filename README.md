@@ -2,6 +2,11 @@
   margin-left: auto;
   margin-right: auto;" src=".assets/zoic_clear.png" width = "300px" alt="Zoic logo">
 </p>
+
+
+
+![example workflow](https://github.com/oslabs-beta/zoic/actions/workflows/deno.yml/badge.svg)
+
 <hr>
   <br>
     <h3 align="center">Caching middleware library for Oak</h3>
