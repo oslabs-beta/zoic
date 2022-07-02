@@ -4,7 +4,6 @@ import { connect, Redis } from "https://deno.land/x/redis@v0.26.0/mod.ts"
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts"
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts'
-import LFU from './src/lfu.ts'
 
 interface options {
   cache?: string;
@@ -47,14 +46,14 @@ export interface cacheValue {
   * ```
   * 
   * @param option (cache options)
-  * @returns LRU | LFU (new cache)
+  * @returns LRU | Redis (new cache)
 */
 export class Zoic {
   capacity: number;
   expire: number;
   metrics: InstanceType <typeof PerfMetrics>;
   respondOnHit: boolean;
-  cache: Promise < LRU | LFU | Redis >;
+  cache: Promise < LRU | Redis >;
 
   constructor (options?: options) {
     this.capacity = options?.capacity || Infinity;
@@ -73,7 +72,7 @@ export class Zoic {
    * Sets cache eviction policty. Defaults to LRU.
    * @param expire 
    * @param cache 
-   * @returns LRU | LFU
+   * @returns LRU | Redis
    */
   async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number, hostname?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
@@ -89,10 +88,6 @@ export class Zoic {
       this.metrics.cacheType = 'Redis';
       return redis;
     }
-    if (cache === 'LFU'){
-      this.metrics.cacheType = 'LFU';
-      return new LFU(expire, metrics, this.capacity);
-    } 
     return new LRU(expire, metrics, this.capacity);
   }
 
@@ -137,7 +132,7 @@ export class Zoic {
    * @param cache 
    * @returns 
    */
-  #redisTypeCheck (cache: LRU | LFU | Redis): cache is Redis {
+  redisTypeCheck (cache: LRU | Redis): cache is Redis {
     return (cache as Redis).isConnected !== undefined;
   }
 
@@ -162,7 +157,7 @@ export class Zoic {
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
       
       //query cache
-      let cacheResults = await cache.get(key);
+      let cacheResults: any = await cache.get(key);
 
       //check if cache miss
       if (!cacheResults) {
@@ -177,7 +172,7 @@ export class Zoic {
       }
 
       //checking if cache is Redis cache and parsing string / decoding base64 string
-      if (this.#redisTypeCheck(cache)) {
+      if (this.redisTypeCheck(cache)) {
         cacheResults = JSON.parse(cacheResults);
         cacheResults.body = base64decode(cacheResults.body);
       }
@@ -227,7 +222,7 @@ export class Zoic {
 
     const cache = await this.cache;
     const metrics = this.metrics;
-    const redisTypeCheck = this.#redisTypeCheck;
+    const redisTypeCheck = this.redisTypeCheck;
     const toDomResponsePrePatch = ctx.response.toDomResponse;
 
     //patch toDomResponse to cache response body before returning results to client
@@ -289,7 +284,7 @@ export class Zoic {
   // deno-lint-ignore no-unused-vars
   async clear (ctx: Context, next: () => Promise<unknown>) {
     const cache = await this.cache;
-    this.#redisTypeCheck(cache) ? cache.flushdb() : cache.clear();
+    this.redisTypeCheck(cache) ? cache.flushdb() : cache.clear();
     this.metrics.clearEntires();
     return next()
   }
@@ -321,7 +316,7 @@ export class Zoic {
         ctx.response.headers.set('Access-Control-Allow-Origin', '*');
 
         //fetch stats from redis client if needed.
-        if (this.#redisTypeCheck(cache)) {
+        if (this.redisTypeCheck(cache)) {
           const redisInfo = await cache.info();
           const redisSize = await cache.dbsize();
           const infoArr: string[] = redisInfo.split('\r\n');
