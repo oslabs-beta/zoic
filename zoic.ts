@@ -64,6 +64,7 @@ export class Zoic {
 
     this.use = this.use.bind(this);
     this.getMetrics = this.getMetrics.bind(this);
+    this.endPerformanceMark = this.endPerformanceMark.bind(this);
     this.put = this.put.bind(this);
   }
 
@@ -86,6 +87,7 @@ export class Zoic {
         port: redisPort
       });
       this.metrics.cacheType = 'Redis';
+      redis.flushall()
       return redis;
     }
     return new LRU(expire, metrics, this.capacity);
@@ -136,6 +138,18 @@ export class Zoic {
     return (cache as Redis).isConnected !== undefined;
   }
 
+  /**
+   * Marks end of latency test for cache hit or miss, and updates read or write processed
+   * @param queryRes 
+   */
+  endPerformanceMark (queryRes: 'hit' | 'miss') {
+    performance.mark('endingMark');
+    this.metrics.updateLatency(
+      performance.measure('latency_timer', 'startingMark', 'endingMark')
+      .duration, queryRes);
+    queryRes === 'hit' ? this.metrics.readProcessed() : this.metrics.writeProcessed();
+  }
+
 
   /**
    * Primary caching middleware method on user end.
@@ -157,62 +171,75 @@ export class Zoic {
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
       
       //query cache
-      const cacheResults = await cache.get(key);
+      const cacheQueryResults = await cache.get(key);
 
       //check if cache miss
-      if (!cacheResults) {
+      if (!cacheQueryResults) {
 
         // If declared cache size is less than current cache size, we increment the count of entries. 
         if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
         
         //makes response cacheable via patch
         this.#cacheResponse(ctx);
-
         return next();
       }
 
-      //checking if cache is Redis cache and parsing string / decoding base64 string
+      //if cache is Redis parse base64string, decoding body header and status
+      if (this.redisTypeCheck(cache) && typeof cacheQueryResults === 'string') {
 
-      //if user selects respondOnHit option, return cache query results immediately 
-      if (this.respondOnHit) {
+        const parsedResults = cacheQueryResults.split('\n');
 
-        if (this.redisTypeCheck(cache)) {
+        const { headers, status } = JSON.parse(atob(parsedResults[0]));
+        const body = base64decode(parsedResults[1]);
 
-          const parsedResults = cacheResults.split('\n');
-          const headersAndStatus = JSON.parse(parsedResults[0]);
+        if (this.respondOnHit) {
 
-          ctx.response.body = base64decode(parsedResults[1]);
-          ctx.response.status = headersAndStatus.status;
-
-          Object.keys(headersAndStatus.headers).forEach(key => {
-            ctx.response.headers.set(key, headersAndStatus.headers[key]);
+          ctx.response.body = body;
+          ctx.response.status = status;
+          Object.keys(headers).forEach(key => {
+            ctx.response.headers.set(key, headers[key]);
           });
 
-        } else {
+          this.endPerformanceMark('hit');
+          return;
+        } 
 
-          ctx.response.body = cacheResults.body;
-          ctx.response.status = cacheResults.status;
-          
-          Object.keys(cacheResults.headers).forEach(key => {
-            ctx.response.headers.set(key, cacheResults.headers[key]);
-          });
-        }
+        //attach query results to ctx.state.zoic if not respondOnHit
+        ctx.state.zoicResponse.body = body;
+        ctx.state.zoicResponse.status = status;
+        ctx.state.zoicResponse.headers = headers;
 
-        //adds cache hit to perf log metrics
-        this.metrics.readProcessed();
+        this.endPerformanceMark('hit');
+        return next();  
+      } 
 
-        //dnding mark for cache hit latency performance test.
-        performance.mark('endingMark');
-        this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, 'hit');
+      //if in-memory cache...
+      if (!this.redisTypeCheck(cache) && typeof cacheQueryResults !== 'string'){
         
-        return;
+        const { body, headers, status } = cacheQueryResults;
+
+        if (this.respondOnHit) {
+
+          ctx.response.body = body;
+          ctx.response.status = status;
+          Object.keys(headers).forEach(key => {
+            ctx.response.headers.set(key, headers[key]);
+          });
+  
+          this.endPerformanceMark('hit');
+          return;
+        }
+        
+        ///attach query results to ctx.state.zoic if not respondOnHit
+        ctx.state.zoicResponse.body = JSON.parse(new TextDecoder().decode(body));
+        ctx.state.zoicResponse.headers = headers;
+        ctx.state.zoicResponse.status = status;
+
+        this.endPerformanceMark('hit');
+        return next();
       }
 
-      //attach query results to ctx.state.zoic
-      ctx.state.zoicResponse = Object.assign({}, cacheResults);
-      ctx.state.zoicResponse.body = JSON.parse(new TextDecoder().decode(ctx.state.zoicResponse.body));
-
-      return next();
+      throw new Error('Cache query failed');
 
     } catch (err) {
       ctx.response.status = 400;
@@ -231,8 +258,8 @@ export class Zoic {
   async #cacheResponse (ctx: Context) {
 
     const cache = await this.cache;
-    const metrics = this.metrics;
     const redisTypeCheck = this.redisTypeCheck;
+    const endPerformanceMark = this.endPerformanceMark;
     const toDomResponsePrePatch = ctx.response.toDomResponse;
 
     //patch toDomResponse to cache response body before returning results to client
@@ -246,21 +273,19 @@ export class Zoic {
       
       //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
-
         //make response body string, and then stringify response object for storage in redis
-        const arrBuffer = await nativeResponse.clone().arrayBuffer();
+        const body = await nativeResponse.clone().arrayBuffer();
 
-        const headersAndStatus = {
+        const headerAndStatus = {
           headers: Object.fromEntries(nativeResponse.headers.entries()),
           status: nativeResponse.status
         };
 
-        const responseToRedisCache = JSON.stringify(headersAndStatus) + '\n' + base64encode(new Uint8Array(arrBuffer));
-       
-        cache.set(key, JSON.stringify(responseToRedisCache));
-
-      } else {
-
+        cache.set(key,`${btoa(JSON.stringify(headerAndStatus))}\n${base64encode(new Uint8Array(body))}`);
+      } 
+      
+      //if in-memory store as native js...
+      if (!redisTypeCheck(cache)) {
         //make response body unit8array and read size for metrics
         const arrBuffer = await nativeResponse.clone().arrayBuffer();
 
@@ -270,6 +295,7 @@ export class Zoic {
           status: nativeResponse.status
         };
 
+        //count bytes for perf metrics
         const headerBytes = Object.entries(responseToCache.headers)
           .reduce((acc: number, headerArr: Array<string>) => {
             return acc += (headerArr[0].length * 2) + (headerArr[1].length * 2);
@@ -282,9 +308,7 @@ export class Zoic {
       }
       
       //ending mark for a cache miss latency performance test.
-      performance.mark('endingMark');
-      metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, 'miss');
-      metrics.writeProcessed();
+      endPerformanceMark('miss');
 
       return new Promise (resolve => {                
         resolve(nativeResponse);
