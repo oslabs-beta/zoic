@@ -1,6 +1,6 @@
 <p align="center"><img style="display: block;
   margin-left: auto;
-  margin-right: auto;" src="./zoic_dev_tool/zoic_clear.png" width = "300px" alt="Zoic logo">
+  margin-right: auto;" src="./zoic_dev_tool/zoic_clear_auto_x2.jpg" width = "300px" alt="Zoic logo">
 </p>
 
 [![example workflow](https://github.com/oslabs-beta/zoic/actions/workflows/deno.yml/badge.svg)](https://github.com/oslabs-beta/zoic/tree/dev/src/tests)
