@@ -25,8 +25,7 @@ Zoic is an easy-to-use middleware library for caching responses from RESTful API
 
 ### Zoic Developer Tool
 
-The Zoic Developer Tool allows developers to monitor cache metrics in real time, and is available as a Chrome Developer Tools extension [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
-- [Zoic Developer Tool README](./zoic_dev_tool/README.md/)
+The Zoic Developer Tool allows developers to monitor cache metrics in real time. Checkout the [Zoic Developer Tool README](./zoic_dev_tool/README.md/) for installation and configuration details.
 
 ## <a name="get-started"></a>Getting Started
 
@@ -34,7 +33,7 @@ As Zoic is a middleware library for Oak in the Deno runtime environment, it is p
 
 ### Quick Start
 
-In your application, import the Zoic module from the deno.land [module](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
+In your application, import the Zoic module from the deno.land [module](https://deno.land/x/zoic/).
 
 ```typescript
 import { Zoic } from "https://deno.land/x/zoic/zoic.ts";
