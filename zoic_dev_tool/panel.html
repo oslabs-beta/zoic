@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="panelContainer">
+        <div id="root">
+            <img width = "250px" src="zoic_clear.png" alt="zoic logo">
+            <h3 style="color:white">devtools panel</h3>
+            <div class="localHostInput"> 
+                <input id='localHostInputID' type="text" placeholder="Enter server URL">
+                </input>
+                <button id="submitButton">Submit</button>
+            </div>
+            <p id="loadingError"></p>
+            <div class="metricsContainer">
+                <div>
+                    <div class="metricContainer">Cache type:</div>
+                    <div class="valueContainer" id="cacheType">...</div>
+                </div>
+                <div>
+                    <div class="metricContainer">Memory used:</div>
+                    <div class="valueContainer" id="memUsed">...</div>
+                </div>
+                <div>
+                    <div class="metricContainer">Number of entries:</div>
+                    <div class="valueContainer" id="entries">...</div>
+                </div>
+                <div>
+                    <div class="metricContainer">Reads processed:</div>
+                    <div class="valueContainer" id="hits">...</div>
+                </div>
+
+                <div>
+                    <div class="metricContainer">Writes processed:</div>
+                    <div class="valueContainer" id="misses">...</div>
+                </div>
+
+                <div>
+                    <div class="metricContainer">Average cache hit latency:</div>
+                    <div class="valueContainer" id="avHitLatency">...</div>
+                </div>
+
+                <div>
+                    <div class="metricContainer">Average cache miss latency:</div>
+                    <div class="valueContainer" id="avMissLatency">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src='main.js'></script>
+  </body>
+</html>
