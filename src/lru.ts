@@ -70,10 +70,11 @@ class LRU {
     //If there is a matching cache
     if (this.cache[key]) {
 
-      //deletes key and returns if key is expired
+      //if entry is stale, deletes and exits
       const currentTime = new Date();
       const timeElapsed = Math.abs(currentTime.getTime() - this.cache[key].timeStamp.getTime()) / 1000;
       if (timeElapsed > this.expire) {
+        this.metrics.decreaseBytes(this.cache[key].byteSize);
         this.delete(key);
         return;
       }

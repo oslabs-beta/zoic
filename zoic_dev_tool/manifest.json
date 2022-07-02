@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Zoic Dev Tools",
-  "version": "0.1",
-  "description": "Backend Developer Tools for Deno",
+  "version": "1.0",
+  "description": "Developer tool for Zoic, a caching middleware library for Oak/Deno.",
   "author": "Zoic Team",
   "devtools_page": "devtools.html"
 }

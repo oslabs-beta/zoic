@@ -103,4 +103,29 @@ describe("Should update in-memory cache appropriately", () => {
 
     request1.get('/test2');
   })
+
+  it('Stores a new value when the entry is stale', async () => {
+    const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const cache = new Zoic({capacity:5, expire: 1});
+    const lru = await cache.cache;
+
+    router.get('/test', cache.use, (ctx: Context) => {
+      ctx.response.body = 'testing123';
+    });
+    router.post('/test', cache.use, async (ctx: Context) => {
+      const res = ctx.request.body({type: 'json'});
+      ctx.response.body = await res.value;
+    })
+    
+    const getReq = await superoak(app);
+    const postReq = await superoak(app);
+    await getReq.get('/test').expect(200).expect('testing123');
+    await timeout(1001);
+    assert(!lru.get('/test'));
+    await postReq.post('/test')
+      .set("Content-Type", "application/json")
+      .send({test: 'testingChange'})
+      .expect(200)
+      .expect({test: 'testingChange'});
+  })
 })
