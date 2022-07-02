@@ -8,7 +8,7 @@ import PerfMetrics from './performanceMetrics.ts'
  */
 class LRU {
   list: DoublyLinkedList;
-  cache: any //Record<string, InstanceType<typeof Node>>;
+  cache: Record<string, InstanceType<typeof Node>>;
   length: number;
   capacity: number;
   expire: number;

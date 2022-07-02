@@ -200,7 +200,6 @@ export class Zoic {
       //attach query results to ctx.state.zoic
       ctx.state.zoicResponse = Object.assign({}, cacheResults);
       ctx.state.zoicResponse.body = JSON.parse(new TextDecoder().decode(ctx.state.zoicResponse.body));
-      console.log(ctx.state.zoicResponse);
 
       return next();
 
