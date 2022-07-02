@@ -67,17 +67,19 @@ describe("Should update in-memory cache appropriately", () => {
 
   it('Caches response body as a Unit8Array', async () => {
     const cache = new Zoic({capacity:5});
+    const lru = await cache.cache;
+    
     router.get('/test', cache.use, (ctx: Context) => {
       ctx.response.body = 'testing123';
     });
-
-    const lru = await cache.cache;
+    
     const request = await superoak(app);
     
     await request.get('/test').expect(200).expect('testing123');
-    const cacheBody = lru.get('/test').body;
+    const cacheBody = lru?.get('/test')?.body;
     assertInstanceOf(cacheBody, Uint8Array);
-    assertEquals(new TextDecoder('utf-8').decode(lru.get('/test').body), 'testing123');
+    assertEquals(new TextDecoder('utf-8').decode(lru?.get('/test')?.body), 'testing123');
+
   })
 
   it('Cache stores and sends response', async () => {
