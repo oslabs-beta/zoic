@@ -21,16 +21,16 @@ The Zoic Developer Tool is a Chrome Developer Tools extension for monitoring met
 
 ## <a name="installation"></a>Installation
 
-The Zoic Developer Tool is currently available as a Chrome Developer Tools extension. The easiest way to install it is to [add it from the Chrome Web Store.](http://heheh.com)
-
-The latest build can also be added manually as a Chrome extension.
+The Zoic Developer Tool's latest build can be added manually as a Chrome extension.
 
 In the Chrome Extensions Page (`chrome://extensions/`), click on "Load unpacked" and navigate to `.../zoic/zoic_dev_tool/` and click "Select". (You may need to toggle on "Developer mode" to do this.) The extension should now be loaded and available in the Chrome Developer Tools.
+
+The Zoic Developer Tool will also available for download via the Chrome Web Store soon.
 
 ## <a name="#usage"></a>Usage and Configuration
 
 To configure the dev tools, you must first link your server address via the input field on the dev tool panel.
-- First: Specify your server address, and endpoint at which you will serve the cache metrics from. (Ex: `http://localhost:3000/getZoicMetrics`)
+- First: Specify your server address, and endpoint at which you will serve the cache metrics from. (Ex: `http://localhost:3000/zoicMetrics`)
 - Second: In your server routes, create a new route matching the endpoint specified in the dev tool. In this route add middleware `Zoic.getMetrics`.
 
 
@@ -40,7 +40,7 @@ NOTE: This route WILL have CORS enabled.
 ```typescript
 const cache = new Zoic();
 
-router.get('/getZoicMetrics', cache.getMetrics);
+router.get('/zoicMetrics', cache.getMetrics);
 ```
 
 ## <a name="authors"></a>Authors
