@@ -68,7 +68,9 @@ describe("Should update in-memory cache appropriately", () => {
   it('Caches response body as a Unit8Array', async () => {
     const cache = new Zoic({capacity:5});
     const lru = await cache.cache;
-    
+
+    if (cache.redisTypeCheck(lru)) return assert(false);
+
     router.get('/test', cache.use, (ctx: Context) => {
       ctx.response.body = 'testing123';
     });
@@ -76,9 +78,9 @@ describe("Should update in-memory cache appropriately", () => {
     const request = await superoak(app);
     
     await request.get('/test').expect(200).expect('testing123');
-    const cacheBody = lru?.get('/test')?.body;
+    const cacheBody = lru.get('/test')?.body;
     assertInstanceOf(cacheBody, Uint8Array);
-    assertEquals(new TextDecoder('utf-8').decode(lru?.get('/test')?.body), 'testing123');
+    assertEquals(new TextDecoder('utf-8').decode(lru.get('/test')?.body), 'testing123');
 
   })
 
@@ -86,6 +88,8 @@ describe("Should update in-memory cache appropriately", () => {
     const cache = new Zoic({capacity:5});
     const lru = await cache.cache;
     
+    if (cache.redisTypeCheck(lru)) return assert(false);
+
     router.get('/test1', cache.use, (ctx: Context) => {
       ctx.response.body = 'testing123';
     });
@@ -99,8 +103,8 @@ describe("Should update in-memory cache appropriately", () => {
       ctx.response.body = 'testing123';
       const resObj = await ctx.response.toDomResponse();
       const resBody = await resObj.arrayBuffer();
-      assertEquals(lru.get('/test2').body, new Uint8Array(resBody));
-      assertEquals(lru.get('/test2').status, 200);
+      assertEquals(lru.get('/test2')?.body, new Uint8Array(resBody));
+      assertEquals(lru.get('/test2')?.status, 200);
     });
 
     request1.get('/test2');

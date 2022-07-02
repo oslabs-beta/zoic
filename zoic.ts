@@ -16,7 +16,7 @@ interface options {
 
 export interface cacheValue {
   headers: {[k:string]:string};
-  body?: string | Uint8Array;
+  body: Uint8Array;
   status: number;
 }
 
@@ -157,7 +157,7 @@ export class Zoic {
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
       
       //query cache
-      let cacheResults: any = await cache.get(key);
+      const cacheResults = await cache.get(key);
 
       //check if cache miss
       if (!cacheResults) {
@@ -172,20 +172,31 @@ export class Zoic {
       }
 
       //checking if cache is Redis cache and parsing string / decoding base64 string
-      if (this.redisTypeCheck(cache)) {
-        cacheResults = JSON.parse(cacheResults);
-        cacheResults.body = base64decode(cacheResults.body);
-      }
 
       //if user selects respondOnHit option, return cache query results immediately 
       if (this.respondOnHit) {
-        ctx.response.body = cacheResults.body;
-        ctx.response.status = cacheResults.status;
-        
-        //populate headers from mock header object
-        Object.keys(cacheResults.headers).forEach(key => {
-          ctx.response.headers.set(key, cacheResults.headers[key]);
-        });
+
+        if (this.redisTypeCheck(cache)) {
+
+          const parsedResults = cacheResults.split('\n');
+          const headersAndStatus = JSON.parse(parsedResults[0]);
+
+          ctx.response.body = base64decode(parsedResults[1]);
+          ctx.response.status = headersAndStatus.status;
+
+          Object.keys(headersAndStatus.headers).forEach(key => {
+            ctx.response.headers.set(key, headersAndStatus.headers[key]);
+          });
+
+        } else {
+
+          ctx.response.body = cacheResults.body;
+          ctx.response.status = cacheResults.status;
+          
+          Object.keys(cacheResults.headers).forEach(key => {
+            ctx.response.headers.set(key, cacheResults.headers[key]);
+          });
+        }
 
         //adds cache hit to perf log metrics
         this.metrics.readProcessed();
@@ -233,24 +244,31 @@ export class Zoic {
       //extract native http response from toDomResponse to get correct headers and readable body
       const nativeResponse = await toDomResponsePrePatch.apply(this);
       
-      const responseToCache: cacheValue = {
-        headers: Object.fromEntries(nativeResponse.headers.entries()),
-        status: nativeResponse.status
-      };
-      
       //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
 
         //make response body string, and then stringify response object for storage in redis
         const arrBuffer = await nativeResponse.clone().arrayBuffer();
-        responseToCache.body = base64encode(new Uint8Array(arrBuffer));
-        cache.set(key, JSON.stringify(responseToCache));
+
+        const headersAndStatus = {
+          headers: Object.fromEntries(nativeResponse.headers.entries()),
+          status: nativeResponse.status
+        };
+
+        const responseToRedisCache = JSON.stringify(headersAndStatus) + '\n' + base64encode(new Uint8Array(arrBuffer));
+       
+        cache.set(key, JSON.stringify(responseToRedisCache));
 
       } else {
 
         //make response body unit8array and read size for metrics
         const arrBuffer = await nativeResponse.clone().arrayBuffer();
-        responseToCache.body = new Uint8Array(arrBuffer);
+
+        const responseToCache: cacheValue = {
+          body: new Uint8Array(arrBuffer),
+          headers: Object.fromEntries(nativeResponse.headers.entries()),
+          status: nativeResponse.status
+        };
 
         const headerBytes = Object.entries(responseToCache.headers)
           .reduce((acc: number, headerArr: Array<string>) => {

@@ -80,7 +80,7 @@ class LRU {
       }
 
       // if current key is already node at head of list, return immediately.
-      if (this.cache[key] === this.list.head) return this.list?.head?.value;
+      if (this.cache[key] === this.list.head) return this.list.head.value;
 
       //create new node, then delete node at current key, to replace at list head.
       const node = this.cache[key];
