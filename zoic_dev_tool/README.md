@@ -22,7 +22,7 @@ The Zoic Developer Tool is a Chrome Developer Tools extension for monitoring met
 ## <a name="installation"></a>Installation
 The Zoic Developer Tool is currently available as a Chrome Developer Tools extension. The easiest to get it is to [add it from the Chrome Web Store.](https://chrome.google.com/webstore/detail/zoic-dev-tools/cnoohkfilnjedjeamhmpokfgaadgkgcl)
 
-The Zoic Developer Tool's latest build can be aslo be added manually as a Chrome extension. In the Chrome Extensions Page (`chrome://extensions/`), click on "Load unpacked" and navigate to `.../zoic/zoic_dev_tool/` and click "Select". (You may need to toggle on "Developer mode" to do this.) The extension should now be loaded and available in the Chrome Developer Tools.
+The Zoic Developer Tool's latest build can be also be added manually as a Chrome extension. In the Chrome Extensions Page (`chrome://extensions/`), click on "Load unpacked" and navigate to `.../zoic/zoic_dev_tool/` and click "Select". (You may need to toggle on "Developer mode" to do this.) The extension should now be loaded and available in the Chrome Developer Tools.
  
 The Zoic Developer Tool will also be available for download via the Chrome Web Store soon.
  
