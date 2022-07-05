@@ -16,7 +16,7 @@ interface options {
 
 export interface cacheValue {
   headers: {[k:string]:string};
-  body?: string | Uint8Array;
+  body: Uint8Array;
   status: number;
 }
 
@@ -28,9 +28,13 @@ export interface cacheValue {
   * 
   * ```ts
   * 
-  * import { Zoic } from '../src/Zoic.ts';
+  * import { Zoic } from "https://deno.land/x/zoic/zoic.ts"
   * 
-  * const cache = new Zoic({ cache: 'LRU', expire: '2h, 5m, 3s'});
+  * const cache = new Zoic({
+  *   cache: 'LRU',
+  *   expire: '2h, 5m, 3s',
+  *   capacity: 200
+  * });
   * 
   * router.get('/dbRead', cache.use, controller.dbRead, ctx => {
   *  ctx.response.body = ctx.state.somethingFromDb;});
@@ -41,7 +45,10 @@ export interface cacheValue {
   *  Note: with Reids options "expire" and "capacity" do not apply.
   * ```ts
   * 
-  * const cache = new Zoic({ cache: 'Redis', port: 6379 })
+  * const cache = new Zoic({ 
+  *   cache:'Redis',
+  *   port: 6379
+  *  })
   * 
   * ```
   * 
@@ -64,6 +71,7 @@ export class Zoic {
 
     this.use = this.use.bind(this);
     this.getMetrics = this.getMetrics.bind(this);
+    this.endPerformanceMark = this.endPerformanceMark.bind(this);
     this.put = this.put.bind(this);
   }
 
@@ -136,6 +144,18 @@ export class Zoic {
     return (cache as Redis).isConnected !== undefined;
   }
 
+  /**
+   * Marks end of latency test for cache hit or miss, and updates read or write processed
+   * @param queryRes 
+   */
+  endPerformanceMark (queryRes: 'hit' | 'miss') {
+    performance.mark('endingMark');
+    this.metrics.updateLatency(
+      performance.measure('latency_timer', 'startingMark', 'endingMark')
+      .duration, queryRes);
+    queryRes === 'hit' ? this.metrics.readProcessed() : this.metrics.writeProcessed();
+  }
+
 
   /**
    * Primary caching middleware method on user end.
@@ -157,51 +177,75 @@ export class Zoic {
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
       
       //query cache
-      let cacheResults: any = await cache.get(key);
+      const cacheQueryResults = await cache.get(key);
 
       //check if cache miss
-      if (!cacheResults) {
+      if (!cacheQueryResults) {
 
         // If declared cache size is less than current cache size, we increment the count of entries. 
         if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
         
         //makes response cacheable via patch
         this.#cacheResponse(ctx);
-
         return next();
       }
 
-      //checking if cache is Redis cache and parsing string / decoding base64 string
-      if (this.redisTypeCheck(cache)) {
-        cacheResults = JSON.parse(cacheResults);
-        cacheResults.body = base64decode(cacheResults.body);
+      //if cache is Redis parse base64string, decoding body header and status
+      if (this.redisTypeCheck(cache) && typeof cacheQueryResults === 'string') {
+
+        const parsedResults = cacheQueryResults.split('\n');
+
+        const { headers, status } = JSON.parse(atob(parsedResults[0]));
+        const body = base64decode(parsedResults[1]);
+
+        if (this.respondOnHit) {
+
+          ctx.response.body = body;
+          ctx.response.status = status;
+          Object.keys(headers).forEach(key => {
+            ctx.response.headers.set(key, headers[key]);
+          });
+
+          this.endPerformanceMark('hit');
+          return;
+        } 
+
+        //attach query results to ctx.state.zoic if not respondOnHit
+        ctx.state.zoicResponse.body = body;
+        ctx.state.zoicResponse.status = status;
+        ctx.state.zoicResponse.headers = headers;
+
+        this.endPerformanceMark('hit');
+        return next();  
       }
 
-      //if user selects respondOnHit option, return cache query results immediately 
-      if (this.respondOnHit) {
-        ctx.response.body = cacheResults.body;
-        ctx.response.status = cacheResults.status;
+      //if in-memory cache...
+      if (!this.redisTypeCheck(cache) && typeof cacheQueryResults !== 'string'){
         
-        //populate headers from mock header object
-        Object.keys(cacheResults.headers).forEach(key => {
-          ctx.response.headers.set(key, cacheResults.headers[key]);
-        });
+        const { body, headers, status } = cacheQueryResults;
 
-        //adds cache hit to perf log metrics
-        this.metrics.readProcessed();
+        if (this.respondOnHit) {
 
-        //dnding mark for cache hit latency performance test.
-        performance.mark('endingMark');
-        this.metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, 'hit');
+          ctx.response.body = body;
+          ctx.response.status = status;
+          Object.keys(headers).forEach(key => {
+            ctx.response.headers.set(key, headers[key]);
+          });
+  
+          this.endPerformanceMark('hit');
+          return;
+        }
         
-        return;
+        ///attach query results to ctx.state.zoic if not respondOnHit
+        ctx.state.zoicResponse.body = JSON.parse(new TextDecoder().decode(body));
+        ctx.state.zoicResponse.headers = headers;
+        ctx.state.zoicResponse.status = status;
+
+        this.endPerformanceMark('hit');
+        return next();
       }
 
-      //attach query results to ctx.state.zoic
-      ctx.state.zoicResponse = Object.assign({}, cacheResults);
-      ctx.state.zoicResponse.body = JSON.parse(new TextDecoder().decode(ctx.state.zoicResponse.body));
-
-      return next();
+      throw new Error('Cache query failed');
 
     } catch (err) {
       ctx.response.status = 400;
@@ -220,8 +264,8 @@ export class Zoic {
   async #cacheResponse (ctx: Context) {
 
     const cache = await this.cache;
-    const metrics = this.metrics;
     const redisTypeCheck = this.redisTypeCheck;
+    const endPerformanceMark = this.endPerformanceMark;
     const toDomResponsePrePatch = ctx.response.toDomResponse;
 
     //patch toDomResponse to cache response body before returning results to client
@@ -233,25 +277,31 @@ export class Zoic {
       //extract native http response from toDomResponse to get correct headers and readable body
       const nativeResponse = await toDomResponsePrePatch.apply(this);
       
-      const responseToCache: cacheValue = {
-        headers: Object.fromEntries(nativeResponse.headers.entries()),
-        status: nativeResponse.status
-      };
-      
       //redis cache stores body as a base64 string encoded from a buffer
       if (redisTypeCheck(cache)) {
-
         //make response body string, and then stringify response object for storage in redis
-        const arrBuffer = await nativeResponse.clone().arrayBuffer();
-        responseToCache.body = base64encode(new Uint8Array(arrBuffer));
-        cache.set(key, JSON.stringify(responseToCache));
+        const body = await nativeResponse.clone().arrayBuffer();
 
-      } else {
+        const headerAndStatus = {
+          headers: Object.fromEntries(nativeResponse.headers.entries()),
+          status: nativeResponse.status
+        };
 
+        cache.set(key,`${btoa(JSON.stringify(headerAndStatus))}\n${base64encode(new Uint8Array(body))}`);
+      } 
+      
+      //if in-memory store as native js...
+      if (!redisTypeCheck(cache)) {
         //make response body unit8array and read size for metrics
         const arrBuffer = await nativeResponse.clone().arrayBuffer();
-        responseToCache.body = new Uint8Array(arrBuffer);
 
+        const responseToCache: cacheValue = {
+          body: new Uint8Array(arrBuffer),
+          headers: Object.fromEntries(nativeResponse.headers.entries()),
+          status: nativeResponse.status
+        };
+
+        //count bytes for perf metrics
         const headerBytes = Object.entries(responseToCache.headers)
           .reduce((acc: number, headerArr: Array<string>) => {
             return acc += (headerArr[0].length * 2) + (headerArr[1].length * 2);
@@ -264,9 +314,7 @@ export class Zoic {
       }
       
       //ending mark for a cache miss latency performance test.
-      performance.mark('endingMark');
-      metrics.updateLatency(performance.measure('cache hit timer', 'startingMark', 'endingMark').duration, 'miss');
-      metrics.writeProcessed();
+      endPerformanceMark('miss');
 
       return new Promise (resolve => {                
         resolve(nativeResponse);
