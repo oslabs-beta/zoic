@@ -1,6 +1,6 @@
 <p align="center"><img style="display: block;
   margin-left: auto;
-  margin-right: auto;" src="./zoic_dev_tool/zoic_new.png" width = "300px" alt="Zoic logo">
+  margin-right: auto;" src="https://zoiccache.com/images/zoiclogo.png" width = "300px" alt="Zoic logo">
 </p>
  
 [![example workflow](https://github.com/oslabs-beta/zoic/actions/workflows/deno.yml/badge.svg)](https://github.com/oslabs-beta/zoic/tree/dev/src/tests)
@@ -25,7 +25,8 @@ Zoic is an easy-to-use middleware library for caching responses from RESTful API
  
 ### Zoic Developer Tool
  
-The Zoic Developer Tool allows developers to monitor cache metrics in real time. Checkout the [Zoic Developer Tool README](./zoic_dev_tool/README.md/) for installation and configuration details.
+The Zoic Developer Tool allows developers to monitor cache metrics in real time. The easiest to get it is to [add it from the Chrome Web Store.](https://chrome.google.com/webstore/detail/zoic-dev-tools/cnoohkfilnjedjeamhmpokfgaadgkgcl)
+Checkout the [Zoic Developer Tool README](./zoic_dev_tool/README.md/) for more details.
  
 ## <a name="get-started"></a>Getting Started
  
@@ -78,7 +79,7 @@ const cache = new Zoic({
  
 ## <a name="middleware"></a>Middleware and caching
  
-### - Zoic.use()
+### Zoic.use()
 `Zoic.use()` is responsible for both sending cached responses, and storing responses in the cache. When `.use()` is called in a middleware chain, it will check if data exists in the cache at a key representing that route's endpoint. If the query is successful, it will send an HTTP response with the cached body, headers, and status. If the query is unsucessful, `.use()` will automatically listen for when the subsequent middleware in that route has been executed, and will cache the contents of the HTTP response before being sent to the client. This way, the developer only needs to place `.use()` in their middleware chain at the point where they would like the response to be sent in the event of a cache hit, making it extremely easy to use.
 <br>
 <br>
@@ -95,7 +96,7 @@ router.get('/userInfo/:name', cache.use, controller.dbRead, ctx => {
     ctx.response.body = ctx.state.somethingFromYourDB;
 });
 ```
-### - Zoic.put()
+### Zoic.put()
 `Zoic.put()` will add responses to the cache without first querying to see if an entry already exists. The primary use being to replace data at an already existing keys, or manually add responses without anything being returned. Like with `.use()`, `.put()` will automatically store the response body, headers, and status at the end of a middleware chain before the response is sent.
 <br>
 <br>
@@ -108,7 +109,7 @@ router.put('/userInfo/:name', cache.put, controller.dbWrite, ctx => {
     ctx.response.body = ctx.state.someDataYouChanged;
 });
 ```
-### - Zoic.clear()
+### Zoic.clear()
 `Zoic.clear()` clears the contents of the cache.
 <br>
 <br>

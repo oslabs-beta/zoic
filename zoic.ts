@@ -217,7 +217,7 @@ export class Zoic {
 
         this.endPerformanceMark('hit');
         return next();  
-      } 
+      }
 
       //if in-memory cache...
       if (!this.redisTypeCheck(cache) && typeof cacheQueryResults !== 'string'){
