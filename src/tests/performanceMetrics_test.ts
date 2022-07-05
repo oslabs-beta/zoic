@@ -1,5 +1,5 @@
 import { assertEquals, assertInstanceOf } from "https://deno.land/std@0.145.0/testing/asserts.ts";
-import { describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
+import { describe, it,  beforeAll } from "https://deno.land/std@0.145.0/testing/bdd.ts";
 import { Application, Router, Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
 import { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";
 import Zoic from '../../zoic.ts';
@@ -26,63 +26,46 @@ describe("Cache should contain correct metrics", () => {
 });
 
 describe("Each cache's metrics property should have six methods that work correctly", () => {
-
-
+  const cache = new Zoic({capacity:3});
   const app = new Application();
   const router = new Router();
   app.use(router.routes());
+  app.use(router.allowedMethods());
 
-  it("should handle numberOfEntries correctly", async () => {
-    const cache = new Zoic({capacity:5});
-
-    cache.metrics.addEntry();
-    cache.metrics.addEntry();
-    assertEquals(cache.metrics.numberOfEntries, 2);
-
-    cache.metrics.deleteEntry();
-    cache.metrics.deleteEntry();
-    assertEquals(cache.metrics.numberOfEntries, 0);
-
-    router.get('/test1', cache.use, (ctx: Context) => {
-      ctx.response.body = 'testing123';
-    });
-    router.get('/test2', cache.use, (ctx: Context) => {
-      ctx.response.body = 'testing123';
-    });
-
+  beforeAll(async () => {
+    router
+      .get('/test1', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
+      .get('/test2', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
+      .get('/test3', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
+      .get('/test4', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
     const request1 = await superoak(app);
     const request2 = await superoak(app);
     const request3 = await superoak(app);
+    const request4 = await superoak(app);
+    const request5 = await superoak(app);
+    const request6 = await superoak(app);
+    const request7 = await superoak(app);
+    const request8 = await superoak(app);
     await request1.get('/test1');
     await request2.get('/test1');
     await request3.get('/test2');
+    await request4.get('/test2');
+    await request5.get('/test2');
+    await request6.get('/test2');
+    await request7.get('/test3');
+    await request8.get('/test4');
+  });
 
-    assertEquals(cache.metrics.numberOfEntries, 2);
-
+  it("should handle numberOfEntries correctly", () => {
+    assertEquals(cache.metrics.numberOfEntries, 3);
   });
 
   it("should have a readProcessed method that updates the readsProcessed correctly", () => {
-    const cache = new Zoic({capacity:5});
-
-    cache.metrics.readProcessed();
-    assertEquals(cache.metrics.readsProcessed, 1);
-
-    cache.metrics.readProcessed();
-    cache.metrics.readProcessed();
-    assertEquals(cache.metrics.readsProcessed, 3);
+    assertEquals(cache.metrics.readsProcessed, 4);
+    
   });
 
   it("should have a writeProcessed method that updates the writesProcessed correctly", () => {
-    const cache = new Zoic({capacity:5});
-
-    cache.metrics.writeProcessed();
-    assertEquals(cache.metrics.writesProcessed, 1);
-
-    cache.metrics.writeProcessed();
-    cache.metrics.writeProcessed();
-    assertEquals(cache.metrics.writesProcessed, 3);
+    assertEquals(cache.metrics.writesProcessed, 4);
   });
-
 });
-
-

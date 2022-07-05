@@ -28,9 +28,13 @@ export interface cacheValue {
   * 
   * ```ts
   * 
-  * import { Zoic } from '../src/Zoic.ts';
+  * import { Zoic } from "https://deno.land/x/zoic/zoic.ts"
   * 
-  * const cache = new Zoic({ cache: 'LRU', expire: '2h, 5m, 3s'});
+  * const cache = new Zoic({
+  *   cache: 'LRU',
+  *   expire: '2h, 5m, 3s',
+  *   capacity: 200
+  * });
   * 
   * router.get('/dbRead', cache.use, controller.dbRead, ctx => {
   *  ctx.response.body = ctx.state.somethingFromDb;});
@@ -41,7 +45,10 @@ export interface cacheValue {
   *  Note: with Reids options "expire" and "capacity" do not apply.
   * ```ts
   * 
-  * const cache = new Zoic({ cache: 'Redis', port: 6379 })
+  * const cache = new Zoic({ 
+  *   cache:'Redis',
+  *   port: 6379
+  *  })
   * 
   * ```
   * 
@@ -87,7 +94,6 @@ export class Zoic {
         port: redisPort
       });
       this.metrics.cacheType = 'Redis';
-      redis.flushall()
       return redis;
     }
     return new LRU(expire, metrics, this.capacity);
