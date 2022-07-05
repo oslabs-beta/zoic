@@ -142,4 +142,4 @@ This is an open source product.
  
 This product is accelerated by <a href="https://opensourcelabs.io/">OS Labs.</a>
 
-[zoiccache.com](zoiccache.com)
+[zoiccache.com](https://zoiccache.com)
