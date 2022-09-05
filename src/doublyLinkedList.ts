@@ -21,8 +21,8 @@ export class Node {
 }
 
 export class DoublyLinkedList {
-  head: InstanceType<typeof Node> | null;
-  tail: InstanceType<typeof Node> | null;
+  head: Node | null;
+  tail: Node | null;
   constructor () {
     this.head = null;
     this.tail = null;
