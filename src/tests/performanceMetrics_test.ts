@@ -25,7 +25,7 @@ describe("Cache should contain correct metrics", () => {
   });
 });
 
-describe("Each cache's metrics property should have six methods that work correctly", () => {
+describe("Each metric property updated accurately", () => {
   const cache = new Zoic({capacity:3});
   const app = new Application();
   const router = new Router();
@@ -67,5 +67,9 @@ describe("Each cache's metrics property should have six methods that work correc
 
   it("should have a writeProcessed method that updates the writesProcessed correctly", () => {
     assertEquals(cache.metrics.writesProcessed, 4);
+  });
+  
+  it("should have an increaseBytes method that updates memoryUsed correctly", () => {
+    assertEquals(cache.metrics.memoryUsed, 390);
   });
 });
