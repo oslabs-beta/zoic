@@ -118,7 +118,9 @@ export class Zoic {
           'Cache expiration time must be string formatted as a numerical value followed by \'d\', \'h\', \'m\', or \'s\', or a number representing time in seconds.'
           )
       }, 0);
-    } else seconds = numberString;
+    } else {
+      seconds = numberString;
+    }
     if (seconds > 31536000 || seconds < 0) throw new TypeError('Cache expiration time out of range.');
     return seconds;
   }

@@ -60,12 +60,11 @@ describe("Each metric property updated accurately", () => {
     assertEquals(cache.metrics.numberOfEntries, 3);
   });
 
-  it("should have a readProcessed method that updates the readsProcessed correctly", () => {
+  it("should have a readProcessed method that updates readsProcessed correctly", () => {
     assertEquals(cache.metrics.readsProcessed, 4);
-    
   });
 
-  it("should have a writeProcessed method that updates the writesProcessed correctly", () => {
+  it("should have a writeProcessed method that updates writesProcessed correctly", () => {
     assertEquals(cache.metrics.writesProcessed, 4);
   });
   
