@@ -1,10 +1,10 @@
-import { DoublyLinkedList, Node } from './doublyLinkedList.ts'
+import { FreqDoublyLinkedList, ValueDoublyLinkedList, Node } from './doublyLinkedLists.ts'
 import { cacheValue } from '../zoic.ts'
 import PerfMetrics from './performanceMetrics.ts'
 
 
 class LFU {
-  freqList: DoublyLinkedList;
+  freqList: ValueDoublyLinkedList;
   cache: Record<string, InstanceType<typeof Node>>;
   length: number;
   capacity: number;
@@ -12,7 +12,7 @@ class LFU {
   metrics: InstanceType<typeof PerfMetrics>;
 
   constructor(expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number){
-    this.freqList = new DoublyLinkedList();
+    this.freqList = new ValueDoublyLinkedList();
     this.cache = {};
     this.length = 0;
     this.capacity = capacity;

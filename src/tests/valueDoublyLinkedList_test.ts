@@ -1,10 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.145.0/testing/asserts.ts";
 import { describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { DoublyLinkedList } from '../doublyLinkedList.ts';
+import { ValueDoublyLinkedList } from '../doublyLinkedLists.ts';
 
 describe("Doubly linked list tests", () => {
 
-  const list = new DoublyLinkedList();
+  const list = new ValueDoublyLinkedList();
   const time = new Date();
 
   it("Should properly handle an empty list", () => {

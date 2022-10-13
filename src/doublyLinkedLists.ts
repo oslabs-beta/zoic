@@ -1,5 +1,9 @@
 import { cacheValue } from '../zoic.ts'
 
+/**
+ * Class for linked list containing cached values for both LRU and LFU.
+ */
+
 export class Node {
   next: Node | null;
   prev: Node | null;
@@ -8,8 +12,9 @@ export class Node {
   count: number;
   byteSize: number;
   timeStamp: InstanceType<typeof Date>
+  parent?: InstanceType<typeof FreqNode>
 
-  constructor (value: cacheValue, key: string, byteSize: number, timeStamp: InstanceType<typeof Date>){
+  constructor (value: cacheValue, key: string, byteSize: number, timeStamp: InstanceType<typeof Date>, parent?: InstanceType<typeof FreqNode>){
     this.next = null;
     this.prev = null;
     this.value = value;
@@ -17,10 +22,11 @@ export class Node {
     this.count = 1;
     this.byteSize = byteSize;
     this.timeStamp = timeStamp;
+    this.parent = parent;
   }
 }
 
-export class DoublyLinkedList {
+export class ValueDoublyLinkedList {
   head: Node | null;
   tail: Node | null;
   constructor () {
@@ -60,5 +66,31 @@ export class DoublyLinkedList {
     }
     return deleted;
   }
+}
+
+
+/**
+ * Class for linked list containing lists a given freqency value for LFU.
+ */
+
+
+export class FreqNode{
+  freqValue: number;
+  list: InstanceType<typeof ValueDoublyLinkedList>;
+  map = new Set();
+  next: FreqNode | null;
+  prev: FreqNode | null;
+  
+  constructor(freqValue: number){
+    this.freqValue = freqValue;
+    this.list = new ValueDoublyLinkedList();
+    this.map = new Set();
+    this.next = null;
+    this.prev = null;
+  }
+}
+
+
+export class FreqDoublyLinkedList {
 
 }

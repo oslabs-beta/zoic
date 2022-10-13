@@ -1,4 +1,4 @@
-import { DoublyLinkedList, Node } from './doublyLinkedList.ts'
+import { ValueDoublyLinkedList, Node } from './doublyLinkedLists.ts'
 import { cacheValue } from '../zoic.ts'
 import PerfMetrics from './performanceMetrics.ts'
 
@@ -7,7 +7,7 @@ import PerfMetrics from './performanceMetrics.ts'
  * O(n) insert, lookup, and deletion time.
  */
 class LRU {
-  list: DoublyLinkedList;
+  list: ValueDoublyLinkedList;
   cache: Record<string, InstanceType<typeof Node>>;
   length: number;
   capacity: number;
@@ -15,7 +15,7 @@ class LRU {
   metrics: InstanceType<typeof PerfMetrics>;
 
   constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
-    this.list = new DoublyLinkedList();
+    this.list = new ValueDoublyLinkedList();
     this.cache = {};
     this.length = 0;
     this.capacity = capacity;
@@ -127,7 +127,7 @@ class LRU {
    * Clears entire cache contents.
    */
   clear () {
-    this.list = new DoublyLinkedList();
+    this.list = new ValueDoublyLinkedList();
     this.cache = {};
     this.length = 0;
   }
