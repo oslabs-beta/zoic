@@ -13,7 +13,7 @@ describe("Doubly linked list tests", () => {
   });
 
   it("Should properly add a sinlge node", () => {
-    list.addHead({headers: {}, body: new Uint8Array([1]), status: 200}, 'C', 50, time);
+    list.addHead('C', {headers: {}, body: new Uint8Array([1]), status: 200}, 50, time);
     assertEquals(list.head, list.tail);
     assertEquals(list.head?.next, null);
     assertEquals(list.head?.prev, null);
@@ -22,8 +22,8 @@ describe("Doubly linked list tests", () => {
   });
 
   it("Should properly add nodes to the start of the linked list", () => {
-    list.addHead({headers: {}, body: new Uint8Array([2]), status: 200}, 'B', 100, time);
-    list.addHead({headers: {}, body: new Uint8Array([3]), status: 200}, 'A', 200, time);
+    list.addHead('B', {headers: {}, body: new Uint8Array([2]), status: 200}, 100, time);
+    list.addHead('A', {headers: {}, body: new Uint8Array([3]), status: 200}, 200, time);
     assertEquals(list.tail?.key, 'C');
     assertEquals(list.head?.key, 'A');
     assertEquals(list.head?.next?.key, 'B');

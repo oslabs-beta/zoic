@@ -58,7 +58,7 @@ export interface cacheValue {
 export class Zoic {
   capacity: number;
   expire: number;
-  metrics: InstanceType <typeof PerfMetrics>;
+  metrics: PerfMetrics;
   respondOnHit: boolean;
   cache: Promise < LRU | Redis >;
 
@@ -82,7 +82,7 @@ export class Zoic {
    * @param cache 
    * @returns LRU | Redis
    */
-  async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number, hostname?: string) {
+  async #initCacheType (expire: number, metrics: PerfMetrics, cache?: string, redisPort?: number, hostname?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
     if (this.capacity <= 0) throw new TypeError('Cache capacity must exceed 0 entires.');
     if (cache === 'REDIS') {

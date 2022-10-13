@@ -8,13 +8,13 @@ import PerfMetrics from './performanceMetrics.ts'
  */
 class LRU {
   list: ValueDoublyLinkedList;
-  cache: Record<string, InstanceType<typeof Node>>;
+  cache: Record<string, Node>;
   length: number;
   capacity: number;
   expire: number;
-  metrics: InstanceType<typeof PerfMetrics>;
+  metrics: PerfMetrics;
 
-  constructor (expire: number, metrics: InstanceType<typeof PerfMetrics>, capacity: number) {
+  constructor (expire: number, metrics: PerfMetrics, capacity: number) {
     this.list = new ValueDoublyLinkedList();
     this.cache = {};
     this.length = 0;
@@ -43,14 +43,14 @@ class LRU {
     } 
 
     //add new item to list head.
-    this.cache[key] = this.list.addHead(value, key, byteSize, new Date());
+    this.cache[key] = this.list.addHead(key, value, byteSize, new Date());
     this.metrics.increaseBytes(byteSize);
 
     //evalutes if least recently used item should be evicted.
     if (this.length < this.capacity) {
       this.length++;
     } else {
-      const deletedNode: InstanceType<typeof Node> | null = this.list.deleteTail();
+      const deletedNode: Node | null = this.list.deleteTail();
       if (deletedNode === null) throw new Error('Node is null. Ensure cache capcity is greater than 0.');
       delete this.cache[deletedNode.key];
       this.metrics.decreaseBytes(deletedNode.byteSize);
@@ -85,7 +85,7 @@ class LRU {
       //create new node, then delete node at current key, to replace at list head.
       const node = this.cache[key];
       this.delete(key);
-      this.cache[key] = this.list.addHead(node.value, node.key, node.byteSize, node.timeStamp);
+      this.cache[key] = this.list.addHead(node.key, node.value, node.byteSize, node.timeStamp);
       this.length++;
 
       //Return the newly cached node, which should now be the head, to the top-level caching layer.
