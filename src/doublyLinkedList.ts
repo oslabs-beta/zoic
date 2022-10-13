@@ -28,7 +28,7 @@ export class DoublyLinkedList {
     this.tail = null;
   }
 
-  addHead (value: cacheValue, key: string, byteSize: number, timeStamp: InstanceType<typeof Date>) {
+  addHead(value: cacheValue, key: string, byteSize: number, timeStamp: InstanceType<typeof Date>){
     const node = new Node(value, key, byteSize, timeStamp);   
     if (!this.head) {
       this.head = node;
@@ -41,7 +41,16 @@ export class DoublyLinkedList {
     return this.head;
   }
 
-  deleteTail () {
+  delete(node: InstanceType<typeof Node> | null){
+    if (!node) return;
+    if (node.prev) node.prev.next = node.next;
+    if (node.next) node.next.prev = node.prev;
+    if (node === this.head) this.head = node.next;
+    if (node === this.tail) this.tail = node.prev;
+    return node;
+  }
+
+  deleteTail(){
     const deleted = this.tail;
     if (this.head === this.tail) {
       this.head = this.tail = null;
@@ -51,4 +60,5 @@ export class DoublyLinkedList {
     }
     return deleted;
   }
+
 }

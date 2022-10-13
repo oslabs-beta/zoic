@@ -108,10 +108,12 @@ class LRU {
 
     //logic for removing node and connecting prev and next items, including in cases of head or tail.
     if (!node) return;
-    if (node.prev) node.prev.next = node.next;
-    if (node.next) node.next.prev = node.prev;
-    if (node === this.list.head) this.list.head = node.next;
-    if (node === this.list.tail) this.list.tail = node.prev;
+    
+    // if (node.prev) node.prev.next = node.next;
+    // if (node.next) node.next.prev = node.prev;
+    // if (node === this.list.head) this.list.head = node.next;
+    // if (node === this.list.tail) this.list.tail = node.prev;
+    this.list.delete(node);
 
     //removes item from cache map.
     delete this.cache[key];
