@@ -109,8 +109,7 @@ export class FreqDoublyLinkedList {
       this.head = freqNode;
     }
 
-    const valNode = this.head.valList.addHead(key, value, byteSize, timeStamp, this.head);
-    return valNode;
+    return this.head.valList.addHead(key, value, byteSize, timeStamp, this.head);
   }
 
   increaseFreq(node: Node){
@@ -120,7 +119,6 @@ export class FreqDoublyLinkedList {
     //is highest freq
     if (!parent.next){
       const freqNode = new FreqNode(parent.freqValue + 1);
-      freqNode.valList.addHead(key, value, byteSize, timeStamp, freqNode);
 
       parent.next = freqNode;
       this.tail = freqNode;
@@ -128,15 +126,16 @@ export class FreqDoublyLinkedList {
     //freq + 1 does not exist
     } else if (parent.next.freqValue !== parent.next.freqValue + 1){
       const freqNode = new FreqNode(parent.freqValue + 1);
-      freqNode.valList.addHead(key, value, byteSize, timeStamp, freqNode);
-      //add swap logic ~~~~~~~~~
 
-    } else {
-      const { next } = parent;
-      next.valList.addHead(key, value, byteSize, timeStamp, next);
+      const temp = parent.next;
+      parent.next = freqNode;
+      freqNode.prev = parent;
+      freqNode.next = temp;
+      temp.prev = freqNode;
     }
 
     this.deleteValNode(node);
+    return parent.next.valList.addHead(key, value, byteSize, timeStamp, parent.next);
   }
 
   //deletes tail of least frequently accessed list

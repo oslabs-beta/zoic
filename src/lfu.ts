@@ -72,10 +72,8 @@ class LFU {
       this.delete(key);
       return;
     }
-
-    const node = this.cache[key];
-    this.freqList.increaseFreq(node);
-    return node;
+    const node = this.freqList.increaseFreq(this.cache[key]);
+    return node?.value;
   }
 
   delete(key: string){
