@@ -1,9 +1,9 @@
 import { cacheValue } from '../zoic.ts'
 
+
 /**
  * Class definition for linked list containing cached values for both LRU and LFU.
  */
-
 export class Node {
   next: Node | null;
   prev: Node | null;
@@ -14,7 +14,7 @@ export class Node {
   timeStamp: Date;
   parent?: FreqNode;
 
-  constructor (value: cacheValue, key: string, byteSize: number, timeStamp: Date, parent?: FreqNode){
+  constructor (key: string, value: cacheValue, byteSize: number, timeStamp: Date, parent?: FreqNode){
     this.next = null;
     this.prev = null;
     this.value = value;
@@ -34,8 +34,8 @@ export class ValueDoublyLinkedList {
     this.tail = null;
   }
 
-  addHead(key: string, value: cacheValue, byteSize: number, timeStamp: Date){
-    const node = new Node(value, key, byteSize, timeStamp);   
+  addHead(key: string, value: cacheValue, byteSize: number, timeStamp: Date, parent?: FreqNode){
+    const node = new Node(key, value, byteSize, timeStamp, parent);   
     if (!this.head) {
       this.head = node;
       this.tail = this.head;
@@ -72,7 +72,6 @@ export class ValueDoublyLinkedList {
 /**
  * Class definition for linked list containing lists a given freqency value for LFU.
  */
-
 export class FreqNode {
   freqValue: number;
   valList: ValueDoublyLinkedList;
@@ -99,19 +98,63 @@ export class FreqDoublyLinkedList {
   }
 
   addNewFreq(key: string, value: cacheValue, byteSize: number, timeStamp: Date){
-    const freqNode = new FreqNode(1);
-    const valNode = freqNode.valList.addHead(key, value, byteSize, timeStamp);
 
     if (!this.head) {
-      this.head = freqNode;
+      this.head = new FreqNode(1);
       this.tail = this.head;
-    } else {
+    } else if (this.head.freqValue !== 1) {
+      const freqNode = new FreqNode(1);
       freqNode.next = this.head;
       this.head.prev = freqNode;
       this.head = freqNode;
     }
 
+    const valNode = this.head.valList.addHead(key, value, byteSize, timeStamp, this.head);
     return valNode;
+  }
+
+  increaseFreq(node: Node){
+    if (!node.parent) return;
+    const { key, value, byteSize, timeStamp, parent } = node;
+
+    //is highest freq
+    if (!parent.next){
+      const freqNode = new FreqNode(parent.freqValue + 1);
+      freqNode.valList.addHead(key, value, byteSize, timeStamp, freqNode);
+
+      parent.next = freqNode;
+      this.tail = freqNode;
+
+    //freq + 1 does not exist
+    } else if (parent.next.freqValue !== parent.next.freqValue + 1){
+      const freqNode = new FreqNode(parent.freqValue + 1);
+      freqNode.valList.addHead(key, value, byteSize, timeStamp, freqNode);
+      //add swap logic ~~~~~~~~~
+
+    } else {
+      const { next } = parent;
+      next.valList.addHead(key, value, byteSize, timeStamp, next);
+    }
+
+    this.deleteValNode(node);
+  }
+
+  //deletes tail of least frequently accessed list
+  deleteLeastFreq(){
+    if (!this.head) return null;
+    return this.deleteValNode(this.head.valList.tail)
+    // const { valList } = this.head;
+    // const deleted = valList.deleteTail();
+    // if (!valList.head) this.delete(this.head);
+    // return deleted;
+  }
+
+  deleteValNode(node: Node | null){
+    if (!node || !node.parent) return;
+    const { valList } = node.parent;
+    valList.delete(node);
+    if (!valList.head) this.delete(node.parent);
+    return node;
   }
 
   delete(freqNode: FreqNode | null){
@@ -121,12 +164,5 @@ export class FreqDoublyLinkedList {
     if (freqNode === this.head) this.head = freqNode.next;
     if (freqNode === this.tail) this.tail = freqNode.prev;
     return freqNode;
-  }
-
-  deleteLeastFreq(){
-    //deletes tail of least frequently accessed list
-    if (!this.head) return null;
-    const leastFreqList = this.head.valList;
-    return leastFreqList.deleteTail();
   }
 }

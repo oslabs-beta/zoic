@@ -4,7 +4,12 @@ import PerfMetrics from './performanceMetrics.ts'
 
 
 /**
- * Speck as per http://dhruvbird.com/lfu.pdf
+ * Spec as per:
+ * 
+ * "An O(1) algorithm for implementing the LFU cache eviction scheme"
+ *  Prof. Ketan Shah, Anirban Mitra, and Dhruv Matani
+ * 
+ *  http://dhruvbird.com/lfu.pdf
  */
 
 class LFU {
@@ -24,9 +29,18 @@ class LFU {
     this.metrics = metrics;
   }
 
+  /**
+   * Adds new item to cache.
+   * @param key 
+   * @param value 
+   * @returns 
+   */
   put(key: string, value: cacheValue, byteSize: number){
 
     if (this.cache[key]){
+      this.metrics.decreaseBytes(this.cache[key].byteSize);
+      this.metrics.increaseBytes(byteSize);
+
       this.cache[key].value = value;
       return this.get(key);
     }
@@ -37,8 +51,8 @@ class LFU {
     if (this.length < this.capacity) {
       this.length++;
     } else {
-      const deletedNode: Node | null = this.freqList.deleteLeastFreq();
-      if (deletedNode === null) throw new Error('Node is null. Ensure cache capcity is greater than 0.');
+      const deletedNode: Node | null | undefined = this.freqList.deleteLeastFreq();
+      if (!deletedNode) throw new Error('Node is null. Ensure cache capcity is greater than 0.');
       delete this.cache[deletedNode.key];
       this.metrics.decreaseBytes(deletedNode.byteSize);
     }
@@ -48,14 +62,39 @@ class LFU {
 
   get(key: string){
 
+    if (!this.cache[key]) return;
+
+    //if entry is stale, deletes and exits
+    const currentTime = new Date();
+    const timeElapsed = Math.abs(currentTime.getTime() - this.cache[key].timeStamp.getTime()) / 1000;
+    if (timeElapsed > this.expire) {
+      this.metrics.decreaseBytes(this.cache[key].byteSize);
+      this.delete(key);
+      return;
+    }
+
+    const node = this.cache[key];
+    this.freqList.increaseFreq(node);
+    return node;
   }
 
   delete(key: string){
+    const node = this.cache[key];
+    if (!node) return;
 
+    this.freqList.deleteValNode(node);
+
+    delete this.cache[key];
+    this.length--;
+
+    return node;
   }
 
   clear(){
-
+    this.freqList = new FreqDoublyLinkedList();
+    this.cache = {};
+    this.length = 0;
+    this.metrics.clearEntires();
   }
 }
 
