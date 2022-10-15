@@ -59,7 +59,7 @@ describe("ValDoublyLinkedList tests", () => {
   });
 });
 
-describe('FreqDoublyLinkedList test', () => {
+describe('FreqDoublyLinkedList tests', () => {
 
   const freqList = new FreqDoublyLinkedList()
   const time = new Date();
