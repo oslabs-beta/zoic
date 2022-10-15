@@ -93,15 +93,17 @@ describe('FreqDoublyLinkedList test', () => {
 
   it("Should properly update list when adding new freqency nodes", () => {
     const valListHead = freqList.head?.valList.head;
+
     assertExists(valListHead);
     const newNode = freqList.increaseFreq(valListHead);
     assertEquals(freqList.head?.freqValue, 1);
-    assertEquals(freqList.head?.next?.freqValue, 2)
-    assertEquals(freqList.head?.next?.next, null)
+    assertEquals(freqList.head?.next?.freqValue, 2);
+    assertEquals(freqList.head?.next?.next, null);
+
     assertExists(newNode);
     freqList.increaseFreq(newNode);
     assertEquals(freqList.head?.freqValue, 1);
-    assertEquals(freqList.head?.next?.freqValue, 3)
-    assertEquals(freqList.head?.next?.next, null)
+    assertEquals(freqList.head?.next?.freqValue, 3);
+    assertEquals(freqList.head?.next?.next, null);
   });
 });
