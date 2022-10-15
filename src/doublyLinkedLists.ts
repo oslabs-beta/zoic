@@ -119,6 +119,7 @@ export class FreqDoublyLinkedList {
       const freqNode = new FreqNode(parent.freqValue + 1);
 
       parent.next = freqNode;
+      freqNode.prev = parent;
       this.tail = freqNode;
 
     //freq + 1 does not exist
