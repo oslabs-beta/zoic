@@ -1,8 +1,8 @@
-import { assertEquals } from "https://deno.land/std@0.145.0/testing/asserts.ts";
+import { assertEquals, assertExists } from "https://deno.land/std@0.145.0/testing/asserts.ts";
 import { describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { ValueDoublyLinkedList } from '../doublyLinkedLists.ts';
+import { ValueDoublyLinkedList, FreqDoublyLinkedList } from '../doublyLinkedLists.ts';
 
-describe("Doubly linked list tests", () => {
+describe("ValDoublyLinkedList tests", () => {
 
   const list = new ValueDoublyLinkedList();
   const time = new Date();
@@ -56,5 +56,52 @@ describe("Doubly linked list tests", () => {
     list.deleteTail();
     assertEquals(list.tail, null);
     assertEquals(list.head, null);
+  });
+});
+
+describe('FreqDoublyLinkedList test', () => {
+
+  const freqList = new FreqDoublyLinkedList()
+  const time = new Date();
+
+  it("Should properly handle an empty list", () => {
+    assertEquals(freqList.head, null);
+    assertEquals(freqList.tail, null);
+  });
+
+  it("Should properly add a sinlge node", () => {
+    freqList.addNewFreq('C', {headers: {}, body: new Uint8Array([1]), status: 200}, 50, time);
+    assertEquals(freqList.head, freqList.tail);
+    assertEquals(freqList.head?.next, null);
+    assertEquals(freqList.head?.prev, null);
+    assertEquals(freqList.tail?.next, null);
+    assertEquals(freqList.tail?.prev, null);
+  });
+
+  it("Should properly add nodes to the start of the linked list", () => {
+    freqList.addNewFreq('B', {headers: {}, body: new Uint8Array([2]), status: 200}, 100, time);
+    freqList.addNewFreq('A', {headers: {}, body: new Uint8Array([3]), status: 200}, 200, time);
+    assertEquals(freqList.tail?.freqValue, 1);
+    assertEquals(freqList.head?.freqValue, 1);
+    assertEquals(freqList.head?.next, null);
+    assertEquals(freqList.tail?.next, null);
+    assertEquals(freqList.head, freqList.tail);
+    assertEquals(freqList.head?.valList.head?.key, 'A');
+    assertEquals(freqList.head?.valList.head?.next?.key, 'B');
+    assertEquals(freqList.head?.valList.head?.next?.next?.key, 'C');
+  });
+
+  it("Should properly update list when adding new freqency nodes", () => {
+    const valListHead = freqList.head?.valList.head;
+    assertExists(valListHead);
+    const newNode = freqList.increaseFreq(valListHead);
+    assertEquals(freqList.head?.freqValue, 1);
+    assertEquals(freqList.head?.next?.freqValue, 2)
+    assertEquals(freqList.head?.next?.next, null)
+    assertExists(newNode);
+    freqList.increaseFreq(newNode);
+    assertEquals(freqList.head?.freqValue, 1);
+    assertEquals(freqList.head?.next?.freqValue, 3)
+    assertEquals(freqList.head?.next?.next, null)
   });
 });
