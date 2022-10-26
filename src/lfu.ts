@@ -5,11 +5,7 @@ import PerfMetrics from './performanceMetrics.ts'
 
 /**
  * Spec as per:
- * 
- * "An O(1) algorithm for implementing the LFU cache eviction scheme"
- *  Prof. Ketan Shah, Anirban Mitra, and Dhruv Matani
- * 
- *  http://dhruvbird.com/lfu.pdf
+ * http://dhruvbird.com/lfu.pdf
  */
 
 class LFU {
