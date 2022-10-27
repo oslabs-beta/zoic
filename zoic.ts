@@ -89,8 +89,10 @@ export class Zoic {
       throw new TypeError('Cache capacity must exceed 0 entires.');
     }
     if (!cache || cache === 'LRU'){
+      this.metrics.cacheType = 'LRU'
       return new LRU(expire, metrics, this.capacity);
     } else if (cache === 'LFU'){
+      this.metrics.cacheType = 'LFU'
       return new LFU(expire, metrics, this.capacity);
     } else if (cache === 'REDIS'){
       if (!redisPort) {
