@@ -57,6 +57,52 @@ describe("ValDoublyLinkedList tests", () => {
     assertEquals(list.tail, null);
     assertEquals(list.head, null);
   });
+
+  it("Should properly delete nodes with delete method", () => {
+    const list2 = new ValueDoublyLinkedList();
+    const time2 = new Date();
+
+    const node1 = list2.addHead('A', {headers: {}, body: new Uint8Array([1]), status: 200}, 200, time2);
+    const node2 = list2.addHead('B', {headers: {}, body: new Uint8Array([2]), status: 200}, 200, time2);
+    const node3 = list2.addHead('C', {headers: {}, body: new Uint8Array([3]), status: 200}, 200, time2);
+    const node4 = list2.addHead('D', {headers: {}, body: new Uint8Array([4]), status: 200}, 200, time2);
+
+    assertEquals(list2.head, node4);
+    assertEquals(list2.tail, node1);
+
+    list2.delete(node2);
+
+    assertEquals(list2.head, node4);
+    assertEquals(list2.head?.next, node3);
+    assertEquals(list2.head?.next?.next, node1);
+    assertEquals(list2.head?.next?.next?.next, null);
+
+    assertEquals(list2.tail, node1);
+    assertEquals(list2.tail?.prev, node3);
+    assertEquals(list2.tail?.prev?.prev, node4);
+    assertEquals(list2.tail?.prev?.prev?.prev, null);
+
+    list2.delete(node4);
+
+    assertEquals(list2.head, node3);
+    assertEquals(list2.head?.next, node1);
+    assertEquals(list2.head?.next?.next, null);
+
+    assertEquals(list2.tail, node1);
+    assertEquals(list2.tail?.prev, node3);
+    assertEquals(list2.tail?.prev?.prev, null);
+
+    list2.delete(node1);
+
+    assertEquals(list2.head, node3);
+    assertEquals(list2.tail, node3);
+    assertEquals(list2.head, list2.tail);
+
+    list2.delete(node3);
+
+    assertEquals(list2.head, null);
+    assertEquals(list2.tail, null);
+  })
 });
 
 
