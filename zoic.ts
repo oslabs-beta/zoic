@@ -4,6 +4,7 @@ import { connect, Redis } from "https://deno.land/x/redis@v0.26.0/mod.ts"
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts"
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts'
+import LFU from './src/lfu.ts'
 
 interface options {
   cache?: string;
@@ -58,9 +59,9 @@ export interface cacheValue {
 export class Zoic {
   capacity: number;
   expire: number;
-  metrics: InstanceType <typeof PerfMetrics>;
+  metrics: PerfMetrics;
   respondOnHit: boolean;
-  cache: Promise < LRU | Redis >;
+  cache: Promise < LRU | LFU | Redis >;
 
   constructor (options?: options) {
     this.capacity = options?.capacity || Infinity;
@@ -82,10 +83,18 @@ export class Zoic {
    * @param cache 
    * @returns LRU | Redis
    */
-  async #initCacheType (expire: number, metrics: InstanceType<typeof PerfMetrics>, cache?: string, redisPort?: number, hostname?: string) {
+  async #initCacheType (expire: number, metrics: PerfMetrics, cache?: string, redisPort?: number, hostname?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
-    if (this.capacity <= 0) throw new TypeError('Cache capacity must exceed 0 entires.');
-    if (cache === 'REDIS') {
+    if (this.capacity <= 0){
+      throw new TypeError('Cache capacity must exceed 0 entires.');
+    }
+    if (!cache || cache === 'LRU'){
+      this.metrics.cacheType = 'LRU'
+      return new LRU(expire, metrics, this.capacity);
+    } else if (cache === 'LFU'){
+      this.metrics.cacheType = 'LFU'
+      return new LFU(expire, metrics, this.capacity);
+    } else if (cache === 'REDIS'){
       if (!redisPort) {
         throw new Error('Redis requires port number passed in as an options property.');
       } 
@@ -96,7 +105,7 @@ export class Zoic {
       this.metrics.cacheType = 'Redis';
       return redis;
     }
-    return new LRU(expire, metrics, this.capacity);
+    throw new TypeError('Invalid cache type.');
   }
 
 
@@ -142,7 +151,7 @@ export class Zoic {
    * @param cache 
    * @returns 
    */
-  redisTypeCheck (cache: LRU | Redis): cache is Redis {
+  redisTypeCheck (cache: LRU | LFU | Redis): cache is Redis {
     return (cache as Redis).isConnected !== undefined;
   }
 
