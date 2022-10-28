@@ -103,7 +103,6 @@ describe("ValDoublyLinkedList tests", () => {
     assertEquals(list.tail, null);
     assertEquals(list.head, null);
   });
-
 });
 
 
@@ -140,84 +139,126 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList.head?.valList.head?.next?.next?.key, 'C');
   });
 
-  it("Should properly update list when adding new freqency nodes", () => {
-    const valListHead = freqList.head?.valList.head;
+  it("Should properly update list when node frequency value is increased", () => {
+    const headNode1 = freqList.head?.valList.head;
 
-    assertExists(valListHead);
-    const newNode = freqList.increaseFreq(valListHead);
+    assertExists(headNode1);
+    const newNode = freqList.increaseFreq(headNode1);
     assertEquals(freqList.head?.freqValue, 1);
     assertEquals(freqList.head?.next?.freqValue, 2);
     assertEquals(freqList.head?.next?.next, null);
+    assertEquals(freqList.head?.valList.head?.key, 'B')
+    assertEquals(freqList.head?.valList.head?.next?.key, 'C')
+    assertEquals(freqList.head?.next?.valList.head?.key, 'A')
 
     assertExists(newNode);
     freqList.increaseFreq(newNode);
     assertEquals(freqList.head?.freqValue, 1);
     assertEquals(freqList.head?.next?.freqValue, 3);
     assertEquals(freqList.head?.next?.next, null);
+    assertEquals(freqList.head?.valList.head?.key, 'B')
+    assertEquals(freqList.head?.valList.head?.next?.key, 'C')
+    assertEquals(freqList.head?.next?.valList.head?.key, 'A')
+
+    const headNode2 = freqList.head?.valList.head;
+    assertExists(headNode2);
+    freqList.increaseFreq(headNode2);
+    assertEquals(freqList.head?.freqValue, 1);
+    assertEquals(freqList.head?.next?.freqValue, 2);
+    assertEquals(freqList.head?.next?.next?.freqValue, 3);
+    assertEquals(freqList.head?.next?.next?.next, null);
+    assertEquals(freqList.head?.valList.head?.key, 'C')
+    assertEquals(freqList.head?.next?.valList.head?.key, 'B')
+    assertEquals(freqList.head?.next?.next?.valList.head?.key, 'A')
+
+    const headNode3 = freqList.head?.valList.head;
+    assertExists(headNode3)
+    freqList.increaseFreq(headNode3);
+    assertEquals(freqList.head?.freqValue, 2);
+    assertEquals(freqList.head?.next?.freqValue, 3);
+    assertEquals(freqList.head?.valList.head?.key, 'C')
+    assertEquals(freqList.head?.valList.head?.next?.key, 'B')
+    assertEquals(freqList.head?.next?.valList.head?.key, 'A')
+
+    const headNode4 = freqList.head?.valList.head;
+    assertExists(headNode4)
+    freqList.increaseFreq(headNode4);
+    const headNode5 = freqList.head?.valList.head;
+    assertExists(headNode5)
+    freqList.increaseFreq(headNode5);
+    assertEquals(freqList.head?.freqValue, 3);
+    assertEquals(freqList.head?.next, null);
+    assertEquals(freqList.head, freqList.tail);
+    assertEquals(freqList.head?.valList.head?.key, 'B')
+    assertEquals(freqList.head?.valList.head?.next?.key, 'C')
+    assertEquals(freqList.head?.valList.head?.next?.next?.key, 'A')
   });
 
   it("Should properly delete nodes with delete method", () => {
-    const list2 = new FreqDoublyLinkedList();
+    const freqList2 = new FreqDoublyLinkedList();
     const time2 = new Date();
 
-    const node1 = list2.addNewFreq('A', {headers: {}, body: new Uint8Array([1]), status: 200}, 200, time2);
-    const node2 = list2.addNewFreq('B', {headers: {}, body: new Uint8Array([2]), status: 200}, 200, time2);
-    const node3 = list2.addNewFreq('C', {headers: {}, body: new Uint8Array([3]), status: 200}, 200, time2);
-    const node4 = list2.addNewFreq('D', {headers: {}, body: new Uint8Array([4]), status: 200}, 200, time2);
+    const node1 = freqList2.addNewFreq('A', {headers: {}, body: new Uint8Array([1]), status: 200}, 200, time2);
+    const node2 = freqList2.addNewFreq('B', {headers: {}, body: new Uint8Array([2]), status: 200}, 200, time2);
+    const node3 = freqList2.addNewFreq('C', {headers: {}, body: new Uint8Array([3]), status: 200}, 200, time2);
+    const node4 = freqList2.addNewFreq('D', {headers: {}, body: new Uint8Array([4]), status: 200}, 200, time2);
 
     const freqNode1 = node1.parent;
 
-    const freqNode2 = list2.increaseFreq(node2)?.parent;
+    const freqNode2 = freqList2.increaseFreq(node2)?.parent;
 
-    const tempNode3_1 = list2.increaseFreq(node3)
+    const tempNode3_1 = freqList2.increaseFreq(node3)
     assertExists(tempNode3_1);
-    const freqNode3 = list2.increaseFreq(tempNode3_1)?.parent;
+    const freqNode3 = freqList2.increaseFreq(tempNode3_1)?.parent;
 
-    const tempNode4_1 = list2.increaseFreq(node4);
+    const tempNode4_1 = freqList2.increaseFreq(node4);
     assertExists(tempNode4_1)
-    const tempNode4_2 = list2.increaseFreq(tempNode4_1);
+    const tempNode4_2 = freqList2.increaseFreq(tempNode4_1);
     assertExists(tempNode4_2);
-    const freqNode4 = list2.increaseFreq(tempNode4_2)?.parent;
+    const freqNode4 = freqList2.increaseFreq(tempNode4_2)?.parent;
 
     assertExists(freqNode1);
     assertExists(freqNode2);
     assertExists(freqNode3);
     assertExists(freqNode4);
 
-    assertEquals(list2.head, freqNode1);
-    assertEquals(list2.tail, freqNode4);
+    assertEquals(freqList2.head, freqNode1);
+    assertEquals(freqList2.tail, freqNode4);
 
-    list2.delete(freqNode2);
+    freqList2.delete(freqNode2);
 
-    assertEquals(list2.head, freqNode1);
-    assertEquals(list2.head?.next, freqNode3);
-    assertEquals(list2.head?.next?.next, freqNode4);
-    assertEquals(list2.head?.next?.next?.next, null);
+    assertEquals(freqList2.head, freqNode1);
+    assertEquals(freqList2.head?.next, freqNode3);
+    assertEquals(freqList2.head?.next?.next, freqNode4);
+    assertEquals(freqList2.head?.next?.next?.next, null);
 
-    assertEquals(list2.tail, freqNode4);
-    assertEquals(list2.tail?.prev, freqNode3);
-    assertEquals(list2.tail?.prev?.prev, freqNode1);
-    assertEquals(list2.tail?.prev?.prev?.prev, null);
+    assertEquals(freqList2.tail, freqNode4);
+    assertEquals(freqList2.tail?.prev, freqNode3);
+    assertEquals(freqList2.tail?.prev?.prev, freqNode1);
+    assertEquals(freqList2.tail?.prev?.prev?.prev, null);
 
-    list2.delete(freqNode4);
+    freqList2.delete(freqNode4);
 
-    assertEquals(list2.head, freqNode1);
-    assertEquals(list2.head?.next, freqNode3);
-    assertEquals(list2.head?.next?.next, null);
+    assertEquals(freqList2.head, freqNode1);
+    assertEquals(freqList2.head?.next, freqNode3);
+    assertEquals(freqList2.head?.next?.next, null);
 
-    assertEquals(list2.tail, freqNode3);
-    assertEquals(list2.tail?.prev, freqNode1);
-    assertEquals(list2.tail?.prev?.prev, null);
+    assertEquals(freqList2.tail, freqNode3);
+    assertEquals(freqList2.tail?.prev, freqNode1);
+    assertEquals(freqList2.tail?.prev?.prev, null);
 
-    list2.delete(freqNode1);
+    freqList2.delete(freqNode1);
 
-    assertEquals(list2.head, freqNode3);
-    assertEquals(list2.tail, freqNode3);
-    assertEquals(list2.head, list2.tail);
+    assertEquals(freqList2.head, freqNode3);
+    assertEquals(freqList2.tail, freqNode3);
+    assertEquals(freqList2.head, freqList2.tail);
 
-    list2.delete(freqNode3);
+    freqList2.delete(freqNode3);
 
-    assertEquals(list2.head, null);
-    assertEquals(list2.tail, null);
-  })
+    assertEquals(freqList2.head, null);
+    assertEquals(freqList2.tail, null);
+  });
+
+  it("Should properly delete value nodes from sublist, and delete freq nodes when value sublist is empty", () => {});
+  it("Should properly delete the least frequently accessed node with deleteLeastFreq method", () => {});
 });
