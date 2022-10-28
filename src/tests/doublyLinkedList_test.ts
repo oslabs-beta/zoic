@@ -259,6 +259,58 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList2.tail, null);
   });
 
-  it("Should properly delete value nodes from sublist, and delete freq nodes when value sublist is empty", () => {});
-  it("Should properly delete the least frequently accessed node with deleteLeastFreq method", () => {});
+
+  it("Should properly delete value nodes from sublist, and delete freq nodes when value sublist is empty", () => {
+    freqList.addNewFreq('D', {headers: {}, body: new Uint8Array([1]), status: 200}, 50, time);
+    freqList.addNewFreq('E', {headers: {}, body: new Uint8Array([1]), status: 200}, 50, time);
+
+    const node = freqList.head?.valList.head;
+    assertExists(node)
+    const deletedNode = freqList.deleteValNode(node);
+    assertEquals(deletedNode?.key, 'E');
+    assertEquals(freqList.head?.valList.head?.key, 'D');
+    assertEquals(freqList.head?.next?.valList.head?.key, 'B');
+    assertEquals(freqList.head?.next?.next, null);
+    assertEquals(freqList.head?.prev, null);
+    assertEquals(freqList.tail?.valList.head?.key, 'B');
+    assertEquals(freqList.tail?.prev?.valList.head?.key, 'D');
+    assertEquals(freqList.tail?.prev?.prev, null);
+    assertEquals(freqList.tail?.next, null);
+
+
+
+    const deletedTail0 = freqList.deleteLeastFreq();
+    assertEquals(deletedTail0?.key, 'D');
+    assertEquals(freqList.head?.valList.head?.key, 'B');
+    assertEquals(freqList.tail?.valList.head?.key, 'B');
+    assertEquals(freqList.head?.next, null)
+    assertEquals(freqList.head?.prev, null)
+    assertEquals(freqList.tail?.next, null)
+    assertEquals(freqList.tail?.prev, null)
+
+    const deletedTail1 = freqList.deleteLeastFreq();
+    assertEquals(deletedTail1?.key, 'A');
+    assertEquals(freqList.head?.valList.head?.key, 'B');
+    assertEquals(freqList.tail?.valList.head?.key, 'B');
+    assertEquals(freqList.head?.next, null)
+    assertEquals(freqList.head?.prev, null)
+    assertEquals(freqList.tail?.next, null)
+    assertEquals(freqList.tail?.prev, null)
+
+    const deletedTail2 = freqList.deleteLeastFreq();
+    assertEquals(deletedTail2?.key, 'C');
+    assertEquals(freqList.head?.valList.head?.key, 'B');
+    assertEquals(freqList.tail?.valList.head?.key, 'B');
+    assertEquals(freqList.head?.next, null)
+    assertEquals(freqList.head?.prev, null)
+    assertEquals(freqList.tail?.next, null)
+    assertEquals(freqList.tail?.prev, null)
+
+    const deletedTail3 = freqList.deleteLeastFreq();
+    assertEquals(deletedTail3?.key, 'B');
+    assertEquals(freqList.head?.valList.head, undefined);
+
+    const deletedTail4 = freqList.deleteLeastFreq();
+    assertEquals(deletedTail4?.key, undefined);
+  });
 });
