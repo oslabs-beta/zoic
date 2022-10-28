@@ -277,8 +277,6 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList.tail?.prev?.prev, null);
     assertEquals(freqList.tail?.next, null);
 
-
-
     const deletedTail0 = freqList.deleteLeastFreq();
     assertEquals(deletedTail0?.key, 'D');
     assertEquals(freqList.head?.valList.head?.key, 'B');
@@ -308,6 +306,8 @@ describe('FreqDoublyLinkedList tests', () => {
 
     const deletedTail3 = freqList.deleteLeastFreq();
     assertEquals(deletedTail3?.key, 'B');
+    assertEquals(freqList.head, null);
+    assertEquals(freqList.tail, null);
     assertEquals(freqList.head?.valList.head, undefined);
 
     const deletedTail4 = freqList.deleteLeastFreq();
