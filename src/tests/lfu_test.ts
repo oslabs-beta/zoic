@@ -4,7 +4,7 @@ import PerfMetrics from '../performanceMetrics.ts';
 import LFU from '../lfu.ts'
 
 describe("LFU tests", () => {
-  const lfu = new LFU(100, new PerfMetrics, 7);
+  const lfu = new LFU(100, new PerfMetrics, 6);
 
   it("Adds new items to the cache", () => {
     lfu.put('item1', {headers:{}, body: new Uint8Array([1]), status:200}, 10);
@@ -103,5 +103,5 @@ describe("LFU tests", () => {
     assertEquals(lfu.freqList.tail, null);
     assertEquals(lfu.cache, {});
     assertEquals(lfu.length, 0);
-  })
+  });
 })
