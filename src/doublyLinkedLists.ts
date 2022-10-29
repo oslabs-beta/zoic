@@ -106,8 +106,8 @@ export class FreqDoublyLinkedList {
       this.tail = this.head;
     } else if (this.head.freqValue !== 1) {
       const freqNode = new FreqNode(1);
-      freqNode.next = this.head;
       this.head.prev = freqNode;
+      freqNode.next = this.head;
       this.head = freqNode;
     }
     return this.head.valList.addHead(key, value, byteSize, timeStamp, this.head);

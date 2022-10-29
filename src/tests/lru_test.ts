@@ -126,4 +126,17 @@ describe("LRU tests", () => {
     assert(shortLru.get('item2'));
     assert(shortLru.list.head);
   })
+
+  it("Should properly clear cache when clear method is called", () => {
+    lru.put('item1', {headers:{}, body: new Uint8Array([1]), status:200}, 10);
+    lru.put('item2', {headers:{}, body: new Uint8Array([2]), status:200}, 10);
+    lru.put('item3', {headers:{}, body: new Uint8Array([3]), status:200}, 10);
+    lru.put('item4', {headers:{}, body: new Uint8Array([4]), status:200}, 10);
+    lru.put('item5', {headers:{}, body: new Uint8Array([5]), status:200}, 10);
+    lru.clear();
+    assertEquals(lru.list.head, null);
+    assertEquals(lru.list.tail, null);
+    assertEquals(lru.cache, {});
+    assertEquals(lru.length, 0);
+  })
 })
