@@ -22,6 +22,10 @@ describe("LRU tests", () => {
     assertEquals(lru.length, 5);
   });
 
+  it("Returns undefined when get is called on a non-existing key", () => {
+    assertEquals(lru.get('asdf'), undefined);
+  });
+
   it("Gets items from the cache, and moves them to the head", () => {
     const item = lru.get('item3');
     assertEquals(lru.list.head?.value, item);
@@ -114,6 +118,11 @@ describe("LRU tests", () => {
     assertEquals(lru.cache.item40, undefined);
   });
 
+  it("Updates an entry when put is called with an existing key", () => {
+    lru.put('item70', {headers:{}, body: new Uint8Array([100]), status:200}, 10);
+    assertEquals(lru.get('item70')?.body, new Uint8Array([100]));
+  })
+
   it("Expires entry after set time", async () => {
     const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const shortLru = new LRU(1, new PerfMetrics, 8);
@@ -138,5 +147,5 @@ describe("LRU tests", () => {
     assertEquals(lru.list.tail, null);
     assertEquals(lru.cache, {});
     assertEquals(lru.length, 0);
-  })
+  });
 })
