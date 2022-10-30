@@ -21,7 +21,7 @@
  
 ## <a name="description"></a>Description
  
-Zoic is an easy-to-use middleware library for caching responses from RESTful API endpoints in Oak, built for the Deno JavaScript runtime. Zoic provides an LRU in-memory cache, as well as support for Redis caches. Developers can use Zoic to easily cache HTTP responses with one simple middleware function that automatically handles both caching response data in the event of a cache miss, and sending responses on cache hits.
+Zoic is an easy-to-use middleware library for caching responses from RESTful API endpoints in Oak, built for the Deno JavaScript runtime. Zoic provides both LRU and LFU in-memory caches, as well as support for Redis caches. Developers can use Zoic to easily cache HTTP responses with one simple middleware function that automatically handles both caching response data in the event of a cache miss, and sending responses on cache hits.
  
 ### Zoic Developer Tool
  
@@ -30,7 +30,7 @@ Checkout the [Zoic Developer Tool README](./zoic_dev_tool/README.md/) for more d
  
 ## <a name="get-started"></a>Getting Started
  
-As Zoic is a middleware library for Oak in the Deno runtime environment, it is paramount that [Deno](https://deno.land) is first installed and configured.
+To get started, first make sure you have [Deno](https://deno.land) installed and configured.
  
 ### Quick Start
  
@@ -54,7 +54,7 @@ Example:
  
 ```typescript
 const cache = new Zoic({
-  cache: 'LRU',
+  cache: 'LFU',
   expire: '5m, 3s',
   capacity: 50,
 });
