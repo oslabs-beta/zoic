@@ -57,10 +57,13 @@ describe("Zoic should handle default args approporately", () => {
 describe("Zoic should handle poorly formatted args appropriately", () => {
   it("should handle poorly formatted inputs to expiration time", () => {
     assertThrows(() => new Zoic({
-      capacity: 10,
-      expire: 'this should not work',
-      cache: 'LRU'
-    }), TypeError, 'Cache expiration time must be string formatted as a numerical value followed by \'d\', \'h\', \'m\', or \'s\', or a number representing time in seconds.');
+        capacity: 10,
+        expire: 'this should not work',
+        cache: 'LRU'
+      }),
+      TypeError, 
+      'Cache expiration time must be string formatted as a numerical value followed by \'d\', \'h\', \'m\', or \'s\', or a number representing time in seconds.'
+    );
   });
 
   it("should handle poorly formatted inputs to cache type", async () => {
