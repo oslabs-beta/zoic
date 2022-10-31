@@ -20,9 +20,9 @@ jobs:
         run: deno test --coverage=./src/tests/coverage_report  ./src/tests/ --allow-net
 
       - name: Create coverage report
-        run:  deno coverage ./src/tests/coverage_report --lcov > coverage_report.lcov
+        run:  deno --unstable coverage ./src/tests/coverage_report --lcov > coverage_report.lcov
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v3
         with:
-          files: coverage_report.lcov
+          file: ./coverage_report.lcov
