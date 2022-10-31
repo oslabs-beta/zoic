@@ -20,5 +20,7 @@ jobs:
           deno test --coverage=./src/tests/coverage_report  ./src/tests/ --allow-net
           deno coverage ./src/tests/coverage_report --lcov > coverage_report.lcov
 
-      # - name: Upload coverage report
-      #   run: 
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage_report.lcov
