@@ -1,4 +1,3 @@
-
 /**
  * Keep tracks of in-memory cache performance
  */
@@ -32,21 +31,18 @@ class PerfMetrics {
   clearEntires = () => this.numberOfEntries = 0;
   increaseBytes = (bytes: number) => this.memoryUsed += bytes;
   decreaseBytes = (bytes: number) => this.memoryUsed -= bytes;
-  updateLatency = (latency: number, hitOrMiss: 'hit' | 'miss') => {
-   
-      if (hitOrMiss === 'hit'){
-        this.hitLatencyTotal += latency;
-        this.currentHitLatency = latency;
-        return;
-      }
-      
-      if (hitOrMiss === 'miss'){
-        this.missLatencyTotal += latency;
-        this.currentMissLatency = latency;
-        return;
-      }
-
-      throw new TypeError('Hit or miss not specified');
+  updateLatency = (latency: number, hitOrMiss: 'hit' | 'miss') => {   
+    if (hitOrMiss === 'hit'){
+      this.hitLatencyTotal += latency;
+      this.currentHitLatency = latency;
+      return;
+    } 
+    if (hitOrMiss === 'miss'){
+      this.missLatencyTotal += latency;
+      this.currentMissLatency = latency;
+      return;
+    }
+    throw new TypeError('Hit or miss not specified');
   };
 }
 

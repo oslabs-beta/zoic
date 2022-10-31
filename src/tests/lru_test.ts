@@ -22,6 +22,10 @@ describe("LRU tests", () => {
     assertEquals(lru.length, 5);
   });
 
+  it("Returns undefined when get is called on a non-existing key", () => {
+    assertEquals(lru.get('asdf'), undefined);
+  });
+
   it("Gets items from the cache, and moves them to the head", () => {
     const item = lru.get('item3');
     assertEquals(lru.list.head?.value, item);
@@ -114,6 +118,11 @@ describe("LRU tests", () => {
     assertEquals(lru.cache.item40, undefined);
   });
 
+  it("Updates an entry when put is called with an existing key", () => {
+    lru.put('item70', {headers:{}, body: new Uint8Array([100]), status:200}, 10);
+    assertEquals(lru.get('item70')?.body, new Uint8Array([100]));
+  })
+
   it("Expires entry after set time", async () => {
     const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const shortLru = new LRU(1, new PerfMetrics, 8);
@@ -126,4 +135,17 @@ describe("LRU tests", () => {
     assert(shortLru.get('item2'));
     assert(shortLru.list.head);
   })
+
+  it("Should properly clear cache when clear method is called", () => {
+    lru.put('item1', {headers:{}, body: new Uint8Array([1]), status:200}, 10);
+    lru.put('item2', {headers:{}, body: new Uint8Array([2]), status:200}, 10);
+    lru.put('item3', {headers:{}, body: new Uint8Array([3]), status:200}, 10);
+    lru.put('item4', {headers:{}, body: new Uint8Array([4]), status:200}, 10);
+    lru.put('item5', {headers:{}, body: new Uint8Array([5]), status:200}, 10);
+    lru.clear();
+    assertEquals(lru.list.head, null);
+    assertEquals(lru.list.tail, null);
+    assertEquals(lru.cache, {});
+    assertEquals(lru.length, 0);
+  });
 })
