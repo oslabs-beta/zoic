@@ -5,6 +5,7 @@
 
 <div id='badges' align='center'>
     <a href = "https://github.com/oslabs-beta/zoic/tree/dev/src/tests"><img alt="CI/CD" src="https://github.com/oslabs-beta/zoic/actions/workflows/deno.yml/badge.svg"/></a>
+    <a href ="https://codecov.io/github/oslabs-beta/zoic"><img alt="Codecov" src="https://codecov.io/github/oslabs-beta/zoic/branch/main/graph/badge.svg"/></a>
     <a href ="https://deno.land/x/zoic"><img alt="deno.land/x" src="https://shield.deno.dev/x/zoic"/></a>
 </div>
  
