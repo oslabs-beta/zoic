@@ -41,7 +41,7 @@ To get started, first make sure you have [Deno](https://deno.land) installed and
 In your application, import the Zoic module from the deno.land [module](https://deno.land/x/zoic/).
  
 ```typescript
-import { Zoic } from "https://deno.land/x/zoic/zoic.ts";
+import { Zoic } from 'https://deno.land/x/zoic/zoic.ts';
 ```
  
 ### Create a cache
@@ -66,7 +66,7 @@ const cache = new Zoic({
  
 ### Redis cache
  
-To use an instance of Redis as your cache, initialize a new `Zoic` object, passing in `'redis'` as the `cache` property on your options object. You also must specify the port your instance of Redis is running on, via the `port` property. Optionally, you may pass the hostname as well. This value defaults to `'127.0.0.1'`.
+To use an instance of Redis as your cache, initialize a new `Zoic` object, passing in `'Redis'` as the `cache` property on your options object. You also must specify the port your instance of Redis is running on, via the `port` property. Optionally, you may pass the hostname as well. This value defaults to `'127.0.0.1'`.
 <br>
 <br>
 NOTE: Options `expire` and `capacity` do not have an effect on `Zoic` if using Redis, as these would be defined in your Redis configuration.
@@ -77,7 +77,7 @@ Example:
 const cache = new Zoic({
   cache: 'redis',
   port: 6379
-})
+});
 ```
  
  
