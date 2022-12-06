@@ -155,9 +155,12 @@ export class Zoic {
   endPerformanceMark (queryRes: 'hit' | 'miss') {
     performance.mark('endingMark');
     this.metrics.updateLatency(
-      performance.measure('latency_timer', 'startingMark', 'endingMark')
-      .duration, queryRes);
-    queryRes === 'hit' ? this.metrics.readProcessed() : this.metrics.writeProcessed();
+      performance.measure('latency_timer', 'startingMark', 'endingMark').duration,
+      queryRes
+    );
+    queryRes === 'hit' 
+      ? this.metrics.readProcessed() 
+      : this.metrics.writeProcessed();
   }
 
 
@@ -295,7 +298,10 @@ export class Zoic {
             status: nativeResponse.status
           };
 
-          cache.set(key,`${btoa(JSON.stringify(headerAndStatus))}\n${base64encode(new Uint8Array(body))}`);
+          cache.set(
+            key,
+            `${ btoa(JSON.stringify(headerAndStatus)) }\n${ base64encode(new Uint8Array(body)) }`
+          );
         } 
         
         //if in-memory store as native js...
@@ -344,9 +350,14 @@ export class Zoic {
   async clear (ctx: Context, next: () => Promise<unknown>) {
     try {
       const cache = await this.cache;
-      this.redisTypeCheck(cache) ? cache.flushdb() : cache.clear();
+
+      this.redisTypeCheck(cache) 
+        ? cache.flushdb()
+        : cache.clear();
+
       this.metrics.clearEntires();
       return next();
+      
     } catch (err) {
       ctx.response.status = 400;
       ctx.response.body = 'Error in Zoic.clear. Check server logs for details.';
