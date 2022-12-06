@@ -1,25 +1,11 @@
-import { decode as base64decode, encode as base64encode } from "https://deno.land/std@0.89.0/encoding/base64.ts"
+import { decode as base64decode, encode as base64encode } from 'https://deno.land/std@0.89.0/encoding/base64.ts'
 import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts'
-import { connect, Redis } from "https://deno.land/x/redis@v0.26.0/mod.ts"
-import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts"
+import { connect, Redis } from 'https://deno.land/x/redis@v0.26.0/mod.ts'
+import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts'
+import { options, cacheValue } from './src/types.ts'
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts'
 import LFU from './src/lfu.ts'
-
-interface options {
-  cache?: string;
-  port?: number;
-  hostname?: string;
-  expire?: string | number;
-  respondOnHit?: boolean;
-  capacity?: number;
-}
-
-export interface cacheValue {
-  headers: {[k:string]:string};
-  body: Uint8Array;
-  status: number;
-}
 
 /**
   * Class to initalize new instance of cache.

@@ -1,5 +1,4 @@
-import { cacheValue } from '../zoic.ts'
-
+import { cacheValue } from './types.ts'
 
 /**
  * Class definition for linked list containing cached values for both LRU and LFU.
