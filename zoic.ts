@@ -1,25 +1,11 @@
-import { decode as base64decode, encode as base64encode } from "https://deno.land/std@0.89.0/encoding/base64.ts"
+import { decode as base64decode, encode as base64encode } from 'https://deno.land/std@0.89.0/encoding/base64.ts'
 import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts'
-import { connect, Redis } from "https://deno.land/x/redis@v0.26.0/mod.ts"
-import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts"
+import { connect, Redis } from 'https://deno.land/x/redis@v0.26.0/mod.ts'
+import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts'
+import { options, cacheValue } from './src/types.ts'
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts'
 import LFU from './src/lfu.ts'
-
-interface options {
-  cache?: string;
-  port?: number;
-  hostname?: string;
-  expire?: string | number;
-  respondOnHit?: boolean;
-  capacity?: number;
-}
-
-export interface cacheValue {
-  headers: {[k:string]:string};
-  body: Uint8Array;
-  status: number;
-}
 
 /**
   * Class to initalize new instance of cache.
@@ -169,9 +155,12 @@ export class Zoic {
   endPerformanceMark (queryRes: 'hit' | 'miss') {
     performance.mark('endingMark');
     this.metrics.updateLatency(
-      performance.measure('latency_timer', 'startingMark', 'endingMark')
-      .duration, queryRes);
-    queryRes === 'hit' ? this.metrics.readProcessed() : this.metrics.writeProcessed();
+      performance.measure('latency_timer', 'startingMark', 'endingMark').duration,
+      queryRes
+    );
+    queryRes === 'hit' 
+      ? this.metrics.readProcessed() 
+      : this.metrics.writeProcessed();
   }
 
 
@@ -309,7 +298,10 @@ export class Zoic {
             status: nativeResponse.status
           };
 
-          cache.set(key,`${btoa(JSON.stringify(headerAndStatus))}\n${base64encode(new Uint8Array(body))}`);
+          cache.set(
+            key,
+            `${ btoa(JSON.stringify(headerAndStatus)) }\n${ base64encode(new Uint8Array(body)) }`
+          );
         } 
         
         //if in-memory store as native js...
@@ -358,9 +350,14 @@ export class Zoic {
   async clear (ctx: Context, next: () => Promise<unknown>) {
     try {
       const cache = await this.cache;
-      this.redisTypeCheck(cache) ? cache.flushdb() : cache.clear();
+
+      this.redisTypeCheck(cache) 
+        ? cache.flushdb()
+        : cache.clear();
+
       this.metrics.clearEntires();
       return next();
+      
     } catch (err) {
       ctx.response.status = 400;
       ctx.response.body = 'Error in Zoic.clear. Check server logs for details.';

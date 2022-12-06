@@ -1,5 +1,5 @@
 import { FreqDoublyLinkedList, Node } from './doublyLinkedLists.ts'
-import { cacheValue } from '../zoic.ts'
+import { cacheValue } from './types.ts'
 import PerfMetrics from './performanceMetrics.ts'
 
 
