@@ -1,4 +1,4 @@
-import { cacheValue } from './types.ts'
+import { cacheValue } from './types.ts';
 
 /**
  * Class definition for linked list containing cached values for both LRU and LFU.
@@ -13,7 +13,13 @@ export class Node {
   timeStamp: Date;
   parent?: FreqNode;
 
-  constructor(key: string, value: cacheValue, byteSize: number, timeStamp: Date, parent?: FreqNode){
+  constructor(
+    key: string,
+    value: cacheValue,
+    byteSize: number,
+    timeStamp: Date,
+    parent?: FreqNode,
+  ) {
     this.next = null;
     this.prev = null;
     this.value = value;
@@ -29,13 +35,19 @@ export class ValueDoublyLinkedList {
   head: Node | null;
   tail: Node | null;
 
-  constructor(){
+  constructor() {
     this.head = null;
     this.tail = null;
   }
 
-  addHead(key: string, value: cacheValue, byteSize: number, timeStamp: Date, parent?: FreqNode){
-    const node = new Node(key, value, byteSize, timeStamp, parent);   
+  addHead(
+    key: string,
+    value: cacheValue,
+    byteSize: number,
+    timeStamp: Date,
+    parent?: FreqNode,
+  ) {
+    const node = new Node(key, value, byteSize, timeStamp, parent);
     if (!this.head) {
       this.head = node;
       this.tail = this.head;
@@ -47,29 +59,54 @@ export class ValueDoublyLinkedList {
     return this.head;
   }
 
-  delete(node: Node | null){
+  delete(node: Node | null) {
     if (!node) return;
-    node.prev ?
-      node.prev.next = node.next
-      : this.head = node.next;
-    node.next ? 
-      node.next.prev = node.prev
-      : this.tail = node.prev;
+    node.prev ? (node.prev.next = node.next) : (this.head = node.next);
+    node.next ? (node.next.prev = node.prev) : (this.tail = node.prev);
     return node;
   }
 
-  deleteTail(){
+  addTail(
+    key: string,
+    value: cacheValue,
+    byteSize: number,
+    timeStamp: Date,
+    parent?: FreqNode,
+  ) {
+    const node = new Node(key, value, byteSize, timeStamp, parent);
+    if (!this.head) {
+      this.head = node;
+      this.tail = this.head;
+    } else {
+      this.tail!.next = node;
+      node.prev = this.tail;
+      this.tail = node;
+    }
+  }
+
+  deleteTail() {
     const deleted = this.tail;
     if (this.head === this.tail) {
       this.head = this.tail = null;
     } else if (this.tail) {
-      this.tail = this.tail.prev
+      this.tail = this.tail.prev;
       if (this.tail) this.tail.next = null;
     }
     return deleted;
   }
-}
 
+  deleteHead() {
+    const deleted = this.head;
+    if (!this.head) {
+      return null;
+    } else if (this.head === this.tail) {
+      this.head = this.tail = null;
+    } else {
+      this.head = this.head.next;
+    }
+    return deleted;
+  }
+}
 
 /**
  * Class definition for linked list containing lists a given freqency value for LFU.
@@ -80,7 +117,7 @@ export class FreqNode {
   next: FreqNode | null;
   prev: FreqNode | null;
 
-  constructor(freqValue: number){
+  constructor(freqValue: number) {
     this.freqValue = freqValue;
     this.valList = new ValueDoublyLinkedList();
     this.next = null;
@@ -88,18 +125,22 @@ export class FreqNode {
   }
 }
 
-
 export class FreqDoublyLinkedList {
   head: FreqNode | null;
   tail: FreqNode | null;
 
-  constructor(){
+  constructor() {
     //head being lowest freq item, tail being highest.
     this.head = null;
     this.tail = null;
   }
 
-  addNewFreq(key: string, value: cacheValue, byteSize: number, timeStamp: Date){
+  addNewFreq(
+    key: string,
+    value: cacheValue,
+    byteSize: number,
+    timeStamp: Date,
+  ) {
     if (!this.head) {
       this.head = new FreqNode(1);
       this.tail = this.head;
@@ -109,23 +150,29 @@ export class FreqDoublyLinkedList {
       freqNode.next = this.head;
       this.head = freqNode;
     }
-    return this.head.valList.addHead(key, value, byteSize, timeStamp, this.head);
+    return this.head.valList.addHead(
+      key,
+      value,
+      byteSize,
+      timeStamp,
+      this.head,
+    );
   }
 
-  increaseFreq(node: Node){
+  increaseFreq(node: Node) {
     if (!node.parent) return;
     const { key, value, byteSize, timeStamp, parent } = node;
 
     //is highest freq
-    if (!parent.next){
+    if (!parent.next) {
       const freqNode = new FreqNode(parent.freqValue + 1);
 
       parent.next = freqNode;
       freqNode.prev = parent;
       this.tail = freqNode;
 
-    //freq + 1 does not exist
-    } else if (parent.next.freqValue !== parent.freqValue + 1){
+      //freq + 1 does not exist
+    } else if (parent.next.freqValue !== parent.freqValue + 1) {
       const freqNode = new FreqNode(parent.freqValue + 1);
 
       const temp = parent.next;
@@ -136,14 +183,19 @@ export class FreqDoublyLinkedList {
     }
 
     this.deleteValNode(node);
-    return parent.next.valList.addHead(key, value, byteSize, timeStamp, parent.next);
+    return parent.next.valList.addHead(
+      key,
+      value,
+      byteSize,
+      timeStamp,
+      parent.next,
+    );
   }
 
-  deleteLeastFreq = () => this.head ?
-    this.deleteValNode(this.head.valList.tail) 
-    : undefined;
+  deleteLeastFreq = () =>
+    this.head ? this.deleteValNode(this.head.valList.tail) : undefined;
 
-  deleteValNode(node: Node | null){
+  deleteValNode(node: Node | null) {
     if (!node || !node.parent) return;
     const { valList } = node.parent;
     valList.delete(node);
@@ -151,14 +203,14 @@ export class FreqDoublyLinkedList {
     return node;
   }
 
-  delete(freqNode: FreqNode | null){
+  delete(freqNode: FreqNode | null) {
     if (!freqNode) return;
-    freqNode.prev ?
-      freqNode.prev.next = freqNode.next
-      : this.head = freqNode.next;
-    freqNode.next ? 
-      freqNode.next.prev = freqNode.prev
-      : this.tail = freqNode.prev;
+    freqNode.prev
+      ? (freqNode.prev.next = freqNode.next)
+      : (this.head = freqNode.next);
+    freqNode.next
+      ? (freqNode.next.prev = freqNode.prev)
+      : (this.tail = freqNode.prev);
     return freqNode;
   }
 }
