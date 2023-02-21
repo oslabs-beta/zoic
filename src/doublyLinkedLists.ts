@@ -82,6 +82,7 @@ export class ValueDoublyLinkedList {
       node.prev = this.tail;
       this.tail = node;
     }
+    return this.tail;
   }
 
   deleteTail() {
