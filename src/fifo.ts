@@ -1,7 +1,7 @@
-import { Node } from './doublyLinkedLists.ts';
-import LRU from './lru.ts';
-import PerfMetrics from './performanceMetrics.ts';
-import { cacheValue } from './types.ts';
+import { Node } from "./doublyLinkedLists.ts";
+import LRU from "./lru.ts";
+import PerfMetrics from "./performanceMetrics.ts";
+import { cacheValue } from "./types.ts";
 
 class FIFO extends LRU {
   constructor(expire: number, metrics: PerfMetrics, capacity: number) {
@@ -26,10 +26,11 @@ class FIFO extends LRU {
       this.length++;
     } else {
       const deletedNode: Node | null = this.list.deleteHead();
-      if (deletedNode === null)
+      if (deletedNode === null) {
         throw new Error(
-          'Node is null. Ensure cache capcity is greater than 0.',
+          "Node is null. Ensure cache capcity is greater than 0.",
         );
+      }
       delete this.cache[deletedNode.key];
       this.metrics.decreaseBytes(deletedNode.byteSize);
     }

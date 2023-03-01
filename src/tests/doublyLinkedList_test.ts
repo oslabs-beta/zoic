@@ -1,25 +1,25 @@
 import {
   assertEquals,
   assertExists,
-} from 'https://deno.land/std@0.145.0/testing/asserts.ts';
-import { describe, it } from 'https://deno.land/std@0.145.0/testing/bdd.ts';
+} from "https://deno.land/std@0.145.0/testing/asserts.ts";
+import { describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
 import {
-  ValueDoublyLinkedList,
   FreqDoublyLinkedList,
-} from '../doublyLinkedLists.ts';
+  ValueDoublyLinkedList,
+} from "../doublyLinkedLists.ts";
 
-describe('ValDoublyLinkedList tests', () => {
+describe("ValDoublyLinkedList tests", () => {
   const list = new ValueDoublyLinkedList();
   const time = new Date();
 
-  it('Should properly handle an empty list', () => {
+  it("Should properly handle an empty list", () => {
     assertEquals(list.head, null);
     assertEquals(list.tail, null);
   });
 
-  it('Should properly add a sinlge node', () => {
+  it("Should properly add a sinlge node", () => {
     list.addHead(
-      'C',
+      "C",
       { headers: {}, body: new Uint8Array([1]), status: 200 },
       50,
       time,
@@ -31,53 +31,53 @@ describe('ValDoublyLinkedList tests', () => {
     assertEquals(list.tail?.prev, null);
   });
 
-  it('Should properly add nodes to the start of the linked list', () => {
+  it("Should properly add nodes to the start of the linked list", () => {
     list.addHead(
-      'B',
+      "B",
       { headers: {}, body: new Uint8Array([2]), status: 200 },
       100,
       time,
     );
     list.addHead(
-      'A',
+      "A",
       { headers: {}, body: new Uint8Array([3]), status: 200 },
       200,
       time,
     );
-    assertEquals(list.tail?.key, 'C');
-    assertEquals(list.head?.key, 'A');
-    assertEquals(list.head?.next?.key, 'B');
-    assertEquals(list.head?.next?.next?.key, 'C');
+    assertEquals(list.tail?.key, "C");
+    assertEquals(list.head?.key, "A");
+    assertEquals(list.head?.next?.key, "B");
+    assertEquals(list.head?.next?.next?.key, "C");
     assertEquals(list.head?.next?.next?.next, null);
     assertEquals(list.head?.next?.next, list.tail);
     assertEquals(list.tail?.next, null);
   });
 
-  it('Should properly add nodes to the end of the linked list', () => {
+  it("Should properly add nodes to the end of the linked list", () => {
     list.addTail(
-      'E',
+      "E",
       { headers: {}, body: new Uint8Array([2]), status: 200 },
       100,
       time,
     );
     list.addTail(
-      'F',
+      "F",
       { headers: {}, body: new Uint8Array([3]), status: 200 },
       200,
       time,
     );
-    assertEquals(list.tail?.prev?.key, 'E');
-    assertEquals(list.head?.key, 'A');
-    assertEquals(list.head?.next?.key, 'B');
-    assertEquals(list.head?.next?.next?.key, 'C');
-    assertEquals(list.head?.next?.next?.next?.key, 'E');
-    assertEquals(list.head?.next?.next?.next?.next?.key, 'F');
+    assertEquals(list.tail?.prev?.key, "E");
+    assertEquals(list.head?.key, "A");
+    assertEquals(list.head?.next?.key, "B");
+    assertEquals(list.head?.next?.next?.key, "C");
+    assertEquals(list.head?.next?.next?.next?.key, "E");
+    assertEquals(list.head?.next?.next?.next?.next?.key, "F");
     assertEquals(list.head?.next?.next?.next?.next?.key, list.tail?.key);
-    assertEquals(list.tail?.key, 'F');
+    assertEquals(list.tail?.key, "F");
     assertEquals(list.tail?.next, null);
   });
 
-  it('Should store properties corretly on nodes', () => {
+  it("Should store properties corretly on nodes", () => {
     assertEquals(list.head?.value.body, new Uint8Array([3]));
     assertEquals(list.head?.next?.value.body, new Uint8Array([2]));
     assertEquals(list.head?.next?.next?.value.body, new Uint8Array([1]));
@@ -89,30 +89,30 @@ describe('ValDoublyLinkedList tests', () => {
     assertEquals(list.head?.next?.next?.byteSize, 50);
   });
 
-  it('Should properly delete nodes with delete method', () => {
+  it("Should properly delete nodes with delete method", () => {
     const list2 = new ValueDoublyLinkedList();
     const time2 = new Date();
 
     const node1 = list2.addHead(
-      'A',
+      "A",
       { headers: {}, body: new Uint8Array([1]), status: 200 },
       200,
       time2,
     );
     const node2 = list2.addHead(
-      'B',
+      "B",
       { headers: {}, body: new Uint8Array([2]), status: 200 },
       200,
       time2,
     );
     const node3 = list2.addHead(
-      'C',
+      "C",
       { headers: {}, body: new Uint8Array([3]), status: 200 },
       200,
       time2,
     );
     const node4 = list2.addHead(
-      'D',
+      "D",
       { headers: {}, body: new Uint8Array([4]), status: 200 },
       200,
       time2,
@@ -155,13 +155,13 @@ describe('ValDoublyLinkedList tests', () => {
     assertEquals(list2.tail, null);
   });
 
-  it('Should properly delete nodes from the tail of the linked list with nodes remaining', () => {
+  it("Should properly delete nodes from the tail of the linked list with nodes remaining", () => {
     list.deleteTail();
-    assertEquals(list.tail?.key, 'E');
-    assertEquals(list.head?.key, 'A');
+    assertEquals(list.tail?.key, "E");
+    assertEquals(list.head?.key, "A");
   });
 
-  it('Should properly delete all nodes from the list.', () => {
+  it("Should properly delete all nodes from the list.", () => {
     list.deleteTail();
     list.deleteTail();
     list.deleteTail();
@@ -171,18 +171,18 @@ describe('ValDoublyLinkedList tests', () => {
   });
 });
 
-describe('FreqDoublyLinkedList tests', () => {
+describe("FreqDoublyLinkedList tests", () => {
   const freqList = new FreqDoublyLinkedList();
   const time = new Date();
 
-  it('Should properly handle an empty list', () => {
+  it("Should properly handle an empty list", () => {
     assertEquals(freqList.head, null);
     assertEquals(freqList.tail, null);
   });
 
-  it('Should properly add a sinlge node', () => {
+  it("Should properly add a sinlge node", () => {
     freqList.addNewFreq(
-      'C',
+      "C",
       { headers: {}, body: new Uint8Array([1]), status: 200 },
       50,
       time,
@@ -194,15 +194,15 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList.tail?.prev, null);
   });
 
-  it('Should properly add nodes to the start of the linked list', () => {
+  it("Should properly add nodes to the start of the linked list", () => {
     freqList.addNewFreq(
-      'B',
+      "B",
       { headers: {}, body: new Uint8Array([2]), status: 200 },
       100,
       time,
     );
     freqList.addNewFreq(
-      'A',
+      "A",
       { headers: {}, body: new Uint8Array([3]), status: 200 },
       200,
       time,
@@ -212,12 +212,12 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList.head?.next, null);
     assertEquals(freqList.tail?.next, null);
     assertEquals(freqList.head, freqList.tail);
-    assertEquals(freqList.head?.valList.head?.key, 'A');
-    assertEquals(freqList.head?.valList.head?.next?.key, 'B');
-    assertEquals(freqList.head?.valList.head?.next?.next?.key, 'C');
+    assertEquals(freqList.head?.valList.head?.key, "A");
+    assertEquals(freqList.head?.valList.head?.next?.key, "B");
+    assertEquals(freqList.head?.valList.head?.next?.next?.key, "C");
   });
 
-  it('Should properly update list when node frequency value is increased', () => {
+  it("Should properly update list when node frequency value is increased", () => {
     const headNode1 = freqList.head?.valList.head;
 
     assertExists(headNode1);
@@ -225,18 +225,18 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList.head?.freqValue, 1);
     assertEquals(freqList.head?.next?.freqValue, 2);
     assertEquals(freqList.head?.next?.next, null);
-    assertEquals(freqList.head?.valList.head?.key, 'B');
-    assertEquals(freqList.head?.valList.head?.next?.key, 'C');
-    assertEquals(freqList.head?.next?.valList.head?.key, 'A');
+    assertEquals(freqList.head?.valList.head?.key, "B");
+    assertEquals(freqList.head?.valList.head?.next?.key, "C");
+    assertEquals(freqList.head?.next?.valList.head?.key, "A");
 
     assertExists(newNode);
     freqList.increaseFreq(newNode);
     assertEquals(freqList.head?.freqValue, 1);
     assertEquals(freqList.head?.next?.freqValue, 3);
     assertEquals(freqList.head?.next?.next, null);
-    assertEquals(freqList.head?.valList.head?.key, 'B');
-    assertEquals(freqList.head?.valList.head?.next?.key, 'C');
-    assertEquals(freqList.head?.next?.valList.head?.key, 'A');
+    assertEquals(freqList.head?.valList.head?.key, "B");
+    assertEquals(freqList.head?.valList.head?.next?.key, "C");
+    assertEquals(freqList.head?.next?.valList.head?.key, "A");
 
     const headNode2 = freqList.head?.valList.head;
     assertExists(headNode2);
@@ -245,18 +245,18 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList.head?.next?.freqValue, 2);
     assertEquals(freqList.head?.next?.next?.freqValue, 3);
     assertEquals(freqList.head?.next?.next?.next, null);
-    assertEquals(freqList.head?.valList.head?.key, 'C');
-    assertEquals(freqList.head?.next?.valList.head?.key, 'B');
-    assertEquals(freqList.head?.next?.next?.valList.head?.key, 'A');
+    assertEquals(freqList.head?.valList.head?.key, "C");
+    assertEquals(freqList.head?.next?.valList.head?.key, "B");
+    assertEquals(freqList.head?.next?.next?.valList.head?.key, "A");
 
     const headNode3 = freqList.head?.valList.head;
     assertExists(headNode3);
     freqList.increaseFreq(headNode3);
     assertEquals(freqList.head?.freqValue, 2);
     assertEquals(freqList.head?.next?.freqValue, 3);
-    assertEquals(freqList.head?.valList.head?.key, 'C');
-    assertEquals(freqList.head?.valList.head?.next?.key, 'B');
-    assertEquals(freqList.head?.next?.valList.head?.key, 'A');
+    assertEquals(freqList.head?.valList.head?.key, "C");
+    assertEquals(freqList.head?.valList.head?.next?.key, "B");
+    assertEquals(freqList.head?.next?.valList.head?.key, "A");
 
     const headNode4 = freqList.head?.valList.head;
     assertExists(headNode4);
@@ -267,35 +267,35 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList.head?.freqValue, 3);
     assertEquals(freqList.head?.next, null);
     assertEquals(freqList.head, freqList.tail);
-    assertEquals(freqList.head?.valList.head?.key, 'B');
-    assertEquals(freqList.head?.valList.head?.next?.key, 'C');
-    assertEquals(freqList.head?.valList.head?.next?.next?.key, 'A');
+    assertEquals(freqList.head?.valList.head?.key, "B");
+    assertEquals(freqList.head?.valList.head?.next?.key, "C");
+    assertEquals(freqList.head?.valList.head?.next?.next?.key, "A");
   });
 
-  it('Should properly delete nodes with delete method', () => {
+  it("Should properly delete nodes with delete method", () => {
     const freqList2 = new FreqDoublyLinkedList();
     const time2 = new Date();
 
     const node1 = freqList2.addNewFreq(
-      'A',
+      "A",
       { headers: {}, body: new Uint8Array([1]), status: 200 },
       200,
       time2,
     );
     const node2 = freqList2.addNewFreq(
-      'B',
+      "B",
       { headers: {}, body: new Uint8Array([2]), status: 200 },
       200,
       time2,
     );
     const node3 = freqList2.addNewFreq(
-      'C',
+      "C",
       { headers: {}, body: new Uint8Array([3]), status: 200 },
       200,
       time2,
     );
     const node4 = freqList2.addNewFreq(
-      'D',
+      "D",
       { headers: {}, body: new Uint8Array([4]), status: 200 },
       200,
       time2,
@@ -357,15 +357,15 @@ describe('FreqDoublyLinkedList tests', () => {
     assertEquals(freqList2.tail, null);
   });
 
-  it('Should properly delete value nodes from sublist, and delete freq nodes when value sublist is empty', () => {
+  it("Should properly delete value nodes from sublist, and delete freq nodes when value sublist is empty", () => {
     freqList.addNewFreq(
-      'D',
+      "D",
       { headers: {}, body: new Uint8Array([1]), status: 200 },
       50,
       time,
     );
     freqList.addNewFreq(
-      'E',
+      "E",
       { headers: {}, body: new Uint8Array([1]), status: 200 },
       50,
       time,
@@ -374,45 +374,45 @@ describe('FreqDoublyLinkedList tests', () => {
     const node = freqList.head?.valList.head;
     assertExists(node);
     const deletedNode = freqList.deleteValNode(node);
-    assertEquals(deletedNode?.key, 'E');
-    assertEquals(freqList.head?.valList.head?.key, 'D');
-    assertEquals(freqList.head?.next?.valList.head?.key, 'B');
+    assertEquals(deletedNode?.key, "E");
+    assertEquals(freqList.head?.valList.head?.key, "D");
+    assertEquals(freqList.head?.next?.valList.head?.key, "B");
     assertEquals(freqList.head?.next?.next, null);
     assertEquals(freqList.head?.prev, null);
-    assertEquals(freqList.tail?.valList.head?.key, 'B');
-    assertEquals(freqList.tail?.prev?.valList.head?.key, 'D');
+    assertEquals(freqList.tail?.valList.head?.key, "B");
+    assertEquals(freqList.tail?.prev?.valList.head?.key, "D");
     assertEquals(freqList.tail?.prev?.prev, null);
     assertEquals(freqList.tail?.next, null);
 
     const deletedTail0 = freqList.deleteLeastFreq();
-    assertEquals(deletedTail0?.key, 'D');
-    assertEquals(freqList.head?.valList.head?.key, 'B');
-    assertEquals(freqList.tail?.valList.head?.key, 'B');
+    assertEquals(deletedTail0?.key, "D");
+    assertEquals(freqList.head?.valList.head?.key, "B");
+    assertEquals(freqList.tail?.valList.head?.key, "B");
     assertEquals(freqList.head?.next, null);
     assertEquals(freqList.head?.prev, null);
     assertEquals(freqList.tail?.next, null);
     assertEquals(freqList.tail?.prev, null);
 
     const deletedTail1 = freqList.deleteLeastFreq();
-    assertEquals(deletedTail1?.key, 'A');
-    assertEquals(freqList.head?.valList.head?.key, 'B');
-    assertEquals(freqList.tail?.valList.head?.key, 'B');
+    assertEquals(deletedTail1?.key, "A");
+    assertEquals(freqList.head?.valList.head?.key, "B");
+    assertEquals(freqList.tail?.valList.head?.key, "B");
     assertEquals(freqList.head?.next, null);
     assertEquals(freqList.head?.prev, null);
     assertEquals(freqList.tail?.next, null);
     assertEquals(freqList.tail?.prev, null);
 
     const deletedTail2 = freqList.deleteLeastFreq();
-    assertEquals(deletedTail2?.key, 'C');
-    assertEquals(freqList.head?.valList.head?.key, 'B');
-    assertEquals(freqList.tail?.valList.head?.key, 'B');
+    assertEquals(deletedTail2?.key, "C");
+    assertEquals(freqList.head?.valList.head?.key, "B");
+    assertEquals(freqList.tail?.valList.head?.key, "B");
     assertEquals(freqList.head?.next, null);
     assertEquals(freqList.head?.prev, null);
     assertEquals(freqList.tail?.next, null);
     assertEquals(freqList.tail?.prev, null);
 
     const deletedTail3 = freqList.deleteLeastFreq();
-    assertEquals(deletedTail3?.key, 'B');
+    assertEquals(deletedTail3?.key, "B");
     assertEquals(freqList.head, null);
     assertEquals(freqList.tail, null);
     assertEquals(freqList.head?.valList.head, undefined);
