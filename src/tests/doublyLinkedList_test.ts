@@ -4,8 +4,8 @@ import {
 } from 'https://deno.land/std@0.145.0/testing/asserts.ts';
 import { describe, it } from 'https://deno.land/std@0.145.0/testing/bdd.ts';
 import {
-  ValueDoublyLinkedList,
   FreqDoublyLinkedList,
+  ValueDoublyLinkedList,
 } from '../doublyLinkedLists.ts';
 
 describe('ValDoublyLinkedList tests', () => {

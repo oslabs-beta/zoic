@@ -26,10 +26,11 @@ class FIFO extends LRU {
       this.length++;
     } else {
       const deletedNode: Node | null = this.list.deleteHead();
-      if (deletedNode === null)
+      if (deletedNode === null) {
         throw new Error(
           'Node is null. Ensure cache capcity is greater than 0.',
         );
+      }
       delete this.cache[deletedNode.key];
       this.metrics.decreaseBytes(deletedNode.byteSize);
     }
