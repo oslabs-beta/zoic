@@ -15,6 +15,7 @@ import { superoak } from 'https://deno.land/x/superoak@4.7.0/mod.ts';
 import Zoic from '../../zoic.ts';
 import LRU from '../lru.ts';
 import LFU from '../lfu.ts';
+import FIFO from '../fifo.ts';
 
 describe('Arguments passed into the performance metrics change ', () => {
   const lruTestCacheInstance = new Zoic({
@@ -27,32 +28,47 @@ describe('Arguments passed into the performance metrics change ', () => {
     expire: '2h, 3s, 5m, 80d',
     cache: 'lfu',
   });
+  const fifoTestCacheInstance = new Zoic({
+    capacity: 10,
+    expire: '2h, 3s, 5m, 80d',
+    cache: 'fifo',
+  });
 
   it('Should return an object', () => {
     assert(typeof lruTestCacheInstance === 'object');
+    assert(typeof lfuTestCacheInstance === 'object');
+    assert(typeof fifoTestCacheInstance === 'object');
   });
 
-  it('Should set the right capcaity', () => {
+  it('Should set the right capacity', () => {
     assertEquals(lruTestCacheInstance.capacity, 10);
+    assertEquals(lfuTestCacheInstance.capacity, 10);
+    assertEquals(fifoTestCacheInstance.capacity, 10);
   });
 
   it('Should parse unordered strings for expiration', () => {
     assertEquals(lruTestCacheInstance.expire, 6919503);
+    assertEquals(lfuTestCacheInstance.expire, 6919503);
+    assertEquals(fifoTestCacheInstance.expire, 6919503);
   });
 
   it('Should return a promise', () => {
     assertInstanceOf(lruTestCacheInstance.cache, Promise);
+    assertInstanceOf(lfuTestCacheInstance.cache, Promise);
+    assertInstanceOf(fifoTestCacheInstance.cache, Promise);
   });
 
   it('Should resolve promise to correct cache type', async () => {
     const lruCache = await lruTestCacheInstance.cache;
     const lfuCache = await lfuTestCacheInstance.cache;
+    const fifoCache = await fifoTestCacheInstance.cache;
     assertInstanceOf(lruCache, LRU);
     assertInstanceOf(lfuCache, LFU);
+    assertInstanceOf(fifoCache, FIFO);
   });
 });
 
-describe('Zoic should handle default args approporately', () => {
+describe('Zoic should handle default args appropriately', () => {
   const testCacheInstance = new Zoic();
 
   it('should handle when nothing input for expiration time', () => {
@@ -95,11 +111,11 @@ describe('Zoic should handle poorly formatted args appropriately', () => {
     );
   });
 
-  it('Should handle pooly formatted inputs to capacity', () => {
+  it('Should handle poorly formatted inputs to capacity', () => {
     assertThrows(
       () => new Zoic({ capacity: 0 }),
       Error,
-      'Cache capacity must exceed 0 entires.',
+      'Cache capacity must exceed 0 entries.',
     );
   });
 

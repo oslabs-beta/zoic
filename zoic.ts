@@ -9,6 +9,7 @@ import { cacheValue, options } from './src/types.ts';
 import PerfMetrics from './src/performanceMetrics.ts';
 import LRU from './src/lru.ts';
 import LFU from './src/lfu.ts';
+import FIFO from './src/fifo.ts';
 
 /**
  * Class to initalize new instance of cache.
@@ -32,7 +33,7 @@ import LFU from './src/lfu.ts';
  * ```
  *
  * ### Wtih Redis
- *  Note: with Reids options "expire" and "capacity" do not apply.
+ *  Note: with Redis options "expire" and "capacity" do not apply.
  * ```ts
  *
  * const cache = new Zoic({
@@ -43,18 +44,18 @@ import LFU from './src/lfu.ts';
  * ```
  *
  * @param option (cache options)
- * @returns LRU | Redis (new cache)
+ * @returns LRU | LFU | FIFO | Redis (new cache)
  */
 export class Zoic {
   capacity: number;
   expire: number;
   metrics: PerfMetrics;
   respondOnHit: boolean;
-  cache: Promise<LRU | LFU | Redis>;
+  cache: Promise<LRU | LFU | FIFO | Redis>;
 
   constructor(options?: options) {
     if (options?.capacity !== undefined && options.capacity <= 0) {
-      throw new Error('Cache capacity must exceed 0 entires.');
+      throw new Error('Cache capacity must exceed 0 entries.');
     }
     this.capacity = options?.capacity || Infinity;
     this.expire = this.#parseExpTime(options?.expire);
@@ -79,7 +80,7 @@ export class Zoic {
    * Sets cache eviction policty. Defaults to LRU.
    * @param expire
    * @param cache
-   * @returns LRU | Redis
+   * @returns LRU | LFU | FIFO | Redis
    */
   async #initCacheType(
     expire: number,
@@ -95,6 +96,9 @@ export class Zoic {
     } else if (cache === 'LFU') {
       this.metrics.cacheType = 'LFU';
       return new LFU(expire, metrics, this.capacity);
+    } else if (cache === 'FIFO') {
+      this.metrics.cacheType = 'FIFO';
+      return new FIFO(expire, metrics, this.capacity);
     } else if (cache === 'REDIS') {
       if (!redisPort) {
         throw new Error(
@@ -159,7 +163,7 @@ export class Zoic {
    * @param cache
    * @returns
    */
-  redisTypeCheck(cache: LRU | LFU | Redis): cache is Redis {
+  redisTypeCheck(cache: LRU | LFU | FIFO | Redis): cache is Redis {
     return (cache as Redis).isConnected !== undefined;
   }
 

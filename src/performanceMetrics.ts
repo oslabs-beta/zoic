@@ -2,7 +2,7 @@
  * Keep tracks of in-memory cache performance
  */
 class PerfMetrics {
-  cacheType: 'LRU' | 'LFU' | 'Redis';
+  cacheType: 'LRU' | 'LFU' | 'FIFO' | 'Redis';
   memoryUsed: number;
   numberOfEntries: number;
   readsProcessed: number;
