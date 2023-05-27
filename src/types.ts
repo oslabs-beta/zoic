@@ -8,7 +8,7 @@ export interface options {
 }
 
 export interface cacheValue {
-  headers: { [k:string]:string };
+  headers: { [k: string]: string };
   body: Uint8Array;
   status: number;
 }

@@ -2,7 +2,7 @@
  * Keep tracks of in-memory cache performance
  */
 class PerfMetrics {
-  cacheType: 'LRU' | 'LFU' | 'Redis';
+  cacheType: 'LRU' | 'LFU' | 'FIFO' | 'Redis';
   memoryUsed: number;
   numberOfEntries: number;
   readsProcessed: number;
@@ -31,13 +31,13 @@ class PerfMetrics {
   clearEntires = () => this.numberOfEntries = 0;
   increaseBytes = (bytes: number) => this.memoryUsed += bytes;
   decreaseBytes = (bytes: number) => this.memoryUsed -= bytes;
-  updateLatency = (latency: number, hitOrMiss: 'hit' | 'miss') => {   
-    if (hitOrMiss === 'hit'){
+  updateLatency = (latency: number, hitOrMiss: 'hit' | 'miss') => {
+    if (hitOrMiss === 'hit') {
       this.hitLatencyTotal += latency;
       this.currentHitLatency = latency;
       return;
-    } 
-    if (hitOrMiss === 'miss'){
+    }
+    if (hitOrMiss === 'miss') {
       this.missLatencyTotal += latency;
       this.currentMissLatency = latency;
       return;

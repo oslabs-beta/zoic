@@ -1,20 +1,29 @@
-import { assertEquals, assertInstanceOf } from "https://deno.land/std@0.145.0/testing/asserts.ts";
-import { describe, it,  beforeAll } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { Application, Router, Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
-import { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";
+import {
+  assertEquals,
+  assertInstanceOf,
+} from 'https://deno.land/std@0.145.0/testing/asserts.ts';
+import {
+  beforeAll,
+  describe,
+  it,
+} from 'https://deno.land/std@0.145.0/testing/bdd.ts';
+import {
+  Application,
+  Context,
+  Router,
+} from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { superoak } from 'https://deno.land/x/superoak@4.7.0/mod.ts';
 import Zoic from '../../zoic.ts';
 import PerfMetrics from '../performanceMetrics.ts';
 
+describe('Cache should contain correct metrics', () => {
+  const cache = new Zoic({ capacity: 5 });
 
-describe("Cache should contain correct metrics", () => {
-
-  const cache = new Zoic({capacity:5});
-
-  it("should have a metrics property with an object as its value", () => {
-    assertInstanceOf(cache.metrics, PerfMetrics)
+  it('should have a metrics property with an object as its value', () => {
+    assertInstanceOf(cache.metrics, PerfMetrics);
   });
 
-  it("should initialize each metric to correct type", () => {
+  it('should initialize each metric to correct type', () => {
     assertEquals(cache.metrics.numberOfEntries, 0);
     assertEquals(cache.metrics.readsProcessed, 0);
     assertEquals(cache.metrics.writesProcessed, 0);
@@ -25,8 +34,8 @@ describe("Cache should contain correct metrics", () => {
   });
 });
 
-describe("Each metric property updated accurately", () => {
-  const cache = new Zoic({capacity:3});
+describe('Each metric property updated accurately', () => {
+  const cache = new Zoic({ capacity: 3 });
   const app = new Application();
   const router = new Router();
   app.use(router.routes());
@@ -34,10 +43,18 @@ describe("Each metric property updated accurately", () => {
 
   beforeAll(async () => {
     router
-      .get('/test1', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-      .get('/test2', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-      .get('/test3', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-      .get('/test4', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
+      .get('/test1', cache.use, (ctx: Context) => {
+        ctx.response.body = 'testing123';
+      })
+      .get('/test2', cache.use, (ctx: Context) => {
+        ctx.response.body = 'testing123';
+      })
+      .get('/test3', cache.use, (ctx: Context) => {
+        ctx.response.body = 'testing123';
+      })
+      .get('/test4', cache.use, (ctx: Context) => {
+        ctx.response.body = 'testing123';
+      });
     const request1 = await superoak(app);
     const request2 = await superoak(app);
     const request3 = await superoak(app);
@@ -56,19 +73,19 @@ describe("Each metric property updated accurately", () => {
     await request8.get('/test4');
   });
 
-  it("should handle numberOfEntries correctly", () => {
+  it('should handle numberOfEntries correctly', () => {
     assertEquals(cache.metrics.numberOfEntries, 3);
   });
 
-  it("should have a readProcessed method that updates readsProcessed correctly", () => {
+  it('should have a readProcessed method that updates readsProcessed correctly', () => {
     assertEquals(cache.metrics.readsProcessed, 4);
   });
 
-  it("should have a writeProcessed method that updates writesProcessed correctly", () => {
+  it('should have a writeProcessed method that updates writesProcessed correctly', () => {
     assertEquals(cache.metrics.writesProcessed, 4);
   });
-  
-  it("should have an increaseBytes method that updates memoryUsed correctly", () => {
+
+  it('should have an increaseBytes method that updates memoryUsed correctly', () => {
     assertEquals(cache.metrics.memoryUsed, 390);
   });
 });

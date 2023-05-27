@@ -16,6 +16,12 @@ jobs:
         with:
           deno-version: canary
 
+      - name: Run formatting check
+        run: deno fmt --check
+
+      - name: Lint Deno Module
+        run: deno lint
+
       - name: Run tests
         run: deno test --coverage=./src/tests/coverage_report  ./src/tests/ --allow-net
 
