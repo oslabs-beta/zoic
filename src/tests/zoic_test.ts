@@ -139,24 +139,56 @@ describe('Should update in-memory cache appropriately', () => {
   app.use(router.routes());
 
   it('Caches response body as a Unit8Array', async () => {
-    const cache = new Zoic({ capacity: 5 });
-    const lru = await cache.cache;
+    const lruCache = new Zoic({ capacity: 5, cache: 'lru' });
+    const fifoCache = new Zoic({ capacity: 5, cache: 'fifo'});
+    const lfuCache = new Zoic({ capacity: 5, cache: 'lfu'});
 
-    if (cache.redisTypeCheck(lru)) return assert(false);
+    const lru = await lruCache.cache;
+    const fifo = await fifoCache.cache;
+    const lfu = await lfuCache.cache;
 
-    router.get('/test', cache.use, (ctx: Context) => {
-      ctx.response.body = 'testing123';
+    if (lruCache.redisTypeCheck(lru)) return assert(false);
+    if (fifoCache.redisTypeCheck(fifo)) return assert(false);
+    if (lfuCache.redisTypeCheck(lfu)) return assert(false);
+
+    router.get('/lrutest', lruCache.use, (ctx: Context) => {
+      ctx.response.body = 'lrutesting123';
     });
 
-    const request = await superoak(app);
+    router.get('/fifotest', fifoCache.use, (ctx: Context) => {
+      ctx.response.body = 'fifotesting123';
+    });
 
-    await request.get('/test').expect(200).expect('testing123');
-    const cacheBody = lru.get('/test')?.body;
-    assertInstanceOf(cacheBody, Uint8Array);
+    router.get('/lfutest', lfuCache.use, (ctx: Context) => {
+      ctx.response.body = 'lfutesting123';
+    });
+
+    const requestLRU = await superoak(app);
+    await requestLRU.get('/lrutest').expect(200).expect('lrutesting123');
+    const cacheBodyLRU = lru.get('/lrutest')?.body;
+    assertInstanceOf(cacheBodyLRU, Uint8Array);
     assertEquals(
-      new TextDecoder('utf-8').decode(lru.get('/test')?.body),
-      'testing123',
+      new TextDecoder('utf-8').decode(cacheBodyLRU),
+      'lrutesting123',
     );
+
+    const requestFIFO = await superoak(app);
+    await requestFIFO.get('/fifotest').expect(200).expect('fifotesting123');
+    const cacheBodyFIFO = fifo.get('/fifotest')?.body;
+    assertInstanceOf(cacheBodyFIFO, Uint8Array);
+    assertEquals(
+      new TextDecoder('utf-8').decode(cacheBodyFIFO),
+      'fifotesting123',
+    )
+
+    const requestLFU = await superoak(app);
+    await requestLFU.get('/lfutest').expect(200).expect('lfutesting123');
+    const cacheBodyLFU = lfu.get('/lfutest')?.body;
+    assertInstanceOf(cacheBodyLFU, Uint8Array);
+    assertEquals(
+      new TextDecoder('utf-8').decode(cacheBodyLFU),
+      'lfutesting123',
+    )
   });
 
   it('Cache stores and sends response', async () => {
@@ -265,7 +297,7 @@ describe('Should update in-memory cache appropriately', () => {
     await request2.get('/test100').expect(200).expect('2');
   });
 
-  it('Put method modifys existing entry', async () => {
+  it('Put method modifies existing entry', async () => {
     const cache = new Zoic({ capacity: 5 });
     const lru = await cache.cache;
 

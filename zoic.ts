@@ -193,6 +193,7 @@ export class Zoic {
    */
   async use(ctx: Context, next: () => Promise<unknown>) {
     try {
+      // assigns 'cache' value of instance of cache object (lfu, lru, etc.)
       const cache = await this.cache;
 
       //starting mark for cache hit/miss latency performance test.
