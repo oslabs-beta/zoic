@@ -1,13 +1,12 @@
-import { assert, assertThrows, assertEquals, assertInstanceOf, assertRejects } from "https://deno.land/std@0.145.0/testing/asserts.ts";
+ierror: Module not found "https://deno.land/x/ozoic@v1.0.6".mport { assert, assertThrows, assertEquals, assertInstanceOf, assertRejects } from "https://deno.land/std@0.145.0/testing/asserts.ts";
 import { describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { Application, Router, Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Application, Router, Context } from 'https://deno.land/x/oak@v17.1.4/mod.ts';
 import { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";
 import Zoic  from '../../zoic.ts';
 import LRU from '../lru.ts';
 import LFU from '../lfu.ts';
 
 describe("Arguments passed into the performance metrics change ", () => {
-
   const lruTestCacheInstance = new Zoic({capacity: 10, expire: '2h, 3s, 5m, 80d', cache: 'LrU'});
   const lfuTestCacheInstance = new Zoic({capacity: 10, expire: '2h, 3s, 5m, 80d', cache: 'lfu'});
 
@@ -36,7 +35,6 @@ describe("Arguments passed into the performance metrics change ", () => {
 });
 
 describe("Zoic should handle default args approporately", () => {
-
   const testCacheInstance = new Zoic();
 
   it("should handle when nothing input for expiration time", () => {
@@ -61,7 +59,7 @@ describe("Zoic should handle poorly formatted args appropriately", () => {
         expire: 'this should not work',
         cache: 'LRU'
       }),
-      TypeError, 
+      TypeError,
       'Cache expiration time must be string formatted as a numerical value followed by \'d\', \'h\', \'m\', or \'s\', or a number representing time in seconds.'
     );
   });
@@ -82,7 +80,7 @@ describe("Zoic should handle poorly formatted args appropriately", () => {
     assertThrows(() => new Zoic({expire: 31536001}), TypeError, 'Cache expiration time out of range.');
     assertThrows(() => new Zoic({expire: 0}), TypeError, 'Cache expiration time out of range.');
   });
-  
+
 });
 
 describe("Should update in-memory cache appropriately", () => {
@@ -99,9 +97,9 @@ describe("Should update in-memory cache appropriately", () => {
     router.get('/test', cache.use, (ctx: Context) => {
       ctx.response.body = 'testing123';
     });
-    
+
     const request = await superoak(app);
-    
+
     await request.get('/test').expect(200).expect('testing123');
     const cacheBody = lru.get('/test')?.body;
     assertInstanceOf(cacheBody, Uint8Array);
@@ -112,18 +110,18 @@ describe("Should update in-memory cache appropriately", () => {
   it('Cache stores and sends response', async () => {
     const cache = new Zoic({capacity:5});
     const lru = await cache.cache;
-    
+
     if (cache.redisTypeCheck(lru)) return assert(false);
 
     router.get('/test1', cache.use, (ctx: Context) => {
       ctx.response.body = 'testing123';
     });
-    
+
     const request1 = await superoak(app);
     const request2 = await superoak(app);
     await request1.get('/test1').expect(200).expect('testing123');
-    await request2.get('/test1').expect(200).expect('testing123');  
-    
+    await request2.get('/test1').expect(200).expect('testing123');
+
     router.get('/test2', cache.use, async (ctx: Context) => {
       ctx.response.body = 'testing123';
       const resObj = await ctx.response.toDomResponse();
@@ -147,7 +145,7 @@ describe("Should update in-memory cache appropriately", () => {
       const res = ctx.request.body({type: 'json'});
       ctx.response.body = await res.value;
     })
-    
+
     const getReq = await superoak(app);
     const postReq = await superoak(app);
     await getReq.get('/test3').expect(200).expect('testing123');
@@ -162,7 +160,7 @@ describe("Should update in-memory cache appropriately", () => {
 
   it('Should get metrics', async () => {
     const cache = new Zoic({capacity:5, expire: 1});
-    router.get('/testMetrics', cache.getMetrics);  
+    router.get('/testMetrics', cache.getMetrics);
     const req = await superoak(app);
     await req.get('/testMetrics').expect(200).expect(
       {
@@ -180,7 +178,7 @@ describe("Should update in-memory cache appropriately", () => {
   it('Should clear cache', async () => {
     const cache = new Zoic({capacity:5});
     const lru = await cache.cache;
-    
+
     if (cache.redisTypeCheck(lru)) return assert(false);
 
     router.get('/test20', cache.use, (ctx: Context) => {
@@ -189,7 +187,7 @@ describe("Should update in-memory cache appropriately", () => {
     router.get('/test21', cache.clear, (ctx: Context) => {
       ctx.response.body = 'testing400';
     });
-    
+
     const request1 = await superoak(app);
     const request2 = await superoak(app);
     await request1.get('/test20').expect(200).expect('testing123');
@@ -201,23 +199,23 @@ describe("Should update in-memory cache appropriately", () => {
   it('Should not respond if respondOnHit is false', async () => {
     const cache = new Zoic({capacity:5, respondOnHit: false});
     const lru = await cache.cache;
-    
+
     if (cache.redisTypeCheck(lru)) return assert(false);
 
     router.get('/test100', cache.use, (ctx: Context) => {
       ctx.response.body = String(Number(ctx.state.zoicResponse?.body) + 1 || 1);
     });
-    
+
     const request1 = await superoak(app);
     const request2 = await superoak(app);
     await request1.get('/test100').expect(200).expect('1');
-    await request2.get('/test100').expect(200).expect('2');  
+    await request2.get('/test100').expect(200).expect('2');
   });
 
   it('Put method modifys existing entry', async () => {
     const cache = new Zoic({capacity:5});
     const lru = await cache.cache;
-    
+
     if (cache.redisTypeCheck(lru)) return assert(false);
 
     router.get('/test69', cache.use, (ctx: Context) => {
@@ -226,12 +224,12 @@ describe("Should update in-memory cache appropriately", () => {
     router.post('/test69', cache.put, (ctx: Context) => {
       ctx.response.body = 'modTest';
     })
-    
+
     const request1 = await superoak(app);
     const request2 = await superoak(app);
     const request3 = await superoak(app);
     await request1.get('/test69').expect(200).expect('testing123');
     await request2.post('/test69').expect(200).expect('modTest');
-    await request3.get('/test69').expect(200).expect('modTest');  
+    await request3.get('/test69').expect(200).expect('modTest');
   })
 })

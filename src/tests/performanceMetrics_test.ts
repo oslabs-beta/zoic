@@ -1,13 +1,12 @@
 import { assertEquals, assertInstanceOf } from "https://deno.land/std@0.145.0/testing/asserts.ts";
 import { describe, it,  beforeAll } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { Application, Router, Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import { Application, Router, Context } from 'https://deno.land/x/oak@v17.1.4/mod.ts';
 import { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";
 import Zoic from '../../zoic.ts';
 import PerfMetrics from '../performanceMetrics.ts';
 
 
 describe("Cache should contain correct metrics", () => {
-
   const cache = new Zoic({capacity:5});
 
   it("should have a metrics property with an object as its value", () => {
@@ -67,7 +66,7 @@ describe("Each metric property updated accurately", () => {
   it("should have a writeProcessed method that updates writesProcessed correctly", () => {
     assertEquals(cache.metrics.writesProcessed, 4);
   });
-  
+
   it("should have an increaseBytes method that updates memoryUsed correctly", () => {
     assertEquals(cache.metrics.memoryUsed, 390);
   });

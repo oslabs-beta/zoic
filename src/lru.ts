@@ -30,12 +30,11 @@ class LRU {
 
   /**
    * Adds new item to cache.
-   * @param key 
-   * @param value 
-   * @returns 
+   * @param key
+   * @param value
+   * @returns
    */
-  put (key: string, value: cacheValue, byteSize: number)  {
-
+  public put (key: string, value: cacheValue, byteSize: number)  {
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
     if (this.cache[key]){
       this.metrics.decreaseBytes(this.cache[key].byteSize);
@@ -43,7 +42,7 @@ class LRU {
 
       this.cache[key].value = value;
       return this.get(key);
-    } 
+    }
 
     //add new item to list head.
     this.cache[key] = this.list.addHead(key, value, byteSize, new Date());
@@ -62,14 +61,12 @@ class LRU {
     return;
   }
 
-
   /**
    * Gets item from cache and moves to head -- most recently used.
-   * @param key 
-   * @returns 
+   * @param key
+   * @returns
    */
-  get (key: string) {
-
+  public get (key: string) {
     //If no matching cache value (cache miss), return next();
     if (!this.cache[key]) return undefined;
 
@@ -95,13 +92,12 @@ class LRU {
     return node.value;
   }
 
-
   /**
    * Removes item from any location in the cache.
-   * @param key 
-   * @returns 
+   * @param key
+   * @returns
    */
-  delete (key: string) {
+  public delete (key: string) {
     const node = this.cache[key];
     if (!node) return;
 
@@ -112,11 +108,10 @@ class LRU {
     return node;
   }
 
-  
   /**
    * Clears entire cache contents.
    */
-  clear () {
+  public clear () {
     this.list = new ValueDoublyLinkedList();
     this.cache = {};
     this.length = 0;
