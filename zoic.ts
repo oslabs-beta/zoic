@@ -72,7 +72,6 @@ export class Zoic {
     this.endPerformanceMark = this.endPerformanceMark.bind(this);
   }
 
-
   /**
    * Sets cache eviction policty. Defaults to LRU.
    * @param expire
@@ -100,7 +99,6 @@ export class Zoic {
     }
     throw new TypeError('Invalid cache type.');
   }
-
 
   /**
    * Parses expire option into time in seconds.
