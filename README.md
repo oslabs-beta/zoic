@@ -29,10 +29,10 @@ To get started, first make sure you have [Deno](https://deno.land) installed and
 
 ### Quick Start
 
-In your application, import the Zoic module from the deno.land [module](https://github.com/unkn0wn-root/zoic).
+In your application, import the Zoic module from the deno.land [module](https://deno.land/x/ozoic@v1.0.6).
 
 ```typescript
-import { Zoic } from 'https://github.com/unkn0wn-root/zoic';
+import { Zoic } from 'https://deno.land/x/ozoic@v1.0.6';
 ```
 
 ### Create a cache

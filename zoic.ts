@@ -15,7 +15,7 @@ import LFU from './src/lfu.ts'
   *
   * ```ts
   *
-  * import { Zoic } from "https://github.com/unkn0wn-root/zoic"
+  * import { Zoic } from "https://deno.land/x/ozoic@v1.0.6"
   *
   * const cache = new Zoic({
   *   cache: 'LRU',
