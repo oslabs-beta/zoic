@@ -315,7 +315,7 @@ export class Zoic {
   /**
    * Manually clears all current cache entries.
    */
-  async clear (ctx: Context, next: () => Promise<unknown>) {
+  public async clear (ctx: Context, next: () => Promise<unknown>) {
     try {
       const cache = await this.cache;
       this.redisTypeCheck(cache)
@@ -335,7 +335,7 @@ export class Zoic {
    * Retrives cache metrics. Designed for use with Chrome extension.
    * @param ctx
    */
-  getMetrics (ctx: Context) {
+  public getMetrics (ctx: Context) {
     try {
       //wrap functionality of sending metrics inside of oakCors to enable route specific cors by passing in as 'next'.
       const enableRouteCors = oakCors();
@@ -395,11 +395,13 @@ export class Zoic {
    * @param next
    * @returns
    */
-  put (ctx: Context, next: () => Promise<unknown>) {
+  public put(ctx: Context, next: () => Promise<unknown>) {
     try {
       performance.mark('startingMark');
 
-      if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
+      if (this.metrics.numberOfEntries < this.capacity) {
+          this.metrics.addEntry()
+      }
 
       this.cacheResponse(ctx);
 
