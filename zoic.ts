@@ -1,6 +1,6 @@
 import { decode as base64decode, encode as base64encode } from 'https://deno.land/std@0.89.0/encoding/base64.ts'
-import { Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts'
-import { connect, Redis } from 'https://deno.land/x/redis@v0.26.0/mod.ts'
+import { Context } from 'https://deno.land/x/oak@v17.1.4/mod.ts'
+import { connect, Redis } from 'https://deno.land/x/redis@v0.37.1/mod.ts'
 import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts'
 import { options, cacheValue } from './src/types.ts'
 import PerfMetrics from './src/performanceMetrics.ts'
@@ -10,35 +10,35 @@ import LFU from './src/lfu.ts'
 /**
   * Class to initalize new instance of cache.
   * Takes options to define if cache eviction policy, expiration time for cache itmes, and if response should be returned on cache hit.
-  * 
+  *
   * ### Example
-  * 
+  *
   * ```ts
-  * 
+  *
   * import { Zoic } from "https://deno.land/x/zoic/zoic.ts"
-  * 
+  *
   * const cache = new Zoic({
   *   cache: 'LRU',
   *   expire: '2h, 5m, 3s',
   *   capacity: 200
   * });
-  * 
+  *
   * router.get('/dbRead', cache.use, controller.dbRead, ctx => {
   *  ctx.response.body = ctx.state.somethingFromDb;});
-  * 
+  *
   * ```
-  * 
+  *
   * ### Wtih Redis
   *  Note: with Reids options "expire" and "capacity" do not apply.
   * ```ts
-  * 
-  * const cache = new Zoic({ 
+  *
+  * const cache = new Zoic({
   *   cache:'Redis',
   *   port: 6379
   *  })
-  * 
+  *
   * ```
-  * 
+  *
   * @param option (cache options)
   * @returns LRU | Redis (new cache)
 */
@@ -75,8 +75,8 @@ export class Zoic {
 
   /**
    * Sets cache eviction policty. Defaults to LRU.
-   * @param expire 
-   * @param cache 
+   * @param expire
+   * @param cache
    * @returns LRU | Redis
    */
   async #initCacheType (expire: number, metrics: PerfMetrics, cache?: string, redisPort?: number, hostname?: string) {
@@ -90,7 +90,7 @@ export class Zoic {
     } else if (cache === 'REDIS'){
       if (!redisPort) {
         throw new Error('Redis requires port number passed in as an options property.');
-      } 
+      }
       const redis = await connect({
         hostname: hostname || '127.0.0.1',
         port: redisPort
@@ -104,7 +104,7 @@ export class Zoic {
 
   /**
    * Parses expire option into time in seconds.
-   * @param numberString 
+   * @param numberString
    * @returns number
    */
   #parseExpTime (numberString?: string | number | undefined) {
@@ -130,8 +130,8 @@ export class Zoic {
 
   /**
    * Sets respond on hit value, defaults to true.
-   * @param options 
-   * @returns 
+   * @param options
+   * @returns
    */
   #setRespondOnHit (options?: options) {
     if (options?.respondOnHit === undefined) return true;
@@ -141,8 +141,8 @@ export class Zoic {
 
   /**
    * typecheck for Redis cache
-   * @param cache 
-   * @returns 
+   * @param cache
+   * @returns
    */
   redisTypeCheck (cache: LRU | LFU | Redis): cache is Redis {
     return (cache as Redis).isConnected !== undefined;
@@ -150,7 +150,7 @@ export class Zoic {
 
   /**
    * Marks end of latency test for cache hit or miss, and updates read or write processed
-   * @param queryRes 
+   * @param queryRes
    */
   endPerformanceMark (queryRes: 'hit' | 'miss') {
     performance.mark('endingMark');
@@ -158,8 +158,8 @@ export class Zoic {
       performance.measure('latency_timer', 'startingMark', 'endingMark').duration,
       queryRes
     );
-    queryRes === 'hit' 
-      ? this.metrics.readProcessed() 
+    queryRes === 'hit'
+      ? this.metrics.readProcessed()
       : this.metrics.writeProcessed();
   }
 
@@ -168,30 +168,30 @@ export class Zoic {
    * Primary caching middleware method on user end.
    * Resposible for querying cache and either returning results to client/attaching results to ctx.state.zoic (depending on user options)
    * or, in the case of a miss, signalling to make response cachable.
-   * @param ctx 
-   * @param next 
+   * @param ctx
+   * @param next
    * @returns Promise | void
    */
-  async use (ctx: Context, next: () => Promise<unknown>) {      
+  async use (ctx: Context, next: () => Promise<unknown>) {
     try {
 
       const cache = await this.cache;
-  
+
       //starting mark for cache hit/miss latency performance test.
       performance.mark('startingMark');
-  
+
       //defines key via api endpoint
       const key: string = ctx.request.url.pathname + ctx.request.url.search;
-      
+
       //query cache
       const cacheQueryResults = await cache.get(key);
 
       //check if cache miss
       if (!cacheQueryResults) {
 
-        // If declared cache size is less than current cache size, we increment the count of entries. 
+        // If declared cache size is less than current cache size, we increment the count of entries.
         if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
-        
+
         //makes response cacheable via patch
         this.#cacheResponse(ctx);
         return next();
@@ -215,7 +215,7 @@ export class Zoic {
 
           this.endPerformanceMark('hit');
           return;
-        } 
+        }
 
         //attach query results to ctx.state.zoic if not respondOnHit
         ctx.state.zoicResponse = {
@@ -225,12 +225,12 @@ export class Zoic {
         };
 
         this.endPerformanceMark('hit');
-        return next();  
+        return next();
       }
 
       //if in-memory cache...
       if (!this.redisTypeCheck(cache) && typeof cacheQueryResults !== 'string'){
-        
+
         const { body, headers, status } = cacheQueryResults;
 
         if (this.respondOnHit) {
@@ -240,11 +240,11 @@ export class Zoic {
           Object.keys(headers).forEach(key => {
             ctx.response.headers.set(key, headers[key]);
           });
-  
+
           this.endPerformanceMark('hit');
           return;
         }
-        
+
         ///attach query results to ctx.state.zoic if not respondOnHit
         ctx.state.zoicResponse = {
           body: JSON.parse(new TextDecoder().decode(body)),
@@ -269,7 +269,7 @@ export class Zoic {
   /**
    * Makes response store to cache at the end of middleware chain in the case of a cache miss.
    * This is done by patching 'toDomResponse' to send results to cache before returning to client.
-   * @param ctx 
+   * @param ctx
    * @returns void
    */
   async #cacheResponse (ctx: Context) {
@@ -284,10 +284,10 @@ export class Zoic {
 
         //defines key via api endpoint and adds response body to cache
         const key: string = ctx.request.url.pathname + ctx.request.url.search;
-        
+
         //extract native http response from toDomResponse to get correct headers and readable body
         const nativeResponse = await toDomResponsePrePatch.apply(this);
-        
+
         //redis cache stores body as a base64 string encoded from a buffer
         if (redisTypeCheck(cache)) {
           //make response body string, and then stringify response object for storage in redis
@@ -302,8 +302,8 @@ export class Zoic {
             key,
             `${ btoa(JSON.stringify(headerAndStatus)) }\n${ base64encode(new Uint8Array(body)) }`
           );
-        } 
-        
+        }
+
         //if in-memory store as native js...
         if (!redisTypeCheck(cache)) {
           //make response body unit8array and read size for metrics
@@ -323,14 +323,14 @@ export class Zoic {
 
           //34 represents size of obj keys + status code.
           const resByteLength = (key.length * 2) + responseToCache.body.byteLength + headerBytes + 34;
-    
+
           cache.put(key, responseToCache, resByteLength);
         }
-        
+
         //ending mark for a cache miss latency performance test.
         endPerformanceMark('miss');
 
-        return new Promise (resolve => {                
+        return new Promise (resolve => {
           resolve(nativeResponse);
         });
       }
@@ -342,7 +342,7 @@ export class Zoic {
       console.log(`Error in Zoic.#cacheResponse: ${err}`);
     }
   }
-  
+
 
   /**
    * Manually clears all current cache entries.
@@ -351,13 +351,13 @@ export class Zoic {
     try {
       const cache = await this.cache;
 
-      this.redisTypeCheck(cache) 
+      this.redisTypeCheck(cache)
         ? cache.flushdb()
         : cache.clear();
 
       this.metrics.clearEntires();
       return next();
-      
+
     } catch (err) {
       ctx.response.status = 400;
       ctx.response.body = 'Error in Zoic.clear. Check server logs for details.';
@@ -368,7 +368,7 @@ export class Zoic {
 
   /**
    * Retrives cache metrics. Designed for use with Chrome extension.
-   * @param ctx 
+   * @param ctx
    */
   getMetrics (ctx: Context) {
     try {
@@ -378,7 +378,7 @@ export class Zoic {
       return enableRouteCors(ctx, async () => {
 
         const cache = await this.cache;
-  
+
         const {
           cacheType,
           memoryUsed,
@@ -388,7 +388,7 @@ export class Zoic {
           missLatencyTotal,
           hitLatencyTotal
         } = this.metrics;
-      
+
         ctx.response.headers.set('Access-Control-Allow-Origin', '*');
 
         //fetch stats from redis client if needed.
@@ -407,8 +407,8 @@ export class Zoic {
             average_miss_latency: missLatencyTotal / writesProcessed
           }
           return;
-        } 
-    
+        }
+
         //set in-memory stats
         ctx.response.body = {
           cache_type: cacheType,
@@ -419,8 +419,8 @@ export class Zoic {
           average_hit_latency: hitLatencyTotal / readsProcessed,
           average_miss_latency: missLatencyTotal / writesProcessed
         }
-        return;      
-      })      
+        return;
+      })
     } catch (err) {
       ctx.response.status = 400;
       ctx.response.body = 'Error in Zoic.getMetrics. Check server logs for details.';
@@ -431,13 +431,13 @@ export class Zoic {
 
   /**
    *  Manually sets response to cache.
-   * @param ctx 
-   * @param next 
-   * @returns 
+   * @param ctx
+   * @param next
+   * @returns
    */
   put (ctx: Context, next: () => Promise<unknown>) {
     try {
-     
+
       performance.mark('startingMark');
 
       if (this.metrics.numberOfEntries < this.capacity) this.metrics.addEntry();
