@@ -78,7 +78,7 @@ export class Zoic {
    * @param cache
    * @returns LRU | Redis
    */
-  private async initCacheType (expire: number, metrics: PerfMetrics, cache?: string, redisPort?: number, hostname?: string) {
+  private async initCacheType(expire: number, metrics: PerfMetrics, cache?: string, redisPort?: number, hostname?: string) {
     // The client will enter the specific cache function they want as a string, which is passed as an arg here.
     if (!cache || cache === 'LRU'){
       this.metrics.cacheType = 'LRU';
@@ -105,7 +105,7 @@ export class Zoic {
    * @param numberString
    * @returns number
    */
-  private parseExpTime (numberString?: string | number | undefined) {
+  private parseExpTime(numberString?: string | number | undefined) {
     if (numberString === undefined) return Infinity;
     let seconds;
     if (typeof numberString === 'string'){
@@ -130,7 +130,7 @@ export class Zoic {
    * @param options
    * @returns
    */
-  private setRespondOnHit (options?: options) {
+  private setRespondOnHit(options?: options) {
     if (options?.respondOnHit === undefined) return true;
     return options.respondOnHit;
   }
@@ -140,7 +140,7 @@ export class Zoic {
    * @param cache
    * @returns
    */
-  public redisTypeCheck (cache: LRU | LFU | Redis): cache is Redis {
+  public redisTypeCheck(cache: LRU | LFU | Redis): cache is Redis {
     return (cache as Redis).isConnected !== undefined;
   }
 
@@ -148,7 +148,7 @@ export class Zoic {
    * Marks end of latency test for cache hit or miss, and updates read or write processed
    * @param queryRes
    */
-  public endPerformanceMark (queryRes: 'hit' | 'miss') {
+  public endPerformanceMark(queryRes: 'hit' | 'miss') {
     performance.mark('endingMark');
     this.metrics.updateLatency(
       performance.measure('latency_timer', 'startingMark', 'endingMark').duration,
@@ -167,7 +167,7 @@ export class Zoic {
    * @param next
    * @returns Promise | void
    */
-  public async use (ctx: Context, next: () => Promise<unknown>) {
+  public async use(ctx: Context, next: () => Promise<unknown>) {
     try {
       const cache = await this.cache;
 
@@ -248,7 +248,7 @@ export class Zoic {
    * @param ctx
    * @returns void
    */
-  private async cacheResponse (ctx: Context) {
+  private async cacheResponse(ctx: Context) {
     try {
       const cache = await this.cache;
       const redisTypeCheck = this.redisTypeCheck;
@@ -315,7 +315,7 @@ export class Zoic {
   /**
    * Manually clears all current cache entries.
    */
-  public async clear (ctx: Context, next: () => Promise<unknown>) {
+  public async clear(ctx: Context, next: () => Promise<unknown>) {
     try {
       const cache = await this.cache;
       this.redisTypeCheck(cache)
@@ -335,7 +335,7 @@ export class Zoic {
    * Retrives cache metrics. Designed for use with Chrome extension.
    * @param ctx
    */
-  public getMetrics (ctx: Context) {
+  public getMetrics(ctx: Context) {
     try {
       //wrap functionality of sending metrics inside of oakCors to enable route specific cors by passing in as 'next'.
       const enableRouteCors = oakCors();
