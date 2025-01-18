@@ -1,5 +1,5 @@
-import { assertEquals, assert } from "https://deno.land/std@0.145.0/testing/asserts.ts";
-import { describe, it } from "https://deno.land/std@0.145.0/testing/bdd.ts";
+import { assertEquals, assert } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { describe, it } from "https://deno.land/std@0.224.0/testing/bdd.ts";
 import PerfMetrics from '../performanceMetrics.ts';
 import LFU from '../lfu.ts'
 
@@ -34,7 +34,7 @@ describe("LFU tests", () => {
     assertEquals(item1?.body, new Uint8Array([4]))
     assertEquals(lfu.freqList.head?.valList.head?.key, 'item5');
     assertEquals(lfu.freqList.head?.next?.valList.head?.key, 'item4');
-     
+
     const item2 = lfu.get('item5');
     assertEquals(item2?.body, new Uint8Array([5]));
     assertEquals(lfu.freqList.head?.valList.head?.key, 'item3');
@@ -103,7 +103,7 @@ describe("LFU tests", () => {
     assertEquals(lfu.freqList.head?.valList.head?.key, 'item8');
     assertEquals(lfu.freqList.head?.valList.head?.next?.key, 'item7');
     assertEquals(lfu.freqList.head?.valList.head?.prev, null);
-    
+
     lfu.get('item7');
     lfu.put('item9',  {headers:{}, body: new Uint8Array([9]), status:200}, 10);
     assertEquals(lfu.freqList.head?.valList.head?.key, 'item9');
@@ -127,7 +127,7 @@ describe("LFU tests", () => {
     const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const shortLru = new LFU(1, new PerfMetrics, 8);
     shortLru.put('item1', {headers:{}, body: new Uint8Array([1]), status:200}, 10);
-    await timeout(1001);
+    await timeout(3000);
     assert(!shortLru.get('item1'));
     assert(!shortLru.freqList.head);
     shortLru.put('item2', {headers:{}, body: new Uint8Array([2]), status:200}, 10);

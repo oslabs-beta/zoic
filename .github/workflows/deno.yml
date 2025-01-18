@@ -17,7 +17,7 @@ jobs:
           deno-version: canary
 
       - name: Run tests
-        run: deno test --coverage=./src/tests/coverage_report  ./src/tests/ --allow-net
+        run: deno test --coverage=./src/tests/coverage_report  ./src/tests/ --allow-net --allow-import
 
       - name: Create coverage report
         run:  deno --unstable coverage ./src/tests/coverage_report --lcov > coverage_report.lcov
