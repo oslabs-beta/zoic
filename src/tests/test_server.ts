@@ -24,7 +24,7 @@ export class TestServer {
   }
 
   public start(): Promise<number> {
-    this.controller = new AbortController();
+    this.controller = this.createAbortController();
     return new Promise((resolve) => {
       const listener = (evt: ApplicationListenEvent) => {
         this.port = evt.port;
@@ -42,5 +42,9 @@ export class TestServer {
 
   public stop(): void {
     this.controller.abort();
+  }
+
+  private createAbortController(): AbortController {
+      return new AbortController();
   }
 }
