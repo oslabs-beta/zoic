@@ -1,7 +1,8 @@
-import { assertEquals, assertInstanceOf } from "https://deno.land/std@0.145.0/testing/asserts.ts";
-import { Application, Router, Context } from 'https://deno.land/x/oak@v17.1.4/mod.ts';
+import { assertEquals, assertInstanceOf } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { Context } from 'https://deno.land/x/oak@v17.1.4/mod.ts';
 import Zoic from '../../zoic.ts';
 import PerfMetrics from '../performanceMetrics.ts';
+import { TestServer } from './test_server.ts';
 
 Deno.test("Cache should contain correct metrics", async (t) => {
   const cache = new Zoic({capacity:5});
@@ -23,47 +24,35 @@ Deno.test("Cache should contain correct metrics", async (t) => {
 
 Deno.test("Each metric property updated accurately", async (t) => {
   const cache = new Zoic({capacity:3});
-  const app = new Application();
-  const router = new Router();
-  app.use(router.routes());
-  app.use(router.allowedMethods());
+  const server = new TestServer();
+  const router = server.getRouter();
 
-  // Helper function to start and stop the server for tests
-  const withServer = async (fn: (port: number) => Promise<void>) => {
-    const controller = new AbortController();
-    const { signal } = controller;
-    const port = 8000 + Math.floor(Math.random() * 1000); // Random port to avoid conflicts
-
-    app.addEventListener('listen', async ({ port }) => {
-      try {
-        await fn(port);
-      } finally {
-        controller.abort();
-      }
+  // Setup routes for tests 1-4
+  Array.from({ length: 4 }, (_, i) => i + 1).forEach(i => {
+    router.get(`/test${i}`, cache.use, (ctx: Context) => {
+      ctx.response.body = 'testing123';
     });
+  });
 
-    await app.listen({ port, signal });
-  };
+  const port = await server.start();
 
-  // Setup routes
-  router
-    .get('/test1', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-    .get('/test2', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-    .get('/test3', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-    .get('/test4', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'});
+  try {
+    const baseUrl = `http://localhost:${port}/test`;
 
-  // Run all requests before testing metrics
-  await withServer(async (port) => {
-    await fetch(`http://localhost:${port}/test1`);
-    await fetch(`http://localhost:${port}/test1`);
-    await fetch(`http://localhost:${port}/test2`);
-    await fetch(`http://localhost:${port}/test2`);
-    await fetch(`http://localhost:${port}/test2`);
-    await fetch(`http://localhost:${port}/test2`);
-    await fetch(`http://localhost:${port}/test3`);
-    await fetch(`http://localhost:${port}/test4`);
+    // Sequential requests with immediate body consumption
+    for (const response of [
+      await fetch(baseUrl + '1'),
+      await fetch(baseUrl + '1'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '3'),
+      await fetch(baseUrl + '4')
+    ]) {
+      await response.body?.cancel();
+    }
 
-    // run the actual metric tests
     await t.step("should handle numberOfEntries correctly", () => {
       assertEquals(cache.metrics.numberOfEntries, 3);
     });
@@ -79,5 +68,7 @@ Deno.test("Each metric property updated accurately", async (t) => {
     await t.step("should have an increaseBytes method that updates memoryUsed correctly", () => {
       assertEquals(cache.metrics.memoryUsed, 390);
     });
-  });
+  } finally {
+    server.stop();
+  }
 });
