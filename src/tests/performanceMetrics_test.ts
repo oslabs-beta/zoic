@@ -1,5 +1,5 @@
-import { assertEquals, assertInstanceOf } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { Context } from 'https://deno.land/x/oak@v17.1.4/mod.ts';
+import { assertEquals, assertInstanceOf } from "std/asserts";
+import { Context } from "oak";
 import Zoic from '../../zoic.ts';
 import PerfMetrics from '../performanceMetrics.ts';
 import { TestServer } from './test_server.ts';

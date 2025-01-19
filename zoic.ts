@@ -1,7 +1,7 @@
-import { decode as base64decode, encode as base64encode } from 'https://deno.land/std@0.89.0/encoding/base64.ts'
-import { Context } from 'https://deno.land/x/oak@v17.1.4/mod.ts'
-import { connect, Redis } from 'https://deno.land/x/redis@v0.37.1/mod.ts'
-import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts'
+import { decode as base64decode, encode as base64encode } from 'std/base64';
+import { Context } from 'oak';
+import { connect, Redis } from 'redis';
+import { oakCors } from 'cors';
 import { options, cacheValue } from './src/types.ts'
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts'

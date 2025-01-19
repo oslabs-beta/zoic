@@ -1,5 +1,5 @@
-import { assertEquals, assert } from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { describe, it } from "https://deno.land/std@0.224.0/testing/bdd.ts";
+import { assertEquals, assert } from "std/asserts";
+import { describe, it } from "std/bdd";
 import PerfMetrics from '../performanceMetrics.ts';
 import LRU from '../lru.ts'
 

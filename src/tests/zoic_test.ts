@@ -4,8 +4,8 @@ import {
   assertEquals,
   assertInstanceOf,
   assertRejects,
-} from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { Context } from "https://deno.land/x/oak@v17.1.4/mod.ts";
+} from "std/asserts";
+import { Context } from "oak";
 import Zoic from "../../zoic.ts";
 import LRU from "../lru.ts";
 import LFU from "../lfu.ts";

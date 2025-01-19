@@ -1,5 +1,5 @@
-import { Application, Router } from "https://deno.land/x/oak@v17.1.4/mod.ts";
-import type { ApplicationListenEvent } from "https://deno.land/x/oak@v17.1.4/application.ts";
+import { Application, Router } from "oak";
+import type { ApplicationListenEvent } from "oak/application";
 
 // Test server setup utility with proper cleanup
 export class TestServer {
