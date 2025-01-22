@@ -42,6 +42,7 @@ class PerfMetrics {
       this.currentMissLatency = latency;
       return;
     }
+
     throw new TypeError('Hit or miss not specified');
   };
 }

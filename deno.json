@@ -6,6 +6,7 @@
     "oak": "https://deno.land/x/oak@v17.1.4/mod.ts",
     "oak/application": "https://deno.land/x/oak@v17.1.4/application.ts",
     "redis": "https://deno.land/x/redis@v0.37.1/mod.ts",
+    "redis/command": "https://deno.land/x/redis@v0.37.1/command.ts",
     "cors": "https://deno.land/x/cors@v1.2.2/mod.ts"
   }
 }
