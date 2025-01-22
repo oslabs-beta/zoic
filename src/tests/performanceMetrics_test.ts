@@ -1,20 +1,17 @@
-import { assertEquals, assertInstanceOf } from "https://deno.land/std@0.145.0/testing/asserts.ts";
-import { describe, it,  beforeAll } from "https://deno.land/std@0.145.0/testing/bdd.ts";
-import { Application, Router, Context } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
-import { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";
+import { assertEquals, assertInstanceOf } from "std/asserts";
+import { Context } from "oak";
 import Zoic from '../../zoic.ts';
 import PerfMetrics from '../performanceMetrics.ts';
+import { TestServer } from './test_server.ts';
 
-
-describe("Cache should contain correct metrics", () => {
-
+Deno.test("Cache should contain correct metrics", async (t) => {
   const cache = new Zoic({capacity:5});
 
-  it("should have a metrics property with an object as its value", () => {
-    assertInstanceOf(cache.metrics, PerfMetrics)
+  await t.step("should have a metrics property with an object as its value", () => {
+    assertInstanceOf(cache.metrics, PerfMetrics);
   });
 
-  it("should initialize each metric to correct type", () => {
+  await t.step("should initialize each metric to correct type", () => {
     assertEquals(cache.metrics.numberOfEntries, 0);
     assertEquals(cache.metrics.readsProcessed, 0);
     assertEquals(cache.metrics.writesProcessed, 0);
@@ -25,50 +22,53 @@ describe("Cache should contain correct metrics", () => {
   });
 });
 
-describe("Each metric property updated accurately", () => {
+Deno.test("Each metric property updated accurately", async (t) => {
   const cache = new Zoic({capacity:3});
-  const app = new Application();
-  const router = new Router();
-  app.use(router.routes());
-  app.use(router.allowedMethods());
+  const server = new TestServer();
+  const router = server.getRouter();
 
-  beforeAll(async () => {
-    router
-      .get('/test1', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-      .get('/test2', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-      .get('/test3', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-      .get('/test4', cache.use, (ctx: Context) => {ctx.response.body = 'testing123'})
-    const request1 = await superoak(app);
-    const request2 = await superoak(app);
-    const request3 = await superoak(app);
-    const request4 = await superoak(app);
-    const request5 = await superoak(app);
-    const request6 = await superoak(app);
-    const request7 = await superoak(app);
-    const request8 = await superoak(app);
-    await request1.get('/test1');
-    await request2.get('/test1');
-    await request3.get('/test2');
-    await request4.get('/test2');
-    await request5.get('/test2');
-    await request6.get('/test2');
-    await request7.get('/test3');
-    await request8.get('/test4');
+  // Setup routes for tests 1-4
+  Array.from({ length: 4 }, (_, i) => i + 1).forEach(i => {
+    router.get(`/test${i}`, cache.use, (ctx: Context) => {
+      ctx.response.body = 'testing123';
+    });
   });
 
-  it("should handle numberOfEntries correctly", () => {
-    assertEquals(cache.metrics.numberOfEntries, 3);
-  });
+  const port = await server.start();
 
-  it("should have a readProcessed method that updates readsProcessed correctly", () => {
-    assertEquals(cache.metrics.readsProcessed, 4);
-  });
+  try {
+    const baseUrl = `http://localhost:${port}/test`;
 
-  it("should have a writeProcessed method that updates writesProcessed correctly", () => {
-    assertEquals(cache.metrics.writesProcessed, 4);
-  });
-  
-  it("should have an increaseBytes method that updates memoryUsed correctly", () => {
-    assertEquals(cache.metrics.memoryUsed, 390);
-  });
+    // Sequential requests with immediate body consumption
+    for (const response of [
+      await fetch(baseUrl + '1'),
+      await fetch(baseUrl + '1'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '2'),
+      await fetch(baseUrl + '3'),
+      await fetch(baseUrl + '4')
+    ]) {
+      await response.body?.cancel();
+    }
+
+    await t.step("should handle numberOfEntries correctly", () => {
+      assertEquals(cache.metrics.numberOfEntries, 3);
+    });
+
+    await t.step("should have a readProcessed method that updates readsProcessed correctly", () => {
+      assertEquals(cache.metrics.readsProcessed, 4);
+    });
+
+    await t.step("should have a writeProcessed method that updates writesProcessed correctly", () => {
+      assertEquals(cache.metrics.writesProcessed, 4);
+    });
+
+    await t.step("should have an increaseBytes method that updates memoryUsed correctly", () => {
+      assertEquals(cache.metrics.memoryUsed, 390);
+    });
+  } finally {
+    server.stop();
+  }
 });

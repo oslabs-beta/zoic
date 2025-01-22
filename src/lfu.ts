@@ -27,12 +27,11 @@ class LFU {
 
   /**
    * Adds new item to cache.
-   * @param key 
-   * @param value 
-   * @returns 
+   * @param key
+   * @param value
+   * @returns
    */
-  put(key: string, value: cacheValue, byteSize: number){
-
+  public put(key: string, value: cacheValue, byteSize: number){
     if (this.cache[key]){
       this.metrics.decreaseBytes(this.cache[key].byteSize);
       this.metrics.increaseBytes(byteSize);
@@ -56,14 +55,12 @@ class LFU {
     return;
   }
 
-  get(key: string){
-
+  public get(key: string){
     if (!this.cache[key]) return;
-
     //if entry is stale, deletes and exits
     const currentTime = new Date();
     const timeElapsed = Math.abs(currentTime.getTime() - this.cache[key].timeStamp.getTime()) / 1000;
-    
+
     if (timeElapsed > this.expire) {
       this.metrics.decreaseBytes(this.cache[key].byteSize);
       this.delete(key);
@@ -77,7 +74,7 @@ class LFU {
     }
   }
 
-  delete(key: string){
+  public delete(key: string){
     const node = this.cache[key];
     if (!node) return;
 
@@ -89,7 +86,7 @@ class LFU {
     return node;
   }
 
-  clear(){
+  public clear(){
     this.freqList = new FreqDoublyLinkedList();
     this.cache = {};
     this.length = 0;
