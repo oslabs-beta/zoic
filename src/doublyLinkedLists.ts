@@ -48,24 +48,46 @@ export class ValueDoublyLinkedList {
   }
 
   public delete(node: Node | null){
-    if (!node) return;
-    node.prev ?
-      node.prev.next = node.next
-      : this.head = node.next;
-    node.next ?
-      node.next.prev = node.prev
-      : this.tail = node.prev;
+    if (!node) {
+      return;
+    }
+
+    if (node.prev) {
+      node.prev.next = node.next;
+    } else {
+      this.head = node.next;
+    }
+
+    if (node.next) {
+      node.next.prev = node.prev;
+    } else {
+      this.tail = node.prev;
+    }
+
     return node;
   }
 
-  public deleteTail(){
+  public deleteTail(): Node | null {
+    if (!this.tail) {
+        return null; // no nodes to delete
+    }
+
     const deleted = this.tail;
     if (this.head === this.tail) {
-      this.head = this.tail = null;
-    } else if (this.tail) {
-      this.tail = this.tail.prev
-      if (this.tail) this.tail.next = null;
+        // handle single-node case
+        this.head = this.tail = null;
+    } else {
+        // handle multiple-node case
+        this.tail = this.tail.prev;
+        if (this.tail) {
+            this.tail.next = null;
+        }
     }
+
+    // cleanup for deleted node's references
+    deleted.prev = null;
+    deleted.next = null;
+
     return deleted;
   }
 }
@@ -143,21 +165,36 @@ export class FreqDoublyLinkedList {
     : undefined;
 
   public deleteValNode(node: Node | null){
-    if (!node || !node.parent) return;
+    if (!node || !node.parent) {
+        return;
+    }
+
     const { valList } = node.parent;
     valList.delete(node);
-    if (!valList.head) this.delete(node.parent);
+    if (!valList.head) {
+        this.delete(node.parent);
+    }
+
     return node;
   }
 
   public delete(freqNode: FreqNode | null){
-    if (!freqNode) return;
-    freqNode.prev ?
-      freqNode.prev.next = freqNode.next
-      : this.head = freqNode.next;
-    freqNode.next ?
-      freqNode.next.prev = freqNode.prev
-      : this.tail = freqNode.prev;
+    if (!freqNode) {
+      return;
+    }
+
+    if (freqNode.prev) {
+      freqNode.prev.next = freqNode.next;
+    } else {
+        this.head = freqNode.next;
+    }
+
+    if (freqNode.next) {
+      freqNode.next.prev = freqNode.prev;
+    } else {
+        this.tail = freqNode.prev;
+    }
+
     return freqNode;
   }
 }

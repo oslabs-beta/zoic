@@ -45,14 +45,16 @@ class LFU {
 
     if (this.length < this.capacity) {
       this.length++;
-    } else {
-      const deletedNode: Node | undefined = this.freqList.deleteLeastFreq();
-      if (!deletedNode) throw new Error('Node is null. Ensure cache capcity is greater than 0.');
-      delete this.cache[deletedNode.key];
-      this.metrics.decreaseBytes(deletedNode.byteSize);
+      return;
     }
 
-    return;
+    const deletedNode: Node | undefined = this.freqList.deleteLeastFreq();
+    if (!deletedNode) {
+        throw new Error('Node is null. Ensure cache capcity is greater than 0.');
+    }
+
+    delete this.cache[deletedNode.key];
+    this.metrics.decreaseBytes(deletedNode.byteSize);
   }
 
   public get(key: string){

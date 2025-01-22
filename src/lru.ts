@@ -21,7 +21,6 @@ class LRU {
     this.capacity = capacity;
     this.expire = expire;
     this.metrics = metrics;
-
     this.get = this.get.bind(this);
     this.put = this.put.bind(this);
     this.delete = this.delete.bind(this);
@@ -34,7 +33,7 @@ class LRU {
    * @param value
    * @returns
    */
-  public put (key: string, value: cacheValue, byteSize: number)  {
+  public put(key: string, value: cacheValue, byteSize: number)  {
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
     if (this.cache[key]){
       this.metrics.decreaseBytes(this.cache[key].byteSize);
@@ -51,14 +50,16 @@ class LRU {
     //evalutes if least recently used item should be evicted.
     if (this.length < this.capacity) {
       this.length++;
-    } else {
-      const deletedNode: Node | null = this.list.deleteTail();
-      if (deletedNode === null) throw new Error('Node is null. Ensure cache capcity is greater than 0.');
-      delete this.cache[deletedNode.key];
-      this.metrics.decreaseBytes(deletedNode.byteSize);
+      return;
     }
 
-    return;
+    const deletedNode: Node | null = this.list.deleteTail();
+    if (deletedNode === null) {
+      throw new Error('Node is null. Ensure cache capcity is greater than 0.');
+    }
+
+    delete this.cache[deletedNode.key];
+    this.metrics.decreaseBytes(deletedNode.byteSize);
   }
 
   /**
@@ -66,7 +67,7 @@ class LRU {
    * @param key
    * @returns
    */
-  public get (key: string) {
+  public get(key: string) {
     //If no matching cache value (cache miss), return next();
     if (!this.cache[key]) return undefined;
 
@@ -80,7 +81,9 @@ class LRU {
     }
 
     // if current key is already node at head of list, return immediately.
-    if (this.cache[key] === this.list.head) return this.list.head.value;
+    if (this.cache[key] === this.list.head) {
+        return this.list.head.value;
+    }
 
     //create new node, then delete node at current key, to replace at list head.
     const node = this.cache[key];
@@ -97,7 +100,7 @@ class LRU {
    * @param key
    * @returns
    */
-  public delete (key: string) {
+  public delete(key: string) {
     const node = this.cache[key];
     if (!node) return;
 
@@ -111,7 +114,7 @@ class LRU {
   /**
    * Clears entire cache contents.
    */
-  public clear () {
+  public clear() {
     this.list = new ValueDoublyLinkedList();
     this.cache = {};
     this.length = 0;
