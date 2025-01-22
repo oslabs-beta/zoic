@@ -13,7 +13,13 @@ export class Node {
   timeStamp: Date;
   parent?: FreqNode;
 
-  constructor(key: string, value: cacheValue, byteSize: number, timeStamp: Date, parent?: FreqNode){
+  constructor(
+      key: string,
+      value: cacheValue,
+      byteSize: number,
+      timeStamp: Date,
+      parent?: FreqNode
+  ) {
     this.next = null;
     this.prev = null;
     this.value = value;
@@ -34,7 +40,13 @@ export class ValueDoublyLinkedList {
     this.tail = null;
   }
 
-  public addHead(key: string, value: cacheValue, byteSize: number, timeStamp: Date, parent?: FreqNode){
+  public addHead(
+      key: string,
+      value: cacheValue,
+      byteSize: number,
+      timeStamp: Date,
+      parent?: FreqNode
+  ) {
     const node = new Node(key, value, byteSize, timeStamp, parent);
     if (!this.head) {
       this.head = node;
@@ -47,7 +59,7 @@ export class ValueDoublyLinkedList {
     return this.head;
   }
 
-  public delete(node: Node | null){
+  public delete(node: Node | null) {
     if (!node) {
       return;
     }
@@ -69,7 +81,7 @@ export class ValueDoublyLinkedList {
 
   public deleteTail(): Node | null {
     if (!this.tail) {
-        return null; // no nodes to delete
+        return null;
     }
 
     const deleted = this.tail;
@@ -101,7 +113,7 @@ export class FreqNode {
   next: FreqNode | null;
   prev: FreqNode | null;
 
-  constructor(freqValue: number){
+  constructor(freqValue: number) {
     this.freqValue = freqValue;
     this.valList = new ValueDoublyLinkedList();
     this.next = null;
@@ -114,13 +126,13 @@ export class FreqDoublyLinkedList {
   head: FreqNode | null;
   tail: FreqNode | null;
 
-  constructor(){
+  constructor() {
     //head being lowest freq item, tail being highest.
     this.head = null;
     this.tail = null;
   }
 
-  public addNewFreq(key: string, value: cacheValue, byteSize: number, timeStamp: Date){
+  public addNewFreq(key: string, value: cacheValue, byteSize: number, timeStamp: Date) {
     if (!this.head) {
       this.head = new FreqNode(1);
       this.tail = this.head;
@@ -134,8 +146,11 @@ export class FreqDoublyLinkedList {
     return this.head.valList.addHead(key, value, byteSize, timeStamp, this.head);
   }
 
-  public increaseFreq(node: Node){
-    if (!node.parent) return;
+  public increaseFreq(node: Node) {
+    if (!node.parent) {
+        return;
+    }
+
     const { key, value, byteSize, timeStamp, parent } = node;
 
     //is highest freq
@@ -164,7 +179,7 @@ export class FreqDoublyLinkedList {
     this.deleteValNode(this.head.valList.tail)
     : undefined;
 
-  public deleteValNode(node: Node | null){
+  public deleteValNode(node: Node | null) {
     if (!node || !node.parent) {
         return;
     }
@@ -178,7 +193,7 @@ export class FreqDoublyLinkedList {
     return node;
   }
 
-  public delete(freqNode: FreqNode | null){
+  public delete(freqNode: FreqNode | null) {
     if (!freqNode) {
       return;
     }

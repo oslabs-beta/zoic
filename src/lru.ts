@@ -33,7 +33,7 @@ class LRU {
    * @param value
    * @returns
    */
-  public put(key: string, value: cacheValue, byteSize: number)  {
+  public put(key: string, value: cacheValue, byteSize: number) {
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
     if (this.cache[key]){
       this.metrics.decreaseBytes(this.cache[key].byteSize);

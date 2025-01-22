@@ -16,7 +16,7 @@ class LFU {
   expire: number;
   metrics: PerfMetrics;
 
-  constructor(expire: number, metrics: PerfMetrics, capacity: number){
+  constructor(expire: number, metrics: PerfMetrics, capacity: number) {
     this.freqList = new FreqDoublyLinkedList();
     this.cache = {};
     this.length = 0;
@@ -31,7 +31,7 @@ class LFU {
    * @param value
    * @returns
    */
-  public put(key: string, value: cacheValue, byteSize: number){
+  public put(key: string, value: cacheValue, byteSize: number) {
     if (this.cache[key]){
       this.metrics.decreaseBytes(this.cache[key].byteSize);
       this.metrics.increaseBytes(byteSize);
@@ -57,7 +57,7 @@ class LFU {
     this.metrics.decreaseBytes(deletedNode.byteSize);
   }
 
-  public get(key: string){
+  public get(key: string) {
     if (!this.cache[key]) return;
     //if entry is stale, deletes and exits
     const currentTime = new Date();
@@ -76,7 +76,7 @@ class LFU {
     }
   }
 
-  public delete(key: string){
+  public delete(key: string) {
     const node = this.cache[key];
     if (!node) return;
 
@@ -88,7 +88,7 @@ class LFU {
     return node;
   }
 
-  public clear(){
+  public clear() {
     this.freqList = new FreqDoublyLinkedList();
     this.cache = {};
     this.length = 0;
