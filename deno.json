@@ -1,4 +1,8 @@
 {
+  "name": "@hankthetank27/zoic",
+  "version": "1.0.6",
+  "license": "MIT",
+  "exports": "./zoic.ts",
   "imports": {
     "std/base64": "https://deno.land/std@0.89.0/encoding/base64.ts",
     "std/asserts": "https://deno.land/std@0.224.0/testing/asserts.ts",
