@@ -1,6 +1,6 @@
-import { ValueDoublyLinkedList, Node } from './doublyLinkedLists.ts'
-import { cacheValue } from './types.ts'
-import PerfMetrics from './performanceMetrics.ts'
+import { ValueDoublyLinkedList, type Node } from './doublyLinkedLists.ts'
+import type { CacheValue } from './types.ts'
+import type PerfMetrics from './performanceMetrics.ts'
 
 /**
  * Cache implementing a least recently used eviction policy.
@@ -33,7 +33,7 @@ class LRU {
    * @param value
    * @returns
    */
-  public put(key: string, value: cacheValue, byteSize: number) {
+  public put(key: string, value: CacheValue, byteSize: number): CacheValue | undefined {
     //if key alreadys exits in cache, replace key value with new value, and move to list head.
     if (this.cache[key]){
       this.metrics.decreaseBytes(this.cache[key].byteSize);
@@ -67,9 +67,11 @@ class LRU {
    * @param key
    * @returns
    */
-  public get(key: string) {
+  public get(key: string): CacheValue | undefined {
     //If no matching cache value (cache miss), return next();
-    if (!this.cache[key]) return undefined;
+    if (!this.cache[key]) {
+        return;
+    }
 
     //if entry is stale, deletes and exits
     const currentTime = new Date();
@@ -100,9 +102,11 @@ class LRU {
    * @param key
    * @returns
    */
-  public delete(key: string) {
+  public delete(key: string): Node | undefined {
     const node = this.cache[key];
-    if (!node) return;
+    if (!node) {
+        return;
+    }
 
     this.list.delete(node);
     delete this.cache[key];
@@ -114,7 +118,7 @@ class LRU {
   /**
    * Clears entire cache contents.
    */
-  public clear() {
+  public clear(): void {
     this.list = new ValueDoublyLinkedList();
     this.cache = {};
     this.length = 0;

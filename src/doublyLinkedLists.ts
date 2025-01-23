@@ -1,4 +1,4 @@
-import { cacheValue } from './types.ts'
+import type { CacheValue } from './types.ts'
 
 /**
  * Class definition for linked list containing cached values for both LRU and LFU.
@@ -6,7 +6,7 @@ import { cacheValue } from './types.ts'
 export class Node {
   next: Node | null;
   prev: Node | null;
-  value: cacheValue;
+  value: CacheValue;
   key: string;
   count: number;
   byteSize: number;
@@ -15,7 +15,7 @@ export class Node {
 
   constructor(
       key: string,
-      value: cacheValue,
+      value: CacheValue,
       byteSize: number,
       timeStamp: Date,
       parent?: FreqNode
@@ -42,11 +42,11 @@ export class ValueDoublyLinkedList {
 
   public addHead(
       key: string,
-      value: cacheValue,
+      value: CacheValue,
       byteSize: number,
       timeStamp: Date,
       parent?: FreqNode
-  ) {
+  ): Node {
     const node = new Node(key, value, byteSize, timeStamp, parent);
     if (!this.head) {
       this.head = node;
@@ -59,7 +59,7 @@ export class ValueDoublyLinkedList {
     return this.head;
   }
 
-  public delete(node: Node | null) {
+  public delete(node: Node | null): Node | undefined {
     if (!node) {
       return;
     }
@@ -132,7 +132,7 @@ export class FreqDoublyLinkedList {
     this.tail = null;
   }
 
-  public addNewFreq(key: string, value: cacheValue, byteSize: number, timeStamp: Date) {
+  public addNewFreq(key: string, value: CacheValue, byteSize: number, timeStamp: Date): Node {
     if (!this.head) {
       this.head = new FreqNode(1);
       this.tail = this.head;
@@ -146,7 +146,7 @@ export class FreqDoublyLinkedList {
     return this.head.valList.addHead(key, value, byteSize, timeStamp, this.head);
   }
 
-  public increaseFreq(node: Node) {
+  public increaseFreq(node: Node): Node | undefined {
     if (!node.parent) {
         return;
     }
@@ -175,11 +175,11 @@ export class FreqDoublyLinkedList {
     return parent.next.valList.addHead(key, value, byteSize, timeStamp, parent.next);
   }
 
-  public deleteLeastFreq = () => this.head ?
+  public deleteLeastFreq = (): Node | undefined => this.head ?
     this.deleteValNode(this.head.valList.tail)
     : undefined;
 
-  public deleteValNode(node: Node | null) {
+  public deleteValNode(node: Node | null): Node | undefined {
     if (!node || !node.parent) {
         return;
     }
@@ -193,7 +193,7 @@ export class FreqDoublyLinkedList {
     return node;
   }
 
-  public delete(freqNode: FreqNode | null) {
+  public delete(freqNode: FreqNode | null): FreqNode | undefined {
     if (!freqNode) {
       return;
     }

@@ -1,4 +1,4 @@
-export interface options {
+export interface Options {
   cache?: string;
   port?: number;
   hostname?: string;
@@ -7,7 +7,7 @@ export interface options {
   capacity?: number;
 }
 
-export interface cacheValue {
+export interface CacheValue {
   headers: { [k:string]:string };
   body: Uint8Array;
   status: number;

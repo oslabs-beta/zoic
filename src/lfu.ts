@@ -1,6 +1,6 @@
-import { FreqDoublyLinkedList, Node } from './doublyLinkedLists.ts'
-import { cacheValue } from './types.ts'
-import PerfMetrics from './performanceMetrics.ts'
+import { FreqDoublyLinkedList, type Node } from './doublyLinkedLists.ts'
+import type { CacheValue } from './types.ts'
+import type PerfMetrics from './performanceMetrics.ts'
 
 
 /**
@@ -31,7 +31,7 @@ class LFU {
    * @param value
    * @returns
    */
-  public put(key: string, value: cacheValue, byteSize: number) {
+  public put(key: string, value: CacheValue, byteSize: number): CacheValue | undefined {
     if (this.cache[key]){
       this.metrics.decreaseBytes(this.cache[key].byteSize);
       this.metrics.increaseBytes(byteSize);
@@ -57,8 +57,11 @@ class LFU {
     this.metrics.decreaseBytes(deletedNode.byteSize);
   }
 
-  public get(key: string) {
-    if (!this.cache[key]) return;
+  public get(key: string): CacheValue | undefined {
+    if (!this.cache[key]) {
+        return;
+    }
+
     //if entry is stale, deletes and exits
     const currentTime = new Date();
     const timeElapsed = Math.abs(currentTime.getTime() - this.cache[key].timeStamp.getTime()) / 1000;
@@ -76,9 +79,11 @@ class LFU {
     }
   }
 
-  public delete(key: string) {
+  public delete(key: string): Node | undefined {
     const node = this.cache[key];
-    if (!node) return;
+    if (!node) {
+        return;
+    }
 
     this.freqList.deleteValNode(node);
 
@@ -88,7 +93,7 @@ class LFU {
     return node;
   }
 
-  public clear() {
+  public clear(): void {
     this.freqList = new FreqDoublyLinkedList();
     this.cache = {};
     this.length = 0;

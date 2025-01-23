@@ -24,14 +24,14 @@ class PerfMetrics {
     this.hitLatencyTotal = 0;
   }
 
-  public addEntry = () => this.numberOfEntries++;
-  public deleteEntry = () => this.numberOfEntries--;
-  public readProcessed = () => this.readsProcessed++;
-  public writeProcessed = () => this.writesProcessed++;
-  public clearEntires = () => this.numberOfEntries = 0;
-  public increaseBytes = (bytes: number) => this.memoryUsed += bytes;
-  public decreaseBytes = (bytes: number) => this.memoryUsed -= bytes;
-  public updateLatency = (latency: number, hitOrMiss: 'hit' | 'miss') => {
+  public addEntry = (): number => this.numberOfEntries++;
+  public deleteEntry = (): number => this.numberOfEntries--;
+  public readProcessed = (): number => this.readsProcessed++;
+  public writeProcessed = (): number => this.writesProcessed++;
+  public clearEntires = (): number => this.numberOfEntries = 0;
+  public increaseBytes = (bytes: number): number => this.memoryUsed += bytes;
+  public decreaseBytes = (bytes: number): number => this.memoryUsed -= bytes;
+  public updateLatency = (latency: number, hitOrMiss: 'hit' | 'miss'): void => {
     if (hitOrMiss === 'hit'){
       this.hitLatencyTotal += latency;
       this.currentHitLatency = latency;
