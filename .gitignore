@@ -1,2 +1,3 @@
 .DS_Store
 src/tests/coverage_report/
+deno.lock

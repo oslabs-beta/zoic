@@ -1,7 +1,11 @@
-import { decode as base64decode, encode as base64encode } from 'std/base64';
-import { Context } from 'oak';
-import { connect, Redis } from 'redis';
-import { oakCors } from 'cors';
+import {
+    base64decode,
+    base64encode,
+    Context,
+    connect,
+    oakCors
+} from './deps.ts';
+import type { Redis } from "./deps.ts";
 import { options, cacheValue } from './src/types.ts'
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts'

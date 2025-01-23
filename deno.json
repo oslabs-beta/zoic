@@ -1,16 +1,12 @@
 {
-  "name": "@hankthetank27/zoic",
-  "version": "1.0.6",
-  "license": "MIT",
-  "exports": "./zoic.ts",
-  "imports": {
-    "std/base64": "https://deno.land/std@0.89.0/encoding/base64.ts",
-    "std/asserts": "https://deno.land/std@0.224.0/testing/asserts.ts",
-    "std/bdd": "https://deno.land/std@0.224.0/testing/bdd.ts",
-    "oak": "https://deno.land/x/oak@v17.1.4/mod.ts",
-    "oak/application": "https://deno.land/x/oak@v17.1.4/application.ts",
-    "redis": "https://deno.land/x/redis@v0.37.1/mod.ts",
-    "redis/command": "https://deno.land/x/redis@v0.37.1/command.ts",
-    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts"
-  }
+  "name": "Zoic",
+  "version": "1.0.7",
+  "description": "Caching middleware library for Oak",
+  "exports": {
+    ".": "./zoic.ts"
+  },
+  "tasks": {
+    "test": "deno test ./src/tests/ --allow-net --allow-import"
+  },
+  "imports": {}
 }
