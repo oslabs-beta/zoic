@@ -1,5 +1,5 @@
-import { Application, Router } from "oak";
-import type { ApplicationListenEvent } from "oak/application";
+import { Application, Router } from "../../deps.ts";
+import type { ApplicationListenEvent } from "../../deps.ts";
 
 // Test server setup utility with proper cleanup
 export class TestServer {

@@ -1,5 +1,9 @@
-import { assertEquals, assert } from "std/asserts";
-import { describe, it } from "std/bdd";
+import {
+    assertEquals,
+    assert,
+    describe,
+    it
+} from "../../deps.ts";
 import PerfMetrics from '../performanceMetrics.ts';
 import LRU from '../lru.ts'
 

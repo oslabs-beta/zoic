@@ -4,8 +4,8 @@ import {
   assertEquals,
   assertInstanceOf,
   assertRejects,
-} from "std/asserts";
-import { Context } from "oak";
+  Context
+} from "../../deps.ts";
 import Zoic from "../../zoic.ts";
 import LRU from "../lru.ts";
 import LFU from "../lfu.ts";

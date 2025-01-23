@@ -1,5 +1,8 @@
-import { assertEquals, assertInstanceOf } from "std/asserts";
-import { Context } from "oak";
+import {
+    assertEquals,
+    assertInstanceOf,
+    Context
+} from "../../deps.ts";
 import Zoic from '../../zoic.ts';
 import PerfMetrics from '../performanceMetrics.ts';
 import { TestServer } from './test_server.ts';
