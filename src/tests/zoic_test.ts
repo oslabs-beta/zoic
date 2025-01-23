@@ -4,7 +4,7 @@ import {
   assertEquals,
   assertInstanceOf,
   assertRejects,
-  Context
+  type Context
 } from "../../deps.ts";
 import Zoic from "../../zoic.ts";
 import LRU from "../lru.ts";
@@ -78,7 +78,7 @@ Deno.test(
               cache: "LRU",
             }),
           TypeError,
-          "Cache expiration time must be string formatted as a numerical value followed by 'd', 'h', 'm', or 's', or a number representing time in seconds.",
+          'Invalid format. Use number followed by d, h, m, or s (e.g., "1d,12h").',
         );
       },
     );
@@ -112,12 +112,12 @@ Deno.test(
         assertThrows(
           () => new Zoic({ expire: 31536001 }),
           TypeError,
-          "Cache expiration time out of range.",
+          "Cache expiration must be between 1 second and 1 year.",
         );
         assertThrows(
           () => new Zoic({ expire: 0 }),
           TypeError,
-          "Cache expiration time out of range.",
+          "Cache expiration must be between 1 second and 1 year.",
         );
       },
     );

@@ -16,6 +16,9 @@ jobs:
         with:
           deno-version: canary
 
+      - name: Run lint
+        run: deno lint **/*.ts
+
       - name: Run tests
         run: deno test --coverage=./src/tests/coverage_report  ./src/tests/ --allow-net --allow-import
 

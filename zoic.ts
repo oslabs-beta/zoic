@@ -1,12 +1,12 @@
 import {
+    type Context,
     base64decode,
     base64encode,
-    Context,
     connect,
     oakCors
 } from './deps.ts';
 import type { Redis } from "./deps.ts";
-import { options, cacheValue } from './src/types.ts'
+import type { Options, CacheValue } from './src/types.ts'
 import PerfMetrics from './src/performanceMetrics.ts'
 import LRU from './src/lru.ts'
 import LFU from './src/lfu.ts'
@@ -53,7 +53,7 @@ export class Zoic {
   respondOnHit: boolean;
   cache: Promise < LRU | LFU | Redis >;
 
-  constructor (options?: options) {
+  constructor (options?: Options) {
     if (options?.capacity !== undefined && options.capacity <= 0){
       throw new Error('Cache capacity must exceed 0 entires.');
     }
@@ -109,24 +109,44 @@ export class Zoic {
    * @param numberString
    * @returns number
    */
-  private parseExpTime(numberString?: string | number | undefined) {
-    if (numberString === undefined) return Infinity;
-    let seconds;
-    if (typeof numberString === 'string'){
-      seconds = numberString.trim().split(',').reduce((arr, el) => {
-        if (el[el.length - 1] === 'd') return arr += parseInt(el.slice(0, -1)) * 86400;
-        if (el[el.length - 1] === 'h') return arr += parseInt(el.slice(0, -1)) * 3600;
-        if (el[el.length - 1] === 'm') return arr += parseInt(el.slice(0, -1)) * 60;
-        if (el[el.length - 1] === 's') return arr += parseInt(el.slice(0, -1));
-        throw new TypeError(
-          'Cache expiration time must be string formatted as a numerical value followed by \'d\', \'h\', \'m\', or \'s\', or a number representing time in seconds.'
-          )
-      }, 0);
-    } else {
-      seconds = numberString;
+  private parseExpTime(input?: string | number): number {
+    if (input === undefined) return Infinity;
+
+    if (typeof input === 'number') {
+        return this.validateSeconds(input);
     }
-    if (seconds > 31536000 || seconds <= 0 ) throw new TypeError('Cache expiration time out of range.');
-    return seconds;
+
+    const timeMap: Record<string, number> = {
+        'd': 86400,
+        'h': 3600,
+        'm': 60,
+        's': 1
+    };
+
+    const seconds = input
+        .trim()
+        .split(',')
+        .reduce((total, part) => {
+          const unit = part.slice(-1);
+          const value = parseInt(part.slice(0, -1));
+
+          if (isNaN(value) || !(unit in timeMap)) {
+            throw new TypeError(
+              'Invalid format. Use number followed by d, h, m, or s (e.g., "1d,12h").'
+            );
+          }
+
+        return total + value * timeMap[unit];
+    }, 0);
+
+    return this.validateSeconds(seconds);
+  }
+
+  private validateSeconds(seconds: number): number {
+    if (seconds <= 0 || seconds > 31536000) {
+        throw new TypeError('Cache expiration must be between 1 second and 1 year.');
+    }
+        return seconds;
   }
 
   /**
@@ -134,7 +154,7 @@ export class Zoic {
    * @param options
    * @returns
    */
-  private setRespondOnHit(options?: options) {
+  private setRespondOnHit(options?: Options) {
     if (options?.respondOnHit === undefined) return true;
     return options.respondOnHit;
   }
@@ -171,7 +191,7 @@ export class Zoic {
    * @param next
    * @returns Promise | void
    */
-  public async use(ctx: Context, next: () => Promise<unknown>) {
+  public async use(ctx: Context, next: () => Promise<unknown>): Promise<unknown> {
     try {
       const cache = await this.cache;
 
@@ -285,7 +305,7 @@ export class Zoic {
         if (!redisTypeCheck(cache)) {
           //make response body unit8array and read size for metrics
           const arrBuffer = await nativeResponse.clone().arrayBuffer();
-          const responseToCache: cacheValue = {
+          const responseToCache: CacheValue = {
             body: new Uint8Array(arrBuffer),
             headers: Object.fromEntries(nativeResponse.headers.entries()),
             status: nativeResponse.status
@@ -319,7 +339,7 @@ export class Zoic {
   /**
    * Manually clears all current cache entries.
    */
-  public async clear(ctx: Context, next: () => Promise<unknown>) {
+  public async clear(ctx: Context, next: () => Promise<unknown>): Promise<unknown> {
     try {
       const cache = await this.cache;
       this.redisTypeCheck(cache)
@@ -339,11 +359,11 @@ export class Zoic {
    * Retrives cache metrics. Designed for use with Chrome extension.
    * @param ctx
    */
-  public getMetrics(ctx: Context) {
+  public async getMetrics(ctx: Context): Promise<void> {
     try {
       //wrap functionality of sending metrics inside of oakCors to enable route specific cors by passing in as 'next'.
       const enableRouteCors = oakCors();
-      return enableRouteCors(ctx, async () => {
+      return await enableRouteCors(ctx, async () => {
         const cache = await this.cache;
         const {
           cacheType,
@@ -384,7 +404,6 @@ export class Zoic {
           average_hit_latency: hitLatencyTotal / readsProcessed,
           average_miss_latency: missLatencyTotal / writesProcessed
         }
-        return;
       })
     } catch (err) {
       ctx.response.status = 400;
@@ -399,7 +418,7 @@ export class Zoic {
    * @param next
    * @returns
    */
-  public put(ctx: Context, next: () => Promise<unknown>) {
+  public put(ctx: Context, next: () => Promise<unknown>): Promise<unknown> | undefined {
     try {
       performance.mark('startingMark');
 

@@ -1,7 +1,7 @@
 import {
     assertEquals,
     assertInstanceOf,
-    Context
+    type Context
 } from "../../deps.ts";
 import Zoic from '../../zoic.ts';
 import PerfMetrics from '../performanceMetrics.ts';
