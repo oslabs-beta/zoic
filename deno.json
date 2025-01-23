@@ -1,0 +1,12 @@
+{
+  "name": "Zoic",
+  "version": "1.0.7",
+  "description": "Caching middleware library for Oak",
+  "exports": {
+    ".": "./zoic.ts"
+  },
+  "tasks": {
+    "test": "deno test ./src/tests/ --allow-net --allow-import"
+  },
+  "imports": {}
+}
